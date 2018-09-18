@@ -19,12 +19,6 @@ On top of that a custom translucent blur effect is implemented. This works by ta
 
 As an example this project is an automated Clicker Application. It simulates mouse clicks at the current cursor location at the given interval. You can also register new Hotkeys to start and stop the clicking. The hotkeys are global system-wide hotkeys and work even if the Qt-Window is not focused. 
 
-Windows 10:
-
-| Windows 10 | Ubuntu 18.04 | Macos |
-:-------------------------:|:-------------------------:|:-------------------------:
-<img width="700" src="https://raw.githubusercontent.com/Ochrazy/Qt-FramelessNativeWindow/master/github-images/WindowsNativeFramelessWindow.gif">  |  <img width="700" src="https://raw.githubusercontent.com/Ochrazy/Qt-FramelessNativeWindow/master/github-images/UbuntuNativeFramelessWindow.gif">  | <img width="800" src="https://raw.githubusercontent.com/Ochrazy/Qt-FramelessNativeWindow/master/github-images/MacosNativeFramelessWindow.gif"> 
-
 | Windows 10 
 :-------------------------:
 <img width="700" src="https://raw.githubusercontent.com/Ochrazy/Qt-FramelessNativeWindow/master/github-images/WindowsNativeFramelessWindow.gif"> 
