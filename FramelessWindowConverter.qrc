@@ -1,0 +1,32 @@
+<RCC>
+    <qresource prefix="/">
+        <file>images/icon_window_close.png</file>
+        <file>images/icon_window_maximize.png</file>
+        <file>images/icon_window_minimize.png</file>
+        <file>images/icon_window_restore.png</file>
+        <file>Clicker.cpp</file>
+        <file>Clicker.h</file>
+        <file>FramelessWindowConverter.cpp</file>
+        <file>FramelessWindowConverter.h</file>
+        <file>FramelessWindowConverter_p.cpp</file>
+        <file>FramelessWindowConverter_p.h</file>
+        <file>FramelessWindowConverterLinux.cpp</file>
+        <file>FramelessWindowConverterLinux.h</file>
+        <file>FramelessWindowConverterMacos.h</file>
+        <file>FramelessWindowConverterWindows.cpp</file>
+        <file>FramelessWindowConverterWindows.h</file>
+        <file>InputSimulation.h</file>
+        <file>InputSimulation_linux.cpp</file>
+        <file>InputSimulation_macos.cpp</file>
+        <file>InputSimulation_windows.cpp</file>
+        <file>MachineClicker.cpp</file>
+        <file>MachineClicker.h</file>
+        <file>main.cpp</file>
+        <file>NativeWindowWindows.cpp</file>
+        <file>NativeWindowWindows.h</file>
+        <file>SystemWideHotkey.cpp</file>
+        <file>SystemWideHotkey.h</file>
+        <file>SystemWideHotkey_linux.cpp</file>
+        <file>SystemWideHotkey_windows.cpp</file>
+    </qresource>
+</RCC>
