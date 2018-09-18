@@ -2,7 +2,7 @@
 
 This project is work in progress. 
 
-The Qt-FramelessNativeWindow is a frameless Qt Desktop Window with added support for native OS-features. A frameless Window has no title bar and needs custom buttons to close, minimze or maximize the window.
+The Qt-FramelessNativeWindow is a frameless Qt Desktop Window with added support for native OS-features. A frameless Window has no title bar and needs custom close, minimze and maximize buttons.
 Supported platforms are Windows 10, Macos and Unix/Linux. 
 
 The native OS features supported are:
