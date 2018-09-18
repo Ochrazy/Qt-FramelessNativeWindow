@@ -33,17 +33,6 @@ unix:!macx:LIBS += -lX11 -lxcb
 SOURCES += \
         main.cpp \
         MachineClicker.cpp \
-    InputSimulation_linux.cpp \
-    InputSimulation_windows.cpp \
-    SystemWideHotkey_linux.cpp \
-    SystemWideHotkey.cpp \
-    SystemWideHotkey_windows.cpp \
-    Clicker.cpp \
-    FramelessWindowConverter.cpp \
-    FramelessWindowConverterWindows.cpp \
-    FramelessWindowConverterLinux.cpp \
-    FramelessWindowConverter_p.cpp \
-    NativeWindowWindows.cpp \
     Clicker.cpp \
     FramelessWindowConverter.cpp \
     FramelessWindowConverter_p.cpp \
@@ -52,9 +41,6 @@ SOURCES += \
     InputSimulation_linux.cpp \
     InputSimulation_macos.cpp \
     InputSimulation_windows.cpp \
-    MachineClicker.cpp \
-    main.cpp \
-    NativeWindowWindows.cpp \
     SystemWideHotkey.cpp \
     SystemWideHotkey_linux.cpp \
     SystemWideHotkey_windows.cpp
@@ -68,24 +54,12 @@ HEADERS += \
     InputSimulation.h \
     SystemWideHotkey.h \
     Clicker.h \
-    FramelessWindowConverter.h \
-    FramelessWindowConverter_p.h \
-    FramelessWindowConverterWindows.h \
-    FramelessWindowConverterLinux.h \
     MachineClicker.h \
-    FramelessWindowConverterLinux.h \
-    NativeWindowWindows.h \
-    FramelessWindowConverterMacos.h \
-    Clicker.h \
     FramelessWindowConverter.h \
     FramelessWindowConverter_p.h \
     FramelessWindowConverterLinux.h \
     FramelessWindowConverterMacos.h \
     FramelessWindowConverterWindows.h \
-    InputSimulation.h \
-    MachineClicker.h \
-    NativeWindowWindows.h \
-    SystemWideHotkey.h
 
 FORMS +=
 
