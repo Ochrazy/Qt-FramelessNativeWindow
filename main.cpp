@@ -1,6 +1,5 @@
 #include "MachineClicker.h"
 #include <QApplication>
-#include "NativeWindowWindows.h"
 
 int main(int argc, char *argv[])
 {
@@ -11,17 +10,4 @@ int main(int argc, char *argv[])
     w.show();
 
     return a.exec();
-
-//    try {
-//            NativeWindowWindows nativeWindow;
-
-//           MSG msg;
-//           while (::GetMessageW(&msg, nullptr, 0, 0) == TRUE) {
-//               ::TranslateMessage(&msg);
-//               ::DispatchMessageW(&msg);
-//           }
-//       }
-//       catch (const std::exception& e) {
-//           ::MessageBoxA(nullptr, e.what(), "Unhandled Exception", MB_OK|MB_ICONERROR);
-//       }
 }

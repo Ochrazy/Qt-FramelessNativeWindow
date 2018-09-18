@@ -79,24 +79,39 @@ MachineClicker::MachineClicker(QWidget *parent) :
 {
     CloseButton = new QPushButton(this);
     CloseButton->setFixedSize(20, 20);
-    CloseButton->setStyleSheet("QPushButton {background-color:black; "
-                               "image:url(://images/icon_window_close.png);}"
-                               "QPushButton:hover{ background-color:red; "
-                               "border:none;}");
+    CloseButton->setStyleSheet("QPushButton { "
+                               "image:url(://images/icon_window_close.png);"
+                               "background-color:black;"
+                               "border:none;"
+                               "width:20px;"
+                               "height:20px;"
+                               "padding:4px;"
+                               "border-top-right-radius: 0px;}"
+                               "QPushButton:hover{ background-color:red; }");
 
     MinimizeButton = new QPushButton(this);
     MinimizeButton->setFixedSize(20, 20);
-    MinimizeButton->setStyleSheet("QPushButton {background-color:black; "
-                                  "image:url(://images/icon_window_minimize.png);}"
-                                  "QPushButton:hover{ background-color:grey; "
-                                  "border:none;}");
+    MinimizeButton->setStyleSheet("QPushButton { "
+                                  "image:url(://images/icon_window_minimize.png);"
+                                  "background-color:black;"
+                                  "border:none;"
+                                  "width:20px;"
+                                  "height:20px;"
+                                  "padding:4px;"
+                                  "border-top-right-radius: 0px;}"
+                                  "QPushButton:hover{ background-color:grey; }");
 
     MaximizeButton = new QPushButton(this);
     MaximizeButton->setFixedSize(20, 20);
-    MaximizeButton->setStyleSheet("QPushButton {background-color:black; "
-                                  "image:url(://images/icon_window_maximize.png);}"
-                                  "QPushButton:hover{ background-color:grey; "
-                                  "border:none;}");
+    MaximizeButton->setStyleSheet("QPushButton { "
+                                  "image:url(://images/icon_window_maximize.png);"
+                                  "background-color:black;"
+                                  "border:none;"
+                                  "width:20px;"
+                                  "height:20px;"
+                                  "padding:4px;"
+                                  "border-top-right-radius: 0px;}"
+                                  "QPushButton:hover{ background-color:grey; }");
 
     StartStopButton = new QPushButton(this);
     StartStopButton->setCheckable(true);
@@ -165,18 +180,28 @@ MachineClicker::MachineClicker(QWidget *parent) :
         if(window()->isMaximized())
         {
             framelessWindowConverter.restoreWindow();
-            MaximizeButton->setStyleSheet("QPushButton {background-color:black; "
-                                          "image:url(://images/icon_window_maximize.png);}"
-                                          "QPushButton:hover{ background-color:red; "
-                                          "border:none;}");
+            MaximizeButton->setStyleSheet("QPushButton { "
+                                          "image:url(://images/icon_window_maximize.png);"
+                                          "background-color:black;"
+                                          "border:none;"
+                                          "width:20px;"
+                                          "height:20px;"
+                                          "padding:4px;"
+                                          "border-top-right-radius: 0px;}"
+                                          "QPushButton:hover{ background-color:grey; }");
         }
         else
         {
             framelessWindowConverter.maximizeWindow();
-            MaximizeButton->setStyleSheet("QPushButton {background-color:black; "
-                                          "image:url(://images/icon_window_restore.png);}"
-                                          "QPushButton:hover{ background-color:red; "
-                                          "border:none;}");
+            MaximizeButton->setStyleSheet("QPushButton { "
+                                          "image:url(://images/icon_window_restore.png);"
+                                          "background-color:black;"
+                                          "border:none;"
+                                          "width:20px;"
+                                          "height:20px;"
+                                          "padding:4px;"
+                                          "border-top-right-radius: 0px;}"
+                                          "QPushButton:hover{ background-color:grey; }");
         }
     });
     connect(StartStopButton, SIGNAL (toggled(bool)), this, SLOT (handleStartStopButton(bool)));

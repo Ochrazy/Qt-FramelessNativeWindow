@@ -32,15 +32,14 @@ unix:!macx:LIBS += -lX11 -lxcb
 
 SOURCES += \
         main.cpp \
-        MachineClicker.cpp \
     Clicker.cpp \
     FramelessWindowConverter.cpp \
     FramelessWindowConverter_p.cpp \
     FramelessWindowConverterLinux.cpp \
     FramelessWindowConverterWindows.cpp \
     InputSimulation_linux.cpp \
-    InputSimulation_macos.cpp \
     InputSimulation_windows.cpp \
+    MachineClicker.cpp \
     SystemWideHotkey.cpp \
     SystemWideHotkey_linux.cpp \
     SystemWideHotkey_windows.cpp
@@ -54,12 +53,12 @@ HEADERS += \
     InputSimulation.h \
     SystemWideHotkey.h \
     Clicker.h \
-    MachineClicker.h \
     FramelessWindowConverter.h \
     FramelessWindowConverter_p.h \
-    FramelessWindowConverterLinux.h \
-    FramelessWindowConverterMacos.h \
     FramelessWindowConverterWindows.h \
+    FramelessWindowConverterMacos.h \
+    FramelessWindowConverterLinux.h \
+    MachineClicker.h \ 
 
 FORMS +=
 
