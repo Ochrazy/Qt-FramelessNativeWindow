@@ -100,7 +100,11 @@ static QByteArray debugPWP(UINT pwp)
 
 bool FramelessWindowConverterWindows::filterNativeEvent(void *message, long *result)
 {
-    MSG* msg = *static_cast<MSG**>(message);
+    #if (QT_VERSION == QT_VERSION_CHECK(5, 11, 1))
+    MSG* msg = *reinterpret_cast<MSG**>(message); // Nice Bug Qt...
+    #else
+    MSG* msg = reinterpret_cast<MSG*>(message);
+    #endif    
 
     switch (msg->message)
     {
