@@ -1,11 +1,11 @@
-#include <FramelessWindowConverter_p.h>
+#include "FramelessWindowConverter_p.h"
 
 #ifdef WIN32
-#include <FramelessWindowConverterWindows.h>
+#include "FramelessWindowConverterWindows.h"
 #elif __linux__
-#include <FramelessWindowConverterLinux.h>
+#include "FramelessWindowConverterLinux.h"
 #elif __APPLE__
-#include <FramelessWindowConverterMacos.h>
+#include "FramelessWindowConverterMacos.h"
 #endif
 
 using namespace FWC;

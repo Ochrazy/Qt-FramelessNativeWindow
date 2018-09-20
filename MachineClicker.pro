@@ -32,33 +32,34 @@ unix:!macx:LIBS += -lX11 -lxcb
 
 SOURCES += \
         main.cpp \
-    Clicker.cpp \
-    FramelessWindowConverter.cpp \
-    FramelessWindowConverter_p.cpp \
-    FramelessWindowConverterLinux.cpp \
-    FramelessWindowConverterWindows.cpp \
-    InputSimulation_linux.cpp \
-    InputSimulation_windows.cpp \
-    MachineClicker.cpp \
-    SystemWideHotkey.cpp \
-    SystemWideHotkey_linux.cpp \
-    SystemWideHotkey_windows.cpp
+    FramelessWindowConverter/FramelessWindowConverter.cpp \
+    FramelessWindowConverter/FramelessWindowConverter_p.cpp \
+    FramelessWindowConverter/FramelessWindowConverterLinux.cpp \
+    FramelessWindowConverter/FramelessWindowConverterWindows.cpp \
+    InputSimulation/InputSimulation_linux.cpp \
+    InputSimulation/InputSimulation_macos.cpp \
+    InputSimulation/InputSimulation_windows.cpp \
+    SystemWideHotkey/SystemWideHotkey.cpp \
+    SystemWideHotkey/SystemWideHotkey_linux.cpp \
+    SystemWideHotkey/SystemWideHotkey_windows.cpp \
+    MachineClicker/Clicker.cpp \
+    MachineClicker/MachineClicker.cpp \
 
-OBJECTIVE_SOURCES += SystemWideHotkey_macos.mm \
-    InputSimulation_macos.mm \
-    Clicker_macos.mm \
-    FramelessWindowConverterMacos.mm
+OBJECTIVE_SOURCES += SystemWideHotkey/SystemWideHotkey_macos.mm \
+    InputSimulation/InputSimulation_macos.mm \
+    MachineClicker/Clicker_macos.mm
+    FramelessWindowConverter/FramelessWindowConverterMacos.mm
 
 HEADERS += \
-    InputSimulation.h \
-    SystemWideHotkey.h \
-    Clicker.h \
-    FramelessWindowConverter.h \
-    FramelessWindowConverter_p.h \
-    FramelessWindowConverterWindows.h \
-    FramelessWindowConverterMacos.h \
-    FramelessWindowConverterLinux.h \
-    MachineClicker.h \ 
+    FramelessWindowConverter/FramelessWindowConverter.h \
+    FramelessWindowConverter/FramelessWindowConverter_p.h \
+    FramelessWindowConverter/FramelessWindowConverterLinux.h \
+    FramelessWindowConverter/FramelessWindowConverterMacos.h \
+    FramelessWindowConverter/FramelessWindowConverterWindows.h \
+    InputSimulation/InputSimulation.h \
+    SystemWideHotkey/SystemWideHotkey.h \
+    MachineClicker/Clicker.h \
+    MachineClicker/MachineClicker.h
 
 FORMS +=
 

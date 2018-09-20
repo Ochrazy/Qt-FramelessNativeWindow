@@ -3,9 +3,9 @@
 
 #include <QMainWindow>
 #include <QThread>
-#include "InputSimulation.h"
-#include "SystemWideHotkey.h"
-#include "FramelessWindowConverter.h"
+#include "InputSimulation/InputSimulation.h"
+#include "SystemWideHotkey/SystemWideHotkey.h"
+#include "FramelessWindowConverter/FramelessWindowConverter.h"
 #include <QOpenGLWidget>
 #include <QFrame>
 #include <QTimer>

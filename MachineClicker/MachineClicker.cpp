@@ -356,7 +356,6 @@ void MachineClicker::paintEvent(QPaintEvent* ev)
             });
         }
     }
-
 }
 
 bool MachineClicker::event(QEvent* ev)
@@ -380,18 +379,10 @@ void MachineClicker::moveEvent(QMoveEvent* ev)
 
 bool MachineClicker::eventFilter(QObject* obj, QEvent* ev)
 {
-    //if(obj == this)
     switch(ev->type())
     {
-    case QEvent::Polish:
-    {
-        //        int i = 0;
-        //        return true;
-        break;
-    }
     case QEvent::Paint:
-        if(!noDraw || (obj == this) ) {/* qDebug("draw");*/ return false; }
-        //qDebug("noDraw");
+        if(!noDraw || (obj == this) ) { return false; }
         QPainter painter;
         painter.begin((QWidget*)obj);
         painter.setOpacity(0.0);

@@ -3,7 +3,7 @@
 
 #ifdef WIN32
 
-#include <FramelessWindowConverter_p.h>
+#include "FramelessWindowConverter_p.h"
 #include <qt_windows.h>
 
 namespace FWC

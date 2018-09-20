@@ -1,5 +1,5 @@
 #include "Clicker.h"
-#include "InputSimulation.h"
+#include "InputSimulation/InputSimulation.h"
 #include <QTimer>
 #include <QTime>
 #include <QElapsedTimer>
