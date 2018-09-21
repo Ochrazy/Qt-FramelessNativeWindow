@@ -19,258 +19,11 @@ OSStatus handleHotkey(EventHandlerCallRef nextHandler, EventRef event, void* dat
 
     if (GetEventClass(event) == kEventClassKeyboard && GetEventKind(event) == kEventHotKeyPressed)
     {
-//        EventHotKeyID keyID;
-//        GetEventParameter(event, kEventParamDirectObject, typeEventHotKeyID, nullptr, sizeof(keyID), nullptr, &keyID);
-//        Identifier id = keyIDs.key(keyID.id);
-
-//        if(id.second == thisHotkey->getCurrentKeycode())
-//        {
-            emit thisHotkey->hotkeyPressed();
-       // }
+        emit thisHotkey->hotkeyPressed();
     }
 
     return noErr;
 }
-/*
-
-@interface Clicker : NSObject {
-                         BOOL isClicking;
-BOOL isWaiting;
-BOOL fnPressed;
-
-NSTimer* waitingTimer;
-NSInteger stationarySeconds;
-NSTimeInterval lastMoved; // Mouse
-
-NSDictionary* params; // for keeping the parameters between threads and timers
-NSThread* clickThread;
-}
-
-@property (assign) BOOL isClicking;
-
-- (void)stopClicking;
-- (void)startClicking:(int)button rate:(NSInteger)rate
-  startAfter:(NSInteger)start stopAfter:(NSInteger)stop
-  ifStationaryFor:(NSInteger)stationary;
-
-@end
-
-@implementation Clicker
-
-@synthesize isClicking;
-
-- (BOOL)checkBeforeClicking {
-    if ([[NSThread currentThread] isCancelled]) [NSThread exit];
-        return !fnPressed;
-
-    return NO;
-}
-
-- (void)leftClick {
-    if (![self checkBeforeClicking]) return;
-
-    // Get the mouse position
-    CGPoint point = [NSEvent mouseLocation];
-
-
-    point.y = [[NSScreen mainScreen] frame].size.height - point.y;
-    CGEventRef leftClick = CGEventCreateMouseEvent(NULL, kCGEventLeftMouseDown, point, kCGMouseButtonLeft);
-    CGEventPost(kCGHIDEventTap, leftClick);
-    CGEventSetType(leftClick, kCGEventLeftMouseUp);
-    CGEventPost(kCGHIDEventTap, leftClick);
-    CFRelease(leftClick);
-}
-
-- (void)rightClick {
-
-    // Get the mouse position
-    CGPoint point = [NSEvent mouseLocation];
-
-    // Is Autoclick's window front and the cursor is inside it ?
-
-    //if (DEBUG_ENABLED) NSLog(@"Right Click!");
-    point.y = [[NSScreen mainScreen] frame].size.height - point.y;
-    CGEventRef rightClick = CGEventCreateMouseEvent(NULL, kCGEventRightMouseDown, point, kCGMouseButtonRight);
-    CGEventPost(kCGHIDEventTap, rightClick);
-    CGEventSetType(rightClick, kCGEventRightMouseUp);
-    CGEventPost(kCGHIDEventTap, rightClick);
-    CFRelease(rightClick);
-}
-
-- (void)middleClick {
-
-    // Get the mouse position
-    CGPoint point = [NSEvent mouseLocation];
-
-
-    // if (DEBUG_ENABLED) NSLog(@"Middle Click!");
-    point.y = [[NSScreen mainScreen] frame].size.height - point.y;
-    CGEventRef middleClick = CGEventCreateMouseEvent(NULL, kCGEventOtherMouseDown, point, kCGMouseButtonCenter);
-    CGEventPost(kCGHIDEventTap, middleClick);
-    CGEventSetType(middleClick, kCGEventOtherMouseUp);
-    CGEventPost(kCGHIDEventTap, middleClick);
-    CFRelease(middleClick);
-}
-
-- (void)clickThread:(NSDictionary*)parameters {
-    if (isClicking)
-    {
-        NSTimeInterval timeInterval = [[parameters objectForKey:@"rate"] doubleValue] / 1000;
-
-        NSRunLoop* runLoop = [NSRunLoop currentRunLoop];
-        NSTimer* timer;
-
-        SEL selector = nil;
-
-        selector = @selector(leftClick);
-
-        timer = [NSTimer scheduledTimerWithTimeInterval:timeInterval target:self selector:selector userInfo:nil repeats:YES];
-
-        if ([[parameters objectForKey:@"stop"] integerValue] > 0)
-            [NSTimer scheduledTimerWithTimeInterval:[[parameters objectForKey:@"stop"] integerValue] target:self selector:@selector(stopClickingByTimer:) userInfo:[NSDictionary dictionaryWithObject:clickThread forKey:@"clickThread"] repeats:NO];
-
-        stationarySeconds = [[parameters objectForKey:@"stationary"] integerValue];
-
-        if ([NSEvent modifierFlags] & NSFunctionKeyMask)
-        {
-
-
-        }
-        else
-        {
-
-
-        }
-
-        [runLoop run];
-    }
-}
-
-- (void)stopClickingByTimer:(NSTimer*)timer {
-    if (waitingTimer)
-    {
-        [waitingTimer invalidate];
-        waitingTimer = nil;
-    }
-
-    NSThread* theThread = [[timer userInfo] objectForKey:@"clickThread"];
-    if (theThread)
-        [theThread cancel];
-
-    isClicking = NO;
-
-
-    // if (DEBUG_ENABLED) NSLog(@"Stopped Clicking Thread");
-}
-
-- (void)stopClicking {
-    if (waitingTimer)
-    {
-        [waitingTimer invalidate];
-        waitingTimer = nil;
-    }
-
-    [clickThread cancel];
-    isClicking = NO;
-
-
-    //if (DEBUG_ENABLED) NSLog(@"Stopped Clicking Thread");
-}
-
-- (void)startClickingThread:(NSDictionary*)parameters {
-    // if (DEBUG_ENABLED) NSLog(@"Starting Clicking Thread…");
-    if ([parameters isKindOfClass:[NSTimer class]])
-        parameters = [(NSTimer*)parameters userInfo];
-    clickThread = [[NSThread alloc] initWithTarget:self selector:@selector(clickThread:) object:parameters];
-
-    isWaiting = NO;
-    [clickThread start];
-}
-
-- (void)startClickingThread:(NSDictionary*)parameters after:(NSInteger)start {
-    isWaiting = YES;
-    waitingTimer = [NSTimer scheduledTimerWithTimeInterval:start target:self selector:@selector(startClickingThread:) userInfo:parameters repeats:NO];
-
-
-
-}
-
-- (void)startClicking:(int)button rate:(NSInteger)rate
-  startAfter:(NSInteger)start stopAfter:(NSInteger)stop
-  ifStationaryFor:(NSInteger)stationary {
-
-
-
-
-    isClicking = YES;
-
-    NSDictionary* parameters = [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithInt:button], @"button", [NSNumber numberWithInteger:rate], @"rate", [NSNumber numberWithInteger:start], @"start", [NSNumber numberWithInteger:stop], @"stop", [NSNumber numberWithInteger:stationary], @"stationary", nil];
-
-    if (start == 0)
-        [self startClickingThread:parameters];
-    else
-        [self startClickingThread:parameters after:start];
-}
-
-- (id)init
-{
-    self = [super init];
-    if (self) {
-        fnPressed = [NSEvent modifierFlags] & NSFunctionKeyMask;
-        isClicking = NO;
-        isWaiting = NO;
-        waitingTimer = nil;
-        stationarySeconds = 0;
-
-
-
-        NSEvent* (^moveBlock)(NSEvent*) = ^(NSEvent* event) {
-                // if (DEBUG_ENABLED && fnPressed) NSLog(@"Mouse Moved");
-
-                lastMoved = [[NSDate date] timeIntervalSince1970];
-
-                return event;
-    };
-
-
-        [NSEvent addGlobalMonitorForEventsMatchingMask:NSMouseMovedMask handler:(void(^)(NSEvent*))moveBlock];
-        [NSEvent addLocalMonitorForEventsMatchingMask:NSMouseMovedMask handler:moveBlock];
-
-        NSEvent* (^fnBlock)(NSEvent*) = ^(NSEvent* event){
-                //            if (DEBUG_ENABLED) NSLog(@"Flag Changed");
-
-                if ([event modifierFlags] & NSFunctionKeyMask) {
-                fnPressed = YES;
-
-                if (isClicking && !isWaiting)
-        {
-
-
-    }
-    }
-                else
-        {
-                fnPressed = NO;
-
-                if (isClicking && !isWaiting)
-        {
-
-
-    }
-    }
-
-                return event;
-    };
-
-        [NSEvent addGlobalMonitorForEventsMatchingMask:NSFlagsChangedMask handler:(void(^)(NSEvent* event))fnBlock];
-        [NSEvent addLocalMonitorForEventsMatchingMask:NSFlagsChangedMask handler:fnBlock];
-    }
-
-    return self;
-}
-
-@end
-*/
 
 void SystemWideHotkey::initialize()
 {
@@ -322,25 +75,6 @@ bool SystemWideHotkey::nativeEventFilter(const QByteArray &eventType, void *mess
 {
     Q_UNUSED(eventType)
     Q_UNUSED(message)
-
-//    if(eventType == "mac_generic_NSEvent" && isRegisteringNewHotkey == true)
-//    {
-//        NSEvent *event = static_cast<NSEvent*>(message);
-//        NSEventType eventType = [event type];
-
-//        if (eventType == NSEventTypeKeyDown || eventType ==NSEventTypeFlagsChanged)
-//        {
-//            const unsigned int keycode = [event keyCode];
-//            //qDebug("event %d", keycode);
-//            registerNewHotkey(keycode);
-
-//            emit newHotkeyRegistered();
-//            isRegisteringNewHotkey = false;
-
-//           // Clicker* click = [[Clicker alloc] init];
-//           // [click startClicking:0 rate:1 startAfter:0 stopAfter:0 ifStationaryFor:0];
-//        }
-//    }
 
     return false;
 }
@@ -464,7 +198,6 @@ quint32 SystemWideHotkey::nativeKeycode(Qt::Key key)
     UCKeyboardTypeHeader* table = header->keyboardTypeList;
 
     uint8_t *data = (uint8_t*)header;
-    // God, would a little documentation for this shit kill you...
     for (quint32 i=0; i < header->keyboardTypeCount; i++)
     {
         UCKeyStateRecordsIndex* stateRec = 0;
@@ -499,7 +232,6 @@ quint32 SystemWideHotkey::nativeKeycode(Qt::Key key)
         } // for j
     } // for i
 
-    // The code above fails to translate keys like semicolon with Qt 5.7.1.
     // Last resort is to try mapping the rest of the keys directly.
     switch (key)
     {

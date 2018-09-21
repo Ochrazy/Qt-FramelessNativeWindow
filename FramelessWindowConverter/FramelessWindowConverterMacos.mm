@@ -1,3 +1,5 @@
+#ifdef __APPLE__
+
 #include "FramelessWindowConverterMacos.h"
 #include "FramelessWindowConverter.h"
 
@@ -434,3 +436,6 @@ bool FramelessWindowConverterMacos::filterNativeEvent(void *message, long *resul
 
     return false;
 }
+
+#endif
+

@@ -31,7 +31,6 @@ public:
     void mouseReleaseEvent(QMouseEvent *) override;
     void moveEvent(QMoveEvent*) override;
     bool event(QEvent*) override;
-    void resizeEvent(QResizeEvent* ev) override;
 
 signals:
     void signalStartClicking();

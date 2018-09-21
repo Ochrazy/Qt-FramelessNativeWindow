@@ -6,6 +6,7 @@ namespace FWC
 
 class FramelessWindowConverter;
 
+// Same structure as _NET_WM_MOVERESIZ_*
 //#define _NET_WM_MOVERESIZE_SIZE_TOPLEFT      0
 //#define _NET_WM_MOVERESIZE_SIZE_TOP          1
 //#define _NET_WM_MOVERESIZE_SIZE_TOPRIGHT     2

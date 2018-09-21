@@ -14,15 +14,15 @@ public:
 
     virtual bool filterNativeEvents(void* message, long *result) final;
 
-    // Decide if the window should be dragged when a mouse click was detected at current mouse Position
-    // Override this function to customize window dragging
-    //virtual bool shouldPerformWindowDrag(int mousePosXInWindow, int mousePosYInWindow);
-    // default inShouldPerformWindowDrag means you can click anywhere in the window to move it
     void convertWindowToFrameless(unsigned long long inWindowHandle, std::function<bool(int,int)> inShouldPerformWindowDrag =
             [](int mousePosXInWindow, int mousePosYInWindow) { return true; } );
 
     inline unsigned long long getWindowHandle() { return windowHandle; }
+
     inline std::function<bool(int,int)> getShouldPerformWindowDrag() { return shouldPerformWindowDrag; }
+
+    // Decide if the window should be dragged when a mouse click was detected at current mouse Position
+    // default inShouldPerformWindowDrag means you can click anywhere in the window to move it
     inline std::function<bool(int,int)> setShouldPerformWindowDrag(std::function<bool(int,int)> inShouldPerformWindowDrag) { shouldPerformWindowDrag = inShouldPerformWindowDrag; }
 
     int getMinimumWindowWidth() { return minimumWindowWidth; }

@@ -395,13 +395,6 @@ bool MachineClicker::eventFilter(QObject* obj, QEvent* ev)
     return false;
 }
 
-void MachineClicker::resizeEvent(QResizeEvent* ev)
-{
-    //  noDraw = true;
-    //  jj = false;
-    //  repaint();
-}
-
 void MachineClicker::mouseReleaseEvent(QMouseEvent *)
 {
 }

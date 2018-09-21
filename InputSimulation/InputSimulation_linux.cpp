@@ -2,7 +2,6 @@
 
 #include "InputSimulation.h"
 
-//Solution using Xlib for those who use Linux
 #include <X11/Xlib.h>
 #include <stdio.h>
 #include <string.h>

@@ -37,7 +37,6 @@ SOURCES += \
     FramelessWindowConverter/FramelessWindowConverterLinux.cpp \
     FramelessWindowConverter/FramelessWindowConverterWindows.cpp \
     InputSimulation/InputSimulation_linux.cpp \
-    InputSimulation/InputSimulation_macos.cpp \
     InputSimulation/InputSimulation_windows.cpp \
     SystemWideHotkey/SystemWideHotkey.cpp \
     SystemWideHotkey/SystemWideHotkey_linux.cpp \
