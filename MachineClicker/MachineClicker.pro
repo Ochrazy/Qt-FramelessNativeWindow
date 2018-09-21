@@ -12,10 +12,6 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 CONFIG += c++11
 
-win32:LIBS += -luser32
-macx:LIBS += -framework ApplicationServices -framework Carbon -framework AppKit
-unix:!macx:LIBS += -lX11 -lxcb
-
 include("../FramelessWindowConverter/FramelessWindowConverter.pri")
 
 SOURCES += \

@@ -1,3 +1,7 @@
+win32:LIBS += -luser32
+macx:LIBS += -framework ApplicationServices -framework Carbon -framework AppKit
+unix:!macx:LIBS += -lX11 -lxcb
+
 INCLUDEPATH += $$PWD/..
 
 SOURCES += $$PWD/FramelessWindowConverter.cpp \
