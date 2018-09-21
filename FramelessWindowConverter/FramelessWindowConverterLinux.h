@@ -3,7 +3,7 @@
 
 #ifdef __linux__
 
-#include <FramelessWindowConverter_p.h>
+#include "FramelessWindowConverter_p.h"
 
 namespace FWC
 {
@@ -24,6 +24,7 @@ private:
     int borderWidth;
     int xiOpCode; // XInput
     unsigned int lastButtonPressTime;   
+     bool isSystemOpRunning = false; // resize or move
     FWCRect getCurrentWindowFrame();
 };
 

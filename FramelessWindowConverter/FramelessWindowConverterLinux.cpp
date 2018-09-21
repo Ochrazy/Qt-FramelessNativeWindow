@@ -149,6 +149,16 @@ bool FramelessWindowConverterLinux::filterNativeEvent(void *message, long *resul
 
         if (isXIType(ev, xiOpCode, XI_Motion))
         {
+            if(isSystemOpRunning)
+            {
+                // Send button release event not sent after _NET_WM_MOVERESIZE, fixes some bugs with Qt
+                xXIGenericDeviceEvent *xiEvent = reinterpret_cast<xXIGenericDeviceEvent *>(ev);
+                xiEvent->evtype = XI_ButtonRelease;
+                XSendEvent(QX11Info::display(), q_ptr->getWindowHandle(), False, 0xfff, (XEvent*)xiEvent);
+
+                isSystemOpRunning = false;
+            }
+
             xXIDeviceEvent* xev = reinterpret_cast<xXIDeviceEvent*>(ev);
             const int x = fixed1616ToInt(xev->event_x);
             const int y = fixed1616ToInt(xev->event_y);
@@ -282,6 +292,7 @@ bool FramelessWindowConverterLinux::filterNativeEvent(void *message, long *resul
 
             XFlush(QX11Info::display());
 
+            isSystemOpRunning = true;
 
             return false;
         }
