@@ -1,4 +1,4 @@
-#include "MachineClicker/MachineClicker.h"
+#include "MachineClicker.h"
 #include <QApplication>
 
 int main(int argc, char *argv[])

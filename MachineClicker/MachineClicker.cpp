@@ -80,7 +80,7 @@ MachineClicker::MachineClicker(QWidget *parent) :
     CloseButton = new QPushButton(this);
     CloseButton->setFixedSize(20, 20);
     CloseButton->setStyleSheet("QPushButton { "
-                               "image:url(://images/icon_window_close.png);"
+                               "image:url(:/images/icon_window_close.png);"
                                "background-color:black;"
                                "border:none;"
                                "width:20px;"
@@ -92,7 +92,7 @@ MachineClicker::MachineClicker(QWidget *parent) :
     MinimizeButton = new QPushButton(this);
     MinimizeButton->setFixedSize(20, 20);
     MinimizeButton->setStyleSheet("QPushButton { "
-                                  "image:url(://images/icon_window_minimize.png);"
+                                  "image:url(:/images/icon_window_minimize.png);"
                                   "background-color:black;"
                                   "border:none;"
                                   "width:20px;"
@@ -104,7 +104,7 @@ MachineClicker::MachineClicker(QWidget *parent) :
     MaximizeButton = new QPushButton(this);
     MaximizeButton->setFixedSize(20, 20);
     MaximizeButton->setStyleSheet("QPushButton { "
-                                  "image:url(://images/icon_window_maximize.png);"
+                                  "image:url(:/images/icon_window_maximize.png);"
                                   "background-color:black;"
                                   "border:none;"
                                   "width:20px;"
@@ -181,7 +181,7 @@ MachineClicker::MachineClicker(QWidget *parent) :
         {
             framelessWindowConverter.restoreWindow();
             MaximizeButton->setStyleSheet("QPushButton { "
-                                          "image:url(://images/icon_window_maximize.png);"
+                                          "image:url(:/images/icon_window_maximize.png);"
                                           "background-color:black;"
                                           "border:none;"
                                           "width:20px;"
@@ -194,7 +194,7 @@ MachineClicker::MachineClicker(QWidget *parent) :
         {
             framelessWindowConverter.maximizeWindow();
             MaximizeButton->setStyleSheet("QPushButton { "
-                                          "image:url(://images/icon_window_restore.png);"
+                                          "image:url(:/images/icon_window_restore.png);"
                                           "background-color:black;"
                                           "border:none;"
                                           "width:20px;"
