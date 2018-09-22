@@ -1,6 +1,6 @@
 win32:LIBS += -luser32
 macx:LIBS += -framework ApplicationServices -framework Carbon -framework AppKit
-unix:!macx:LIBS += -lX11 -lxcb
+unix:!macx:LIBS += -lX11 -lxcb -lX11-xcb
 
 INCLUDEPATH += $$PWD/..
 

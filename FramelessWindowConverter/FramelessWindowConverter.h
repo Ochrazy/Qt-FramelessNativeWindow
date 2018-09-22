@@ -6,6 +6,13 @@
 namespace FWC
 {
 
+struct FWCPARAMS
+{
+    unsigned long long windowHandle;
+    std::function<void(void)> releaseMouseGrab;
+    std::function<bool(int,int)> shouldPerformWindowDrag;
+};
+
 class FramelessWindowConverter
 {
 public:
@@ -14,8 +21,10 @@ public:
 
     virtual bool filterNativeEvents(void* message, long *result) final;
 
-    void convertWindowToFrameless(unsigned long long inWindowHandle, std::function<bool(int,int)> inShouldPerformWindowDrag =
-            [](int mousePosXInWindow, int mousePosYInWindow) { return true; } );
+    void convertWindowToFrameless(unsigned long long inWindowHandle, std::function<void(void)> releaseMouseGrab = [](){}, std::function<bool(int,int)> inShouldPerformWindowDrag =
+            [](int, int) { return true; } );
+
+    void convertWindowToFrameless(const FWCPARAMS& fwcParams);
 
     inline unsigned long long getWindowHandle() { return windowHandle; }
 
@@ -23,7 +32,11 @@ public:
 
     // Decide if the window should be dragged when a mouse click was detected at current mouse Position
     // default inShouldPerformWindowDrag means you can click anywhere in the window to move it
-    inline std::function<bool(int,int)> setShouldPerformWindowDrag(std::function<bool(int,int)> inShouldPerformWindowDrag) { shouldPerformWindowDrag = inShouldPerformWindowDrag; }
+    void setShouldPerformWindowDrag(std::function<bool(int,int)> inShouldPerformWindowDrag);
+
+    // Release Mouse Grab to give the window manager control over it
+    inline std::function<void(void)> getReleaseMouseGrab() { return releaseMouseGrab; }
+    void setReleaseMouseGrab(std::function<void(void)> inReleaseMouseGrab);
 
     int getMinimumWindowWidth() { return minimumWindowWidth; }
     int getMinimumWindowHeight() { return minimumWindowHeight; }
@@ -49,16 +62,16 @@ public:
     void maximizeWindow();
     void restoreWindow();
     void closeWindow();
-    std::function<void(void)> repaint;
 
 private:
+    class FramelessWindowConverterPrivate* d_ptr;
     unsigned long long windowHandle;
     std::function<bool(int,int)> shouldPerformWindowDrag;
+    std::function<void(void)> releaseMouseGrab;
     int minimumWindowWidth;
     int minimumWindowHeight;
     int maximumWindowWidth;
-    int maximumWindowHeight;
-    class FramelessWindowConverterPrivate* d_ptr;
+    int maximumWindowHeight; 
 };
 
 }

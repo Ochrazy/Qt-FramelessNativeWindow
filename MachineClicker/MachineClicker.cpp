@@ -153,19 +153,18 @@ MachineClicker::MachineClicker(QWidget *parent) :
     setAttribute(Qt::WA_TranslucentBackground, true);
     setAttribute(Qt::WA_NoSystemBackground, true);
 
-    framelessWindowConverter.repaint = [this]() {
-        framelessWindowConverter.hideForTranslucency();
-        noDraw = true;
-        jj = false;
-        repaint(); };
-
     adjustSize(); // apply layout size (constraints) to window
     framelessWindowConverter.setMinMaxWindowSizes(minimumSize().width(), minimumSize().height(), maximumSize().width(), maximumSize().height());
 
-
-    framelessWindowConverter.convertWindowToFrameless(winId(),  [this](int mousePosXInWindow, int mousePosYInWindow){
+    FWC::FWCPARAMS fwcParams;
+    fwcParams.windowHandle = winId();
+    fwcParams.releaseMouseGrab = [this]() { windowHandle()->setMouseGrabEnabled(false); };
+    fwcParams.shouldPerformWindowDrag =  [this](int mousePosXInWindow, int mousePosYInWindow)
+    {
         return childAt(mousePosXInWindow, mousePosYInWindow) ? false : true;
-    });
+    };
+
+    framelessWindowConverter.convertWindowToFrameless(fwcParams);
 
     connect(CloseButton, &QAbstractButton::clicked, this, [this]()
     {
@@ -233,7 +232,7 @@ bool MachineClicker::nativeEvent(const QByteArray& eventType, void* message, lon
     return framelessWindowConverter.filterNativeEvents(message, result);
 }
 
-QImage blurImage(const QImage& image, const QRect& rect, int radius, bool alphaOnly = false)
+QImage blurImage(const QImage& image, const QRect& rect, int radius)
 {
     int tab[] = { 14, 10, 8, 6, 5, 5, 4, 3, 3, 3, 3, 2, 2, 2, 2, 2, 2 };
     int alpha = (radius < 1)  ? 16 : (radius > 17) ? 1 : tab[radius-1];
@@ -251,9 +250,6 @@ QImage blurImage(const QImage& image, const QRect& rect, int radius, bool alphaO
     int i1 = 0;
     int i2 = 3;
 
-    if (alphaOnly)
-        i1 = i2 = (QSysInfo::ByteOrder == QSysInfo::BigEndian ? 0 : 3);
-
     for (int col = c1; col <= c2; col++) {
         p = result.scanLine(r1) + col * 4;
         for (int i = i1; i <= i2; i++)
@@ -262,7 +258,7 @@ QImage blurImage(const QImage& image, const QRect& rect, int radius, bool alphaO
         p += bpl;
         for (int j = r1; j < r2; j++, p += bpl)
             for (int i = i1; i <= i2; i++)
-                p[i] = (rgba[i] += ((p[i] << 4) - rgba[i]) * alpha / 16) >> 4;
+                p[i] = static_cast<unsigned char>((rgba[i] += ((p[i] << 4) - rgba[i]) * alpha / 16) >> 4);
     }
 
     for (int row = r1; row <= r2; row++) {
@@ -273,7 +269,7 @@ QImage blurImage(const QImage& image, const QRect& rect, int radius, bool alphaO
         p += 4;
         for (int j = c1; j < c2; j++, p += 4)
             for (int i = i1; i <= i2; i++)
-                p[i] = (rgba[i] += ((p[i] << 4) - rgba[i]) * alpha / 16) >> 4;
+                p[i] = static_cast<unsigned char>((rgba[i] += ((p[i] << 4) - rgba[i]) * alpha / 16) >> 4);
     }
 
     for (int col = c1; col <= c2; col++) {
@@ -284,7 +280,7 @@ QImage blurImage(const QImage& image, const QRect& rect, int radius, bool alphaO
         p -= bpl;
         for (int j = r1; j < r2; j++, p -= bpl)
             for (int i = i1; i <= i2; i++)
-                p[i] = (rgba[i] += ((p[i] << 4) - rgba[i]) * alpha / 16) >> 4;
+                p[i] = static_cast<unsigned char>((rgba[i] += ((p[i] << 4) - rgba[i]) * alpha / 16) >> 4);
     }
 
     for (int row = r1; row <= r2; row++) {
@@ -295,7 +291,7 @@ QImage blurImage(const QImage& image, const QRect& rect, int radius, bool alphaO
         p -= 4;
         for (int j = c1; j < c2; j++, p -= 4)
             for (int i = i1; i <= i2; i++)
-                p[i] = (rgba[i] += ((p[i] << 4) - rgba[i]) * alpha / 16) >> 4;
+                p[i] = static_cast<unsigned char>((rgba[i] += ((p[i] << 4) - rgba[i]) * alpha / 16) >> 4);
     }
 
     return result;
@@ -323,16 +319,16 @@ void MachineClicker::paintEvent(QPaintEvent* ev)
         painter.begin(this);
         painter.setOpacity(1.0);
         painter.setCompositionMode(QPainter::CompositionMode_Clear);
-        painter.fillRect(rect(),QColor(100,100,100,255));
+        painter.fillRect(ev->rect(),QColor(100,100,100,255));
 
         painter.setOpacity(1.0);
         painter.setCompositionMode(QPainter::CompositionMode_Source);
-        painter.drawImage(rect(), blurredScreenshot,
-                          QRect(mapToGlobal(rect().topLeft()), mapToGlobal(rect().bottomRight())));
+        painter.drawImage(ev->rect(), blurredScreenshot,
+                          QRect(mapToGlobal(ev->rect().topLeft()), mapToGlobal(ev->rect().bottomRight())));
 
         painter.setOpacity(0.25);
         painter.setCompositionMode(QPainter::CompositionMode_Darken);
-        painter.fillRect(rect(),QColor(0,0,0,255));
+        painter.fillRect(ev->rect(),QColor(0,0,0,255));
 
         painter.end();
 
@@ -343,7 +339,7 @@ void MachineClicker::paintEvent(QPaintEvent* ev)
         painter.begin(this);
         painter.setOpacity(0.0);
         painter.setCompositionMode(QPainter::CompositionMode_Source);
-        painter.fillRect(rect(),QColor(250,100,100,255));
+        painter.fillRect(ev->rect(),QColor(250,100,100,255));
         painter.end();
 
         if(!takingScreen)
@@ -371,7 +367,7 @@ bool MachineClicker::event(QEvent* ev)
     return QWidget::event(ev);
 }
 
-void MachineClicker::moveEvent(QMoveEvent* ev)
+void MachineClicker::moveEvent(QMoveEvent*)
 {
     repaint();
     update();
@@ -382,14 +378,18 @@ bool MachineClicker::eventFilter(QObject* obj, QEvent* ev)
     switch(ev->type())
     {
     case QEvent::Paint:
+    {
         if(!noDraw || (obj == this) ) { return false; }
         QPainter painter;
-        painter.begin((QWidget*)obj);
+        painter.begin(dynamic_cast<QWidget*>(obj));
         painter.setOpacity(0.0);
         painter.setCompositionMode(QPainter::CompositionMode_Source);
         painter.fillRect(rect(),QColor(100,100,100,255));
         painter.end();
         return true;
+    }
+    default:
+        break;
     }
 
     return false;
@@ -405,7 +405,6 @@ void MachineClicker::enterEvent(QEvent *)
     {
         emit signalStopClicking();
     }
-
 }
 
 void MachineClicker::leaveEvent(QEvent *)

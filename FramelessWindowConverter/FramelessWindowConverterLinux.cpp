@@ -1,16 +1,12 @@
 #ifdef __linux__
 
-#include "FramelessWindowConverterLinux.h"
 #include "FramelessWindowConverter.h"
+#include "FramelessWindowConverterLinux.h"
 
-#include <QtX11Extras/qx11info_x11.h>
-#include <X11/Xlib.h>
 #include <X11/cursorfont.h>
-#include <xcb/xcb.h>
-#include <xcb/xproto.h>
-
+#include <X11/Xlib-xcb.h>
 #include <X11/extensions/XI2proto.h>
-#include <string.h>// memset
+#include <string.h>
 
 using namespace FWC;
 
@@ -21,14 +17,30 @@ FramelessWindowConverterLinux::FramelessWindowConverterLinux(FramelessWindowConv
 
 void FramelessWindowConverterLinux::convertToFrameless()
 {
-
+    display =  XOpenDisplay(nullptr);
+    connection = XGetXCBConnection(display);
+    rootWindow = xcb_setup_roots_iterator (xcb_get_setup (connection)).data->root;
+    windowHandle = static_cast<xcb_window_t>(q_ptr->getWindowHandle());
 }
 
 void FramelessWindowConverterLinux::changeCursorShape(unsigned int shape)
 {
-    Cursor cursor = XCreateFontCursor(QX11Info::display(), shape);
-    XDefineCursor(QX11Info::display(), q_ptr->getWindowHandle(), cursor);
-    XFlush(QX11Info::display());
+    Cursor cursor = XCreateFontCursor(display, shape);
+    XDefineCursor(display, windowHandle, cursor);
+    XFlush(display);
+}
+
+unsigned int FramelessWindowConverterLinux::getAtom(const char* name)
+{
+    xcb_intern_atom_cookie_t cookie;
+    xcb_intern_atom_reply_t *reply;
+
+    cookie = xcb_intern_atom(connection, 0, static_cast<uint16_t>(strlen(name)), name);
+    if ((reply = xcb_intern_atom_reply(connection, cookie, nullptr)))
+    {
+        return reply->atom;
+    }
+    else return 0;
 }
 
 void FramelessWindowConverterLinux::minimizeWindow()
@@ -37,17 +49,18 @@ void FramelessWindowConverterLinux::minimizeWindow()
     event.response_type = XCB_CLIENT_MESSAGE;
     event.format = 32;
     event.sequence = 0;
-    event.window = q_ptr->getWindowHandle();
-    event.type = XInternAtom(QX11Info::display(), "WM_CHANGE_STATE", False);
+    event.window = windowHandle;
+    event.type = getAtom("WM_CHANGE_STATE");
     event.data.data32[0] = 3; // IconicState
     event.data.data32[1] = 0;
     event.data.data32[2] = 0;
     event.data.data32[3] = 0;
     event.data.data32[4] = 0;
 
-    xcb_send_event(QX11Info::connection(), 0, QX11Info::appRootWindow(QX11Info::appScreen()),
+    xcb_send_event(connection, 0, rootWindow,
                    XCB_EVENT_MASK_STRUCTURE_NOTIFY | XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT,
-                   (const char *)&event);
+                   reinterpret_cast<char*>(&event));
+    xcb_flush(connection);
 }
 
 void FramelessWindowConverterLinux::maximizeWindow()
@@ -56,17 +69,18 @@ void FramelessWindowConverterLinux::maximizeWindow()
     event.response_type = XCB_CLIENT_MESSAGE;
     event.format = 32;
     event.sequence = 0;
-    event.window = q_ptr->getWindowHandle();
-    event.type = XInternAtom(QX11Info::display(), "_NET_WM_STATE", False);
+    event.window = windowHandle;
+    event.type = getAtom("_NET_WM_STATE");
     event.data.data32[0] = 1; //_NET_WM_STATE_ADD
-    event.data.data32[1] = XInternAtom(QX11Info::display(), "_NET_WM_STATE_MAXIMIZED_HORZ", False);
-    event.data.data32[2] = XInternAtom(QX11Info::display(), "_NET_WM_STATE_MAXIMIZED_VERT", False);
+    event.data.data32[1] = getAtom("_NET_WM_STATE_MAXIMIZED_HORZ");
+    event.data.data32[2] = getAtom("_NET_WM_STATE_MAXIMIZED_VERT");
     event.data.data32[3] = 0;
     event.data.data32[4] = 0;
 
-    xcb_send_event(QX11Info::connection(), 0, QX11Info::appRootWindow(QX11Info::appScreen()),
+    xcb_send_event(connection, 0, rootWindow,
                    XCB_EVENT_MASK_STRUCTURE_NOTIFY | XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT,
-                   (const char *)&event);
+                   reinterpret_cast<char*>(&event));
+    xcb_flush(connection);
 }
 
 void FramelessWindowConverterLinux::restoreWindow()
@@ -75,17 +89,18 @@ void FramelessWindowConverterLinux::restoreWindow()
     event.response_type = XCB_CLIENT_MESSAGE;
     event.format = 32;
     event.sequence = 0;
-    event.window = q_ptr->getWindowHandle();
-    event.type = XInternAtom(QX11Info::display(), "_NET_WM_STATE", False);
+    event.window = windowHandle;
+    event.type = getAtom("_NET_WM_STATE");
     event.data.data32[0] = 0; //_NET_WM_STATE_REMOVE
-    event.data.data32[1] = XInternAtom(QX11Info::display(), "_NET_WM_STATE_MAXIMIZED_HORZ", False);
-    event.data.data32[2] = XInternAtom(QX11Info::display(), "_NET_WM_STATE_MAXIMIZED_VERT", False);
+    event.data.data32[1] = getAtom("_NET_WM_STATE_MAXIMIZED_HORZ");
+    event.data.data32[2] = getAtom("_NET_WM_STATE_MAXIMIZED_VERT");
     event.data.data32[3] = 0;
     event.data.data32[4] = 0;
 
-    xcb_send_event(QX11Info::connection(), 0, QX11Info::appRootWindow(QX11Info::appScreen()),
+    xcb_send_event(connection, 0, rootWindow,
                    XCB_EVENT_MASK_STRUCTURE_NOTIFY | XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT,
-                   (const char *)&event);
+                   reinterpret_cast<char*>(&event));
+    xcb_flush(connection);
 }
 
 void FramelessWindowConverterLinux::closeWindow()
@@ -94,17 +109,18 @@ void FramelessWindowConverterLinux::closeWindow()
     event.response_type = XCB_CLIENT_MESSAGE;
     event.format = 32;
     event.sequence = 0;
-    event.window = q_ptr->getWindowHandle();
-    event.type = XInternAtom(QX11Info::display(), "WM_PROTOCOLS", true);
-    event.data.data32[0] = XInternAtom(QX11Info::display(), "WM_DELETE_WINDOW", false);
+    event.window = windowHandle;
+    event.type = getAtom("WM_PROTOCOLS");
+    event.data.data32[0] = getAtom("WM_DELETE_WINDOW");
     event.data.data32[1] = CurrentTime;
     event.data.data32[2] = 0;
     event.data.data32[3] = 0;
     event.data.data32[4] = 0;
 
-    xcb_send_event(QX11Info::connection(), 0, QX11Info::appRootWindow(QX11Info::appScreen()),
+    xcb_send_event(connection, 0, rootWindow,
                    XCB_EVENT_MASK_STRUCTURE_NOTIFY | XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT,
-                   (const char *)&event);
+                   reinterpret_cast<char*>(&event));
+    xcb_flush(connection);
 }
 
 bool isXIEvent(xcb_generic_event_t *event, int opCode)
@@ -123,38 +139,36 @@ bool isXIType(xcb_generic_event_t *event, int opCode, uint16_t type)
 
 }
 
-qreal fixed1616ToInt(FP1616 val)
+int fixed1616ToInt(FP1616 val)
 {
-    return qreal(val) / 0x10000;
+    return int(val) / 0x10000;
 }
 
 FWCRect FramelessWindowConverterLinux::getCurrentWindowFrame()
 {
-    xcb_get_geometry_cookie_t geom_cookie = xcb_get_geometry (QX11Info::connection(), q_ptr->getWindowHandle());
-    xcb_get_geometry_reply_t* frame_geometry = xcb_get_geometry_reply(QX11Info::connection(), geom_cookie, nullptr);
-    return FWCRect(0, 0,
-                   frame_geometry->width, frame_geometry->height);
+    xcb_get_geometry_cookie_t geom_cookie = xcb_get_geometry (connection, static_cast<xcb_drawable_t>(windowHandle));
+    xcb_get_geometry_reply_t* frame_geometry = xcb_get_geometry_reply(connection, geom_cookie, nullptr);
+    return FWCRect(0, 0, frame_geometry->width, frame_geometry->height);
 }
 
-bool FramelessWindowConverterLinux::filterNativeEvent(void *message, long *result)
+bool FramelessWindowConverterLinux::filterNativeEvent(void *message, long*)
 {
-    Q_UNUSED(result)
-
     xcb_generic_event_t* ev = static_cast<xcb_generic_event_t *>(message);
 
     if ((ev->response_type & ~0x80) == XCB_GE_GENERIC)
     {
         int xiEventBase, xiErrorBase;
-        XQueryExtension(QX11Info::display(), "XInputExtension", &xiOpCode, &xiEventBase, &xiErrorBase);
+        XQueryExtension(display, "XInputExtension", &xiOpCode, &xiEventBase, &xiErrorBase);
 
         if (isXIType(ev, xiOpCode, XI_Motion))
         {
             if(isSystemOpRunning)
             {
-                // Send button release event not sent after _NET_WM_MOVERESIZE, fixes some bugs with Qt
+                // Change event to button release event, fixes some bugs with Qt and _NET_WM_MOVERESIZE
+                // After _NET_WM_MOVERESIZE ends and the mouse is moved this gets called and Qt gets a button release event.
+                // This is very hacky, but it works :)
                 xXIGenericDeviceEvent *xiEvent = reinterpret_cast<xXIGenericDeviceEvent *>(ev);
                 xiEvent->evtype = XI_ButtonRelease;
-                XSendEvent(QX11Info::display(), q_ptr->getWindowHandle(), False, 0xfff, (XEvent*)xiEvent);
 
                 isSystemOpRunning = false;
             }
@@ -206,7 +220,6 @@ bool FramelessWindowConverterLinux::filterNativeEvent(void *message, long *resul
             const int x = fixed1616ToInt(deviceEvent->event_x);
             const int y = fixed1616ToInt(deviceEvent->event_y);
             FWCPoint mousePos(x, y);
-            FWCRect windowFrame(getCurrentWindowFrame());
 
             // Only this widget is used for dragging.
             if (!q_ptr->getShouldPerformWindowDrag()(mousePos.x, mousePos.y))
@@ -217,23 +230,23 @@ bool FramelessWindowConverterLinux::filterNativeEvent(void *message, long *resul
             // Double Click
             if(lastButtonPressTime != 0 && (deviceEvent->time - lastButtonPressTime) < 400)
             {
-                xcb_get_property_cookie_t cookie = xcb_get_property(QX11Info::connection(), false, q_ptr->getWindowHandle(), XInternAtom(QX11Info::display(), "_NET_WM_STATE", true), XCB_ATOM_ATOM, 0, 32);
-                xcb_get_property_reply_t* reply = xcb_get_property_reply(QX11Info::connection(), cookie, nullptr);
+                xcb_get_property_cookie_t cookie = xcb_get_property(connection, false, windowHandle, getAtom("_NET_WM_STATE"), XCB_ATOM_ATOM, 0, 32);
+                xcb_get_property_reply_t* reply = xcb_get_property_reply(connection, cookie, nullptr);
                 xcb_atom_t* isMaximized = reinterpret_cast<xcb_atom_t*>(xcb_get_property_value(reply));
 
                 xcb_client_message_event_t event;
                 event.response_type = XCB_CLIENT_MESSAGE;
                 event.format = 32;
                 event.sequence = 0;
-                event.window = q_ptr->getWindowHandle();
-                event.type = XInternAtom(QX11Info::display(), "_NET_WM_STATE", true);
-                event.data.data32[1] = XInternAtom(QX11Info::display(), "_NET_WM_STATE_MAXIMIZED_HORZ", False);
-                event.data.data32[2] = XInternAtom(QX11Info::display(), "_NET_WM_STATE_MAXIMIZED_VERT", False);
+                event.window = windowHandle;
+                event.type = getAtom("_NET_WM_STATE");
+                event.data.data32[1] = getAtom("_NET_WM_STATE_MAXIMIZED_HORZ");
+                event.data.data32[2] = getAtom("_NET_WM_STATE_MAXIMIZED_VERT");
                 event.data.data32[3] = 0;
                 event.data.data32[4] = 0;
 
-                if((*isMaximized == XInternAtom(QX11Info::display(), "_NET_WM_STATE_MAXIMIZED_VERT", False)) ||
-                        (*isMaximized == XInternAtom(QX11Info::display(), "_NET_WM_STATE_MAXIMIZED_HORZ", False)))
+                if((*isMaximized == getAtom("_NET_WM_STATE_MAXIMIZED_VERT")) ||
+                        (*isMaximized == getAtom("_NET_WM_STATE_MAXIMIZED_HORZ")))
                 {
                     event.data.data32[0] = 0; //_NET_WM_STATE_REMOVE
                 }
@@ -242,43 +255,45 @@ bool FramelessWindowConverterLinux::filterNativeEvent(void *message, long *resul
                     event.data.data32[0] = 1; //_NET_WM_STATE_ADD
                 }
 
-                xcb_send_event(QX11Info::connection(), 0, QX11Info::appRootWindow(QX11Info::appScreen()),
+                xcb_send_event(connection, 0, rootWindow,
                                XCB_EVENT_MASK_STRUCTURE_NOTIFY | XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT,
-                               (const char *)&event);
+                               reinterpret_cast<char*>(&event));
+                xcb_flush(connection);
 
                 return false;
             }
             lastButtonPressTime = deviceEvent->time;
 
-            //            xcb_client_message_event_t event;
-            //            event.response_type = XCB_CLIENT_MESSAGE;
-            //            event.format = 32;
-            //            event.sequence = 0;
-            //            event.window = q_ptr->getWindowHandle();
-            //            event.type = xcb_intern_atom_reply(QX11Info::connection(), xcb_intern_atom(QX11Info::connection(), 0, 18, "_NET_WM_MOVERESIZE"), nullptr)->atom;
-            //            event.data.data32[0] = fixed1616ToInt(deviceEvent->root_x);
-            //            event.data.data32[1] = fixed1616ToInt(deviceEvent->root_y);
-            //            // Either one of the different resize events or a Move event
-            //            event.data.data32[2] = static_cast<int>(doBorderHitTest(getCurrentWindowFrame(), mousePos, borderWidth));
-            //            event.data.data32[3] = XCB_BUTTON_INDEX_1;
-            //            event.data.data32[4] = 0;
+            //                        xcb_client_message_event_t event;
+            //                        event.response_type = XCB_CLIENT_MESSAGE;
+            //                        event.format = 32;
+            //                        event.sequence = 0;
+            //                        event.window = windowHandle;
+            //                        event.type = getAtom("_NET_WM_MOVERESIZE");
+            //                        event.data.data32[0] = fixed1616ToInt(deviceEvent->root_x);
+            //                        event.data.data32[1] = fixed1616ToInt(deviceEvent->root_y);
+            //                        // Either one of the different resize events or a Move event
+            //                        event.data.data32[2] = static_cast<int>(doBorderHitTest(getCurrentWindowFrame(), mousePos, borderWidth));
+            //                        event.data.data32[3] = XCB_BUTTON_INDEX_1;
+            //                        event.data.data32[4] = 0;
 
-            //            XUngrabPointer(QX11Info::display(), XCB_CURRENT_TIME);
-            //            xcb_send_event(QX11Info::connection(), 0, QX11Info::appRootWindow(QX11Info::appScreen()),
-            //                           XCB_EVENT_MASK_STRUCTURE_NOTIFY | XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT,
-            //                           (const char *)&event);
-            //            XFlush(QX11Info::display());
+            //                         q_ptr->getReleaseMouseGrab()();
+            //                        xcb_send_event(connection, 0, rootWindow,
+            //                                       XCB_EVENT_MASK_STRUCTURE_NOTIFY | XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT,
+            //                                       (const char *)&event);
+            //                        XFlush(display);
 
+            // Qt gives a warning of a unhandled client message with xcb events -> use xlib event instead :)
             XEvent xev;
             // Set type of event
             // Either one of the different resize events or a Move event
             xev.xclient.data.l[2] = static_cast<int>(doBorderHitTest(getCurrentWindowFrame(), mousePos, borderWidth));
 
-            Atom netMoveResize = XInternAtom(QX11Info::display(), "_NET_WM_MOVERESIZE", False);
+            Atom netMoveResize = getAtom("_NET_WM_MOVERESIZE");
             xev.xclient.type = ClientMessage;
             xev.xclient.message_type = netMoveResize;
-            xev.xclient.display = QX11Info::display();
-            xev.xclient.window = q_ptr->getWindowHandle();
+            xev.xclient.display = display;
+            xev.xclient.window = windowHandle;
             xev.xclient.format = 32;
             xev.xclient.data.l[0] = fixed1616ToInt(deviceEvent->root_x);
             xev.xclient.data.l[1] = fixed1616ToInt(deviceEvent->root_y);
@@ -286,11 +301,10 @@ bool FramelessWindowConverterLinux::filterNativeEvent(void *message, long *resul
             xev.xclient.data.l[3] = Button1;
             xev.xclient.data.l[4] = 0;
 
-            XUngrabPointer(QX11Info::display(), XCB_CURRENT_TIME);
-            XSendEvent(QX11Info::display(), QX11Info::appRootWindow(QX11Info::appScreen()), False,
+            q_ptr->getReleaseMouseGrab()();
+            XSendEvent(display, rootWindow, False,
                        SubstructureRedirectMask | SubstructureNotifyMask, &xev);
-
-            XFlush(QX11Info::display());
+            XFlush(display);
 
             isSystemOpRunning = true;
 

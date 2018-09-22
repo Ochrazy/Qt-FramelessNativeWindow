@@ -5,6 +5,14 @@
 
 #include "FramelessWindowConverter_p.h"
 
+struct _XDisplay;
+typedef _XDisplay Display;
+
+struct xcb_connection_t;
+typedef xcb_connection_t xcb_connection_t;
+
+typedef unsigned int xcb_window_t;
+
 namespace FWC
 {
 
@@ -20,12 +28,18 @@ public:
     void closeWindow() override;
 
 private:
+    xcb_connection_t *connection;
+    xcb_window_t rootWindow;
+    Display* display;
+    xcb_window_t windowHandle;
+
     void changeCursorShape(unsigned int shape);
     int borderWidth;
     int xiOpCode; // XInput
     unsigned int lastButtonPressTime;   
      bool isSystemOpRunning = false; // resize or move
     FWCRect getCurrentWindowFrame();
+    unsigned int getAtom(const char* name);
 };
 
 }
