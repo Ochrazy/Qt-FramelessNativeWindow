@@ -19,57 +19,6 @@
 #include <QScreen>
 #include <QPixmap>
 
-#ifdef WIN32
-#ifdef Q_OS_WIN32
-#include <qt_windows.h>
-#include <dwmapi.h>
-#endif
-
-static QByteArray debugWinStyle(DWORD style)
-{
-    QByteArray rc = "0x";
-    rc += QByteArray::number(qulonglong(style), 16);
-    if (style & WS_POPUP)
-        rc += " WS_POPUP";
-    if (style & WS_CHILD)
-        rc += " WS_CHILD";
-    if (style & WS_OVERLAPPED)
-        rc += " WS_OVERLAPPED";
-    if (style & WS_CLIPSIBLINGS)
-        rc += " WS_CLIPSIBLINGS";
-    if (style & WS_CLIPCHILDREN)
-        rc += " WS_CLIPCHILDREN";
-    if (style & WS_THICKFRAME)
-        rc += " WS_THICKFRAME";
-    if (style & WS_BORDER)
-        rc += " WS_BORDER";
-    if (style & WS_DLGFRAME)
-        rc += " WS_DLGFRAME";
-    if (style & WS_SYSMENU)
-        rc += " WS_SYSMENU";
-    if (style & WS_MINIMIZEBOX)
-        rc += " WS_MINIMIZEBOX";
-    if (style & WS_MAXIMIZEBOX)
-        rc += " WS_MAXIMIZEBOX";
-    return rc;
-}
-
-static QByteArray debugWinExStyle(DWORD exStyle)
-{
-    QByteArray rc = "0x";
-    rc += QByteArray::number(qulonglong(exStyle), 16);
-    if (exStyle & WS_EX_TOOLWINDOW)
-        rc += " WS_EX_TOOLWINDOW";
-    if (exStyle & WS_EX_CONTEXTHELP)
-        rc += " WS_EX_CONTEXTHELP";
-    if (exStyle & WS_EX_LAYERED)
-        rc += " WS_EX_LAYERED";
-    if (exStyle & WS_EX_DLGMODALFRAME)
-        rc += " WS_EX_DLGMODALFRAME";
-    return rc;
-}
-#endif
-
 static bool takingScreen = false;
 static bool noDraw = false;
 static bool bTakeScreenshot = false;
@@ -148,7 +97,6 @@ MachineClicker::MachineClicker(QWidget *parent) :
     GridLayout->addLayout(hBoxLayout, 0, 1, Qt::AlignRight);
 
     setWindowFlags(Qt::Widget | Qt::WindowSystemMenuHint/* | Qt::WindowStaysOnTopHint*/ | Qt::WindowTitleHint | Qt::FramelessWindowHint);
-
 
     setAttribute(Qt::WA_TranslucentBackground, true);
     setAttribute(Qt::WA_NoSystemBackground, true);
