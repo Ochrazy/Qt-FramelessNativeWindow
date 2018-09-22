@@ -8,13 +8,65 @@
 
 using namespace FWC;
 
+// Utility functions without warnings
+constexpr WORD getLOWORD(unsigned long long l)
+{
+    return static_cast<WORD>(static_cast<DWORD_PTR>(l) & 0xffff);
+}
+
+constexpr WORD getLOWORD(long long l)
+{
+    return static_cast<WORD>(static_cast<DWORD_PTR>(l) & 0xffff);
+}
+
+constexpr WORD getHIWORD(unsigned long long l)
+{
+    return static_cast<WORD>((static_cast<DWORD_PTR>(l) >> 16) & 0xffff);
+}
+
+constexpr WORD getHIWORD(long long l)
+{
+    return static_cast<WORD>((static_cast<DWORD_PTR>(l) >> 16) & 0xffff);
+}
+
+enum class CursorNames
+{
+    WEST_EAST,
+    NORTH_SOUTH,
+    NORTH_EAST_SOUTH_WEST,
+    NORTH_WEST_SOUTH_EAST,
+    ARROW
+};
+
+constexpr LPWSTR getCursorResource(CursorNames inCursorName)
+{
+    // See WinUser.h for Standard Cursor IDs (IDC_ARROW etc.)
+    switch(inCursorName)
+    {
+    case CursorNames::WEST_EAST:
+        return reinterpret_cast<LPWSTR>(static_cast<ULONG_PTR>(static_cast<WORD>(32644)));
+    case CursorNames::NORTH_SOUTH:
+        return reinterpret_cast<LPWSTR>(static_cast<ULONG_PTR>(static_cast<WORD>(32645)));
+    case CursorNames::NORTH_EAST_SOUTH_WEST:
+        return reinterpret_cast<LPWSTR>(static_cast<ULONG_PTR>(static_cast<WORD>(32643)));
+    case CursorNames::NORTH_WEST_SOUTH_EAST:
+        return reinterpret_cast<LPWSTR>(static_cast<ULONG_PTR>(static_cast<WORD>(32642)));
+    case CursorNames::ARROW:
+        return reinterpret_cast<LPWSTR>(static_cast<ULONG_PTR>(static_cast<WORD>(32512)));
+    }
+
+    return nullptr;
+}
+// END Utility functions without warnings
+
+
 FramelessWindowConverterWindows::FramelessWindowConverterWindows(FramelessWindowConverter* q) : FramelessWindowConverterPrivate(q)
 {
 }
 
 void FramelessWindowConverterWindows::convertToFrameless()
 {
-    handle =(HWND)q_ptr->getWindowHandle();
+    handle = reinterpret_cast<HWND>(q_ptr->getWindowHandle());
     set_borderless(true);
 }
 
@@ -61,7 +113,7 @@ FWCRect FramelessWindowConverterWindows::getCurrentWindowRect()
 
 FWCPoint FramelessWindowConverterWindows::getCurrentMousePos(LPARAM lParam)
 {
-    return  FWCPoint(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+    return  FWCPoint(getLOWORD(lParam), getHIWORD(lParam));
 }
 
 bool FramelessWindowConverterWindows::filterNativeEvent(void *message, long *result)
@@ -108,11 +160,11 @@ bool FramelessWindowConverterWindows::filterNativeEvent(void *message, long *res
     case WM_ACTIVATE :
     {
         // Enable Minimize Animation by adding/removing WS_CAPTION window style
-        if(LOWORD(msg->wParam) == WA_ACTIVE && HIWORD(msg->wParam) == 0) // not minimized
+        if(getLOWORD(msg->wParam) == WA_ACTIVE && getHIWORD(msg->wParam) == 0) // not minimized
         {
             SetWindowLongPtr(handle, GWL_STYLE, GetWindowLongPtrW(handle, GWL_STYLE) & ~WS_CAPTION);
         }
-        else if(LOWORD(msg->wParam) == WA_INACTIVE && HIWORD(msg->wParam) == 0) // not minimized
+        else if(getLOWORD(msg->wParam) == WA_INACTIVE && getHIWORD(msg->wParam) == 0) // not minimized
         {
             // This actually also gets called when switching to another window (see WM_ACTIVATEAPP for the fix)
             SetWindowLongPtr(handle, GWL_STYLE, GetWindowLongPtrW(handle, GWL_STYLE) | WS_CAPTION);
@@ -236,38 +288,38 @@ bool FramelessWindowConverterWindows::filterNativeEvent(void *message, long *res
         switch (doBorderHitTest(getCurrentClientRect(), getCurrentMousePos(msg->lParam), 8))
         {
         case FWCBorderHitTestResult::LEFT:
-            SetCursor(LoadCursor(nullptr, IDC_SIZEWE));
+            SetCursor(LoadCursor(nullptr, getCursorResource(CursorNames::WEST_EAST)));
             break;
         case FWCBorderHitTestResult::RIGHT:
-            SetCursor(LoadCursor(nullptr, IDC_SIZEWE));
+            SetCursor(LoadCursor(nullptr, getCursorResource(CursorNames::WEST_EAST)));
             break;
         case FWCBorderHitTestResult::TOP:
-            SetCursor(LoadCursor(nullptr, IDC_SIZENS));
+            SetCursor(LoadCursor(nullptr, getCursorResource(CursorNames::NORTH_SOUTH)));
             break;
         case FWCBorderHitTestResult::BOTTOM:
-            SetCursor(LoadCursor(nullptr, IDC_SIZENS));
+            SetCursor(LoadCursor(nullptr, getCursorResource(CursorNames::NORTH_SOUTH)));
             break;
         case FWCBorderHitTestResult::BOTTOM_LEFT:
-            SetCursor(LoadCursor(nullptr, IDC_SIZENESW));
+            SetCursor(LoadCursor(nullptr, getCursorResource(CursorNames::NORTH_EAST_SOUTH_WEST)));
             break;
         case FWCBorderHitTestResult::BOTTOM_RIGHT:
-            SetCursor(LoadCursor(nullptr, IDC_SIZENWSE));
+            SetCursor(LoadCursor(nullptr, getCursorResource(CursorNames::NORTH_WEST_SOUTH_EAST)));
             break;
         case FWCBorderHitTestResult::TOP_LEFT:
-            SetCursor(LoadCursor(nullptr, IDC_SIZENWSE));
+            SetCursor(LoadCursor(nullptr, getCursorResource(CursorNames::NORTH_WEST_SOUTH_EAST)));
             break;
         case FWCBorderHitTestResult::TOP_RIGHT:
-            SetCursor(LoadCursor(nullptr, IDC_SIZENESW));
+            SetCursor(LoadCursor(nullptr, getCursorResource(CursorNames::NORTH_EAST_SOUTH_WEST)));
             break;
         default:
-            SetCursor(LoadCursor(nullptr, IDC_ARROW));
+            SetCursor(LoadCursor(nullptr, getCursorResource(CursorNames::ARROW)));
             break;
         }
         break;
     }
     case WM_GETMINMAXINFO:
     {
-        MINMAXINFO* minMaxInfo = ( MINMAXINFO* )msg->lParam;
+        MINMAXINFO* minMaxInfo = reinterpret_cast<MINMAXINFO*>(msg->lParam);
 
         bool bMinMaxInfo = false;
         if(q_ptr->getMinimumWindowWidth() >= 0)

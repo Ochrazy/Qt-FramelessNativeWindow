@@ -4,7 +4,7 @@
 using namespace FWC;
 
 FramelessWindowConverter::FramelessWindowConverter() : d_ptr(FramelessWindowConverterPrivate::create(this)),
-    windowHandle(-1ull), minimumWindowWidth(-1), minimumWindowHeight(-1) ,maximumWindowWidth(-1), maximumWindowHeight(-1)
+    windowHandle(0), minimumWindowWidth(-1), minimumWindowHeight(-1) ,maximumWindowWidth(-1), maximumWindowHeight(-1)
 {
 
 }
