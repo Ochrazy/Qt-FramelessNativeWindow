@@ -62,7 +62,7 @@ private:
 
     QPixmap pixmap;
     bool jj = true;
-
+    bool useTranslucentBackgroundBlur = false;
 };
 
 #endif // MACHINECLICKER_H

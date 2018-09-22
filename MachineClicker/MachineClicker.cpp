@@ -157,10 +157,10 @@ MachineClicker::MachineClicker(QWidget *parent) :
     framelessWindowConverter.setMinMaxWindowSizes(minimumSize().width(), minimumSize().height(), maximumSize().width(), maximumSize().height());
 
     framelessWindowConverter.repaint = [this]() {
-            framelessWindowConverter.hideForTranslucency();
-            noDraw = true;
-            jj = false;
-            repaint(); };
+        framelessWindowConverter.hideForTranslucency();
+        noDraw = true;
+        jj = false;
+        repaint(); };
 
     FWC::FWCPARAMS fwcParams;
     fwcParams.windowHandle = winId();
@@ -307,67 +307,81 @@ QImage blurImage(const QImage& image, const QRect& rect, int radius)
 static QImage blurredScreenshot;
 void MachineClicker::paintEvent(QPaintEvent* ev)
 {
-    if(jj)
+    if(useTranslucentBackgroundBlur == false)
     {
-        QPainter painter;
-
-        if(bTakeScreenshot)
-        {
-            pixmap = windowHandle()->screen()->grabWindow(0);
-            blurredScreenshot = blurImage(pixmap.toImage(), pixmap.rect(), 25);
-            bTakeScreenshot = false;
-            noDraw = false;
-            //qDebug("scre");
-            takingScreen = false;
-            framelessWindowConverter.showForTranslucency();
-        }
-
-        painter.begin(this);
-        painter.setOpacity(1.0);
-        painter.setCompositionMode(QPainter::CompositionMode_Clear);
-        painter.fillRect(ev->rect(),QColor(100,100,100,255));
-
-        painter.setOpacity(1.0);
+        QPainter painter(this);
+        painter.setOpacity(0.9);
         painter.setCompositionMode(QPainter::CompositionMode_Source);
-        painter.drawImage(ev->rect(), blurredScreenshot,
-                          QRect(mapToGlobal(ev->rect().topLeft()), mapToGlobal(ev->rect().bottomRight())));
-
-        painter.setOpacity(0.25);
-        painter.setCompositionMode(QPainter::CompositionMode_Darken);
-        painter.fillRect(ev->rect(),QColor(0,0,0,255));
-
+        painter.fillRect(ev->rect(),QColor(100,100,100,255));
         painter.end();
-
     }
     else
     {
-        QPainter painter;
-        painter.begin(this);
-        painter.setOpacity(0.0);
-        painter.setCompositionMode(QPainter::CompositionMode_Source);
-        painter.fillRect(ev->rect(),QColor(250,100,100,255));
-        painter.end();
-
-        if(!takingScreen)
+        if(jj)
         {
-            takingScreen = true;
-            QTimer::singleShot(400, this, [this](){
-                bTakeScreenshot = true;
-                jj = true;
-                repaint();
-            });
+            QPainter painter;
+
+            if(bTakeScreenshot)
+            {
+                pixmap = windowHandle()->screen()->grabWindow(0);
+                blurredScreenshot = blurImage(pixmap.toImage(), pixmap.rect(), 25);
+                bTakeScreenshot = false;
+                noDraw = false;
+                //qDebug("scre");
+                takingScreen = false;
+                framelessWindowConverter.showForTranslucency();
+            }
+
+            painter.begin(this);
+            painter.setOpacity(1.0);
+            painter.setCompositionMode(QPainter::CompositionMode_Clear);
+            painter.fillRect(ev->rect(),QColor(100,100,100,255));
+
+            painter.setOpacity(1.0);
+            painter.setCompositionMode(QPainter::CompositionMode_Source);
+            painter.drawImage(ev->rect(), blurredScreenshot,
+                              QRect(mapToGlobal(ev->rect().topLeft()), mapToGlobal(ev->rect().bottomRight())));
+
+            painter.setOpacity(0.25);
+            painter.setCompositionMode(QPainter::CompositionMode_Darken);
+            painter.fillRect(ev->rect(),QColor(0,0,0,255));
+
+            painter.end();
+
+        }
+        else
+        {
+            QPainter painter;
+            painter.begin(this);
+            painter.setOpacity(0.0);
+            painter.setCompositionMode(QPainter::CompositionMode_Source);
+            painter.fillRect(ev->rect(),QColor(250,100,100,255));
+            painter.end();
+
+            if(!takingScreen)
+            {
+                takingScreen = true;
+                QTimer::singleShot(400, this, [this](){
+                    bTakeScreenshot = true;
+                    jj = true;
+                    repaint();
+                });
+            }
         }
     }
 }
 
 bool MachineClicker::event(QEvent* ev)
 {
-    if(ev->type() == QEvent::WindowActivate)
+    if(useTranslucentBackgroundBlur)
     {
-        framelessWindowConverter.hideForTranslucency();
-        noDraw = true;
-        jj = false;
-        repaint();
+        if(ev->type() == QEvent::WindowActivate)
+        {
+            framelessWindowConverter.hideForTranslucency();
+            noDraw = true;
+            jj = false;
+            repaint();
+        }
     }
 
     return QWidget::event(ev);
@@ -375,8 +389,11 @@ bool MachineClicker::event(QEvent* ev)
 
 void MachineClicker::moveEvent(QMoveEvent*)
 {
-    repaint();
-    update();
+    if(useTranslucentBackgroundBlur)
+    {
+        repaint();
+        update();
+    }
 }
 
 bool MachineClicker::eventFilter(QObject* obj, QEvent* ev)
