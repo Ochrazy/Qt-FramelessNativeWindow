@@ -42,6 +42,7 @@ private:
     NSButton* closeButton;
     NSButton* minimizeButton;
     bool isResizing = false;
+    bool isMoving = false;
     FWC::FWCBorderHitTestResult currentBHTR = FWC::FWCBorderHitTestResult::NONE;
     FWCFloatingPoint startDiffCursorFrameLocs;
     void showCursorByHitResult(FWCBorderHitTestResult inBorderHitResult);

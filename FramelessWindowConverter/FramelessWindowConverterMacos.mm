@@ -32,6 +32,13 @@ void FramelessWindowConverterMacos::maximizeWindow()
 
     if (!wasResizable)
         window.styleMask &= ~NSResizableWindowMask;
+
+    [fullScreenButton removeFromSuperview];
+    [window.contentView addSubview:fullScreenButton];
+    [closeButton removeFromSuperview];
+    [window.contentView addSubview:closeButton];
+    [minimizeButton removeFromSuperview];
+    [window.contentView addSubview:minimizeButton];
 }
 
 void FramelessWindowConverterMacos::restoreWindow()
@@ -45,6 +52,13 @@ void FramelessWindowConverterMacos::restoreWindow()
 
     if (!wasResizable)
         window.styleMask &= ~NSResizableWindowMask;
+
+    [fullScreenButton removeFromSuperview];
+    [window.contentView addSubview:fullScreenButton];
+    [closeButton removeFromSuperview];
+    [window.contentView addSubview:closeButton];
+    [minimizeButton removeFromSuperview];
+    [window.contentView addSubview:minimizeButton];
 }
 
 void FramelessWindowConverterMacos::closeWindow()
@@ -73,13 +87,13 @@ void FramelessWindowConverterMacos::showForTranslucency()
 
 static bool isMouseInGroup = false;
 
-@interface ZOOOM : NSObject
-                   - (BOOL)_mouseInGroup:(NSButton *)button;
+@interface TrafficLightsHelper : NSObject
+    - (BOOL)_mouseInGroup:(NSButton *)button;
 @end
-@implementation ZOOOM
+@implementation TrafficLightsHelper
 - (BOOL)_mouseInGroup:(NSButton *)button
 {
-    if(button || true)
+    if(button || true) // get rid of unused warning
         return isMouseInGroup;
 }
 @end
@@ -101,8 +115,8 @@ void FramelessWindowConverterMacos::convertToFrameless()
     window.styleMask |= NSTitledWindowMask;
     window.styleMask |= NSClosableWindowMask;
     window.styleMask |= NSMiniaturizableWindowMask;
-    //window.styleMask &= ~NSResizableWindowMask; // Custom Resize
-    window.styleMask |= NSResizableWindowMask;
+    window.styleMask &= ~NSResizableWindowMask; // Custom Resize
+    //window.styleMask |= NSResizableWindowMask;
 
     [window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
     // Enable Layer backing
@@ -158,8 +172,8 @@ void FramelessWindowConverterMacos::convertToFrameless()
     }];
 
     SEL swizzledSelector = @selector(_mouseInGroup:);
-    ZOOOM* zooms = [[ZOOOM alloc] init];
-    Method swizzledMethod = class_getInstanceMethod([zooms class], swizzledSelector);
+    TrafficLightsHelper* tlHelper = [[TrafficLightsHelper alloc] init];
+    Method swizzledMethod = class_getInstanceMethod([tlHelper class], swizzledSelector);
 
     class_replaceMethod([nativeWidgetView class],
             swizzledSelector,
@@ -381,6 +395,7 @@ bool FramelessWindowConverterMacos::filterNativeEvent(void *message, long *resul
         {
             startDiffCursorFrameLocs.x = globalMousePos.x - currentFrame.origin.x;
             startDiffCursorFrameLocs.y = globalMousePos.y - currentFrame.origin.y;
+            isMoving = true;
             return false;
         }
     }
@@ -392,6 +407,10 @@ bool FramelessWindowConverterMacos::filterNativeEvent(void *message, long *resul
             isResizing = !isResizing;
             showCursorByHitResult(FWCBorderHitTestResult::CLIENT);
             return false;
+        }
+        else if(isMoving)
+        {
+            isMoving = !isMoving;
         }
     }
     if ([event type] == NSLeftMouseDragged)
@@ -406,7 +425,7 @@ bool FramelessWindowConverterMacos::filterNativeEvent(void *message, long *resul
             NSPoint mouseLocInWindow = [event locationInWindow];
             resizeWindow(FWCFloatingPoint(mouseLocInWindow.x, mouseLocInWindow.y));
         }
-        else
+        else if(isMoving)
         {
             NSRect newFrame = [window frame];
 

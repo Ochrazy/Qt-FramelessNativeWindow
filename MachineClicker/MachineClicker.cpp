@@ -262,6 +262,10 @@ void MachineClicker::paintEvent(QPaintEvent* ev)
         painter.setCompositionMode(QPainter::CompositionMode_Source);
         painter.fillRect(ev->rect(),QColor(100,100,100,255));
         painter.end();
+
+        bTakeScreenshot = false;
+        noDraw = false;
+        takingScreen = false;
     }
     else
     {
@@ -275,7 +279,6 @@ void MachineClicker::paintEvent(QPaintEvent* ev)
                 blurredScreenshot = blurImage(pixmap.toImage(), pixmap.rect(), 25);
                 bTakeScreenshot = false;
                 noDraw = false;
-                //qDebug("scre");
                 takingScreen = false;
                 framelessWindowConverter.showForTranslucency();
             }
