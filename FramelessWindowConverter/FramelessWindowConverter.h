@@ -62,6 +62,7 @@ public:
     void maximizeWindow();
     void restoreWindow();
     void closeWindow();
+    std::function<void(void)> repaint;
 
 private:
     class FramelessWindowConverterPrivate* d_ptr;

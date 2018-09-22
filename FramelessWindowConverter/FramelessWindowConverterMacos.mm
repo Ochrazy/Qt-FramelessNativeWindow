@@ -79,7 +79,8 @@ static bool isMouseInGroup = false;
 @implementation ZOOOM
 - (BOOL)_mouseInGroup:(NSButton *)button
 {
-    return isMouseInGroup;
+    if(button || true)
+        return isMouseInGroup;
 }
 @end
 
@@ -142,7 +143,7 @@ void FramelessWindowConverterMacos::convertToFrameless()
     [minimizeButton setFrameOrigin:NSMakePoint(10+20, 10)];
 
     // Every resize macos sets the position of the original buttons to the "preferred" state, so set the position manually here
-    id observation = [[NSNotificationCenter defaultCenter]
+    [[NSNotificationCenter defaultCenter]
             addObserverForName:NSWindowDidResizeNotification object:window queue:nil usingBlock:^(NSNotification *){
         [fullScreenButton setFrameOrigin:NSMakePoint(10+40, 10)];
         [closeButton setFrameOrigin:NSMakePoint(10+0, 10)];
@@ -150,7 +151,7 @@ void FramelessWindowConverterMacos::convertToFrameless()
     }];
 
     // Exiting fullscreen mode messes up everything, so fix it here
-    id observation2 = [[NSNotificationCenter defaultCenter]
+    [[NSNotificationCenter defaultCenter]
             addObserverForName:NSWindowDidExitFullScreenNotification object:window queue:nil usingBlock:^(NSNotification *){
         convertToFrameless();
         q_ptr->repaint();
@@ -177,32 +178,41 @@ void FramelessWindowConverterMacos::showCursorByHitResult(FWCBorderHitTestResult
     switch(inBorderHitResult)
     {
     case FWCBorderHitTestResult::LEFT:
-        if ([NSCursor respondsToSelector:@selector(_windowResizeEastWestCursor)])
-        {
-            [[NSCursor performSelector:@selector(_windowResizeEastWestCursor)] set];
-        }
-        break;
+        // Fallthrough
     case FWCBorderHitTestResult::RIGHT:
-        [[NSCursor performSelector:@selector(_windowResizeEastWestCursor)] set];
+    {
+        SEL selector = NSSelectorFromString(@"_windowResizeEastWestCursor");
+        NSCursor* newCursor = [NSCursor performSelector:selector];
+        [newCursor set];
         break;
+    }
     case FWCBorderHitTestResult::TOP:
-        [[NSCursor performSelector:@selector(_windowResizeNorthSouthCursor)] set];
-        break;
+        // Fallthrough
     case FWCBorderHitTestResult::BOTTOM:
-        [[NSCursor performSelector:@selector(_windowResizeNorthSouthCursor)] set];
+    {
+        SEL selector = NSSelectorFromString(@"_windowResizeNorthSouthCursor");
+        NSCursor* newCursor = [NSCursor performSelector:selector];
+        [newCursor set];
         break;
-    case FWCBorderHitTestResult::BOTTOM_LEFT:
-        [[NSCursor performSelector:@selector(_windowResizeNorthEastSouthWestCursor)] set];
-        break;
-    case FWCBorderHitTestResult::BOTTOM_RIGHT:
-        [[NSCursor performSelector:@selector(_windowResizeNorthWestSouthEastCursor)] set];
-        break;
-    case FWCBorderHitTestResult::TOP_LEFT:
-        [[NSCursor performSelector:@selector(_windowResizeNorthWestSouthEastCursor)] set];
-        break;
+    }
     case FWCBorderHitTestResult::TOP_RIGHT:
-        [[NSCursor performSelector:@selector(_windowResizeNorthEastSouthWestCursor)] set];
+        // Fallthrough
+    case FWCBorderHitTestResult::BOTTOM_LEFT:
+    {
+        SEL selector = NSSelectorFromString(@"_windowResizeNorthEastSouthWestCursor");
+        NSCursor* newCursor = [NSCursor performSelector:selector];
+        [newCursor set];
         break;
+    }
+    case FWCBorderHitTestResult::BOTTOM_RIGHT:
+        // Fallthrough
+    case FWCBorderHitTestResult::TOP_LEFT:
+    {
+        SEL selector = NSSelectorFromString(@"_windowResizeNorthWestSouthEastCursor");
+        NSCursor* newCursor = [NSCursor performSelector:selector];
+        [newCursor set];
+        break;
+    }
     case FWCBorderHitTestResult::CLIENT:
         if(isResizing == false)
         {
