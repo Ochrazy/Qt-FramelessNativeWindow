@@ -52,6 +52,17 @@ MachineClicker::MachineClicker(QWidget *parent) :
 
     MaximizeButton = new QPushButton(this);
     MaximizeButton->setFixedSize(20, 20);
+#ifdef __APPLE__
+    MaximizeButton->setStyleSheet("QPushButton { "
+                                  "image:url(:/images/icon_window_macOS_fullscreen.png);"
+                                  "background-color:black;"
+                                  "border:none;"
+                                  "width:20px;"
+                                  "height:20px;"
+                                  "padding:4px;"
+                                  "border-top-right-radius: 0px;}"
+                                  "QPushButton:hover{ background-color:grey; }");
+#else
     MaximizeButton->setStyleSheet("QPushButton { "
                                   "image:url(:/images/icon_window_maximize.png);"
                                   "background-color:black;"
@@ -61,6 +72,7 @@ MachineClicker::MachineClicker(QWidget *parent) :
                                   "padding:4px;"
                                   "border-top-right-radius: 0px;}"
                                   "QPushButton:hover{ background-color:grey; }");
+#endif
 
     StartStopButton = new QPushButton(this);
     StartStopButton->setCheckable(true);
@@ -141,6 +153,17 @@ MachineClicker::MachineClicker(QWidget *parent) :
             if(window()->isMaximized())
             {
                 framelessWindowConverter.restoreWindow();
+#ifdef __APPLE__
+                MaximizeButton->setStyleSheet("QPushButton { "
+                                              "image:url(:/images/icon_window_macOS_maximize.png);"
+                                              "background-color:black;"
+                                              "border:none;"
+                                              "width:20px;"
+                                              "height:20px;"
+                                              "padding:4px;"
+                                              "border-top-right-radius: 0px;}"
+                                              "QPushButton:hover{ background-color:grey; }");
+#else
                 MaximizeButton->setStyleSheet("QPushButton { "
                                               "image:url(:/images/icon_window_maximize.png);"
                                               "background-color:black;"
@@ -150,10 +173,22 @@ MachineClicker::MachineClicker(QWidget *parent) :
                                               "padding:4px;"
                                               "border-top-right-radius: 0px;}"
                                               "QPushButton:hover{ background-color:grey; }");
+#endif
             }
             else
             {
                 framelessWindowConverter.maximizeWindow();
+#ifdef __APPLE__
+                MaximizeButton->setStyleSheet("QPushButton { "
+                                              "image:url(:/images/icon_window_macOS_maximize.png);"
+                                              "background-color:black;"
+                                              "border:none;"
+                                              "width:20px;"
+                                              "height:20px;"
+                                              "padding:4px;"
+                                              "border-top-right-radius: 0px;}"
+                                              "QPushButton:hover{ background-color:grey; }");
+#else
                 MaximizeButton->setStyleSheet("QPushButton { "
                                               "image:url(:/images/icon_window_restore.png);"
                                               "background-color:black;"
@@ -163,6 +198,7 @@ MachineClicker::MachineClicker(QWidget *parent) :
                                               "padding:4px;"
                                               "border-top-right-radius: 0px;}"
                                               "QPushButton:hover{ background-color:grey; }");
+#endif
             }
         }
     });
@@ -382,15 +418,35 @@ void MachineClicker::keyPressEvent(QKeyEvent* ev)
 {
     if(ev->modifiers() & Qt::AltModifier)
     {
-        // ToDo: macOS fullscreen button change image
+#ifdef __APPLE__
+                MaximizeButton->setStyleSheet("QPushButton { "
+                                              "image:url(:/images/icon_window_macOS_maximize.png);"
+                                              "background-color:black;"
+                                              "border:none;"
+                                              "width:20px;"
+                                              "height:20px;"
+                                              "padding:4px;"
+                                              "border-top-right-radius: 0px;}"
+                                              "QPushButton:hover{ background-color:grey; }");
+#endif
     }
 }
 
 void MachineClicker::keyReleaseEvent(QKeyEvent* ev)
 {
-    if(ev->modifiers() & Qt::AltModifier)
+    if(!(ev->modifiers() & Qt::AltModifier))
     {
-        // ToDo: macOS fullscreen button change image
+#ifdef __APPLE__
+                MaximizeButton->setStyleSheet("QPushButton { "
+                                              "image:url(:/images/icon_window_macOS_fullscreen.png);"
+                                              "background-color:black;"
+                                              "border:none;"
+                                              "width:20px;"
+                                              "height:20px;"
+                                              "padding:4px;"
+                                              "border-top-right-radius: 0px;}"
+                                              "QPushButton:hover{ background-color:grey; }");
+#endif
     }
 }
 
