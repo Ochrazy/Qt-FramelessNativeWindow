@@ -3,7 +3,7 @@
 This project is work in progress. 
 
 The Qt-FramelessNativeWindow is a frameless Qt Desktop Window with added support for native OS-features. A frameless Window has no title bar and needs custom close, minimze and maximize buttons. The class **FramelessWindowConverter** converts existing native windows and turns them into frameless ones with all of the expected native os features. It only uses native os calls and is completely independent of Qt. As the name suggests **FramelessWindowConverter** does not create a window at all but rather works by filtering native OS Events. In the example Qt-Application **MachineClicker** the FramelessWindowConverter is used to get a frameless window.
-Supported platforms are Windows 10, macOS and Unix/Linux. 
+Supported platforms are Windows 10, macOS and Unix/Linux. Tested with Qt 5.11.2.
 
 The native OS features supported are:
 - Resizable
