@@ -30,10 +30,13 @@ public:
     void maximizeWindow() override;
     void restoreWindow() override;
     void closeWindow() override;
+    void toggleFullscreen() override;
     void convertToFrameless() override;
 
     void hideForTranslucency() override;
     void showForTranslucency() override;
+
+    inline bool getIsMouseInGroup() { return isMouseInGroup; }
 
 private:
     NSView* nativeWidgetView;
@@ -43,6 +46,7 @@ private:
     NSButton* minimizeButton;
     bool isResizing = false;
     bool isMoving = false;
+    bool isMouseInGroup = false;
     FWC::FWCBorderHitTestResult currentBHTR = FWC::FWCBorderHitTestResult::NONE;
     FWCFloatingPoint startDiffCursorFrameLocs;
     void showCursorByHitResult(FWCBorderHitTestResult inBorderHitResult);

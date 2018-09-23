@@ -10,6 +10,66 @@
 
 using namespace FWC;
 
+// TrafficLightsHelper objective-c class
+@interface TrafficLightsHelper : NSObject
+                                 @property (assign, nonatomic) NSWindow* window;
+@property (assign, nonatomic) FramelessWindowConverterMacos* fwcM;
+- (id) initWithFWCMAndWindow:(FramelessWindowConverterMacos*)fwcM :(NSWindow*)inWin;
+- (BOOL)_mouseInGroup:(NSButton *)button;
+- (void) minimizeButtonAction:(id)sender;
+- (void) closeButtonAction:(id)sender;
+- (void) zoomButtonAction:(id)sender;
+@end
+
+@implementation TrafficLightsHelper
+@synthesize fwcM;
+@synthesize window;
+- (id) initWithFWCMAndWindow:(FramelessWindowConverterMacos*)inFWCM :(NSWindow*)inWin
+{
+    if((self = [super init]) != nil)
+    {
+        fwcM = inFWCM;
+        window = inWin;
+        return self;
+    }
+    else return nil;
+}
+
+- (BOOL)_mouseInGroup:(NSButton *)button
+{
+    if(button || true) // get rid of unused warning
+        return self.fwcM->getIsMouseInGroup();
+}
+
+- (void) minimizeButtonAction:(id)sender
+{
+    (void)sender;
+    self.fwcM->minimizeWindow();
+}
+
+- (void) closeButtonAction:(id)sender
+{
+    (void)sender;
+    self.fwcM->closeWindow();
+}
+
+- (void) zoomButtonAction:(id)sender
+{
+    (void)sender;
+    NSEventModifierFlags currentFlags = [NSEvent modifierFlags];
+    if(currentFlags & NSEventModifierFlagOption)
+    {
+        self.fwcM->maximizeWindow(); // also minimizes
+    }
+    else
+    {
+        self.fwcM->toggleFullscreen();
+    }
+}
+
+@end
+// END of TrafficLightsHelper objective-c class
+
 
 FramelessWindowConverterMacos::FramelessWindowConverterMacos(FramelessWindowConverter* q) : FramelessWindowConverterPrivate(q)
 {
@@ -33,32 +93,21 @@ void FramelessWindowConverterMacos::maximizeWindow()
     if (!wasResizable)
         window.styleMask &= ~NSResizableWindowMask;
 
-    [fullScreenButton removeFromSuperview];
-    [window.contentView addSubview:fullScreenButton];
-    [closeButton removeFromSuperview];
-    [window.contentView addSubview:closeButton];
-    [minimizeButton removeFromSuperview];
-    [window.contentView addSubview:minimizeButton];
+    if(q_ptr->isUsingTrafficLightsOnMacOS())
+    {
+        [fullScreenButton removeFromSuperview];
+        [window.contentView addSubview:fullScreenButton];
+        [closeButton removeFromSuperview];
+        [window.contentView addSubview:closeButton];
+        [minimizeButton removeFromSuperview];
+        [window.contentView addSubview:minimizeButton];
+    }
 }
 
 void FramelessWindowConverterMacos::restoreWindow()
 {
-    // The NSWindow needs to be resizable, otherwise the window will
-    // not be possible to zoom back to non-zoomed state.
-    const bool wasResizable = window.styleMask & NSResizableWindowMask;
-    window.styleMask |= NSResizableWindowMask;
-
-    [window zoom:window];
-
-    if (!wasResizable)
-        window.styleMask &= ~NSResizableWindowMask;
-
-    [fullScreenButton removeFromSuperview];
-    [window.contentView addSubview:fullScreenButton];
-    [closeButton removeFromSuperview];
-    [window.contentView addSubview:closeButton];
-    [minimizeButton removeFromSuperview];
-    [window.contentView addSubview:minimizeButton];
+    // Zoom will restore window
+    maximizeWindow();
 }
 
 void FramelessWindowConverterMacos::closeWindow()
@@ -71,32 +120,30 @@ void FramelessWindowConverterMacos::closeWindow()
     [window close];
 }
 
+void FramelessWindowConverterMacos::toggleFullscreen()
+{
+    [window toggleFullScreen:window];
+}
+
 void FramelessWindowConverterMacos::hideForTranslucency()
 {
-    [fullScreenButton setHidden:YES];
-    [closeButton setHidden:YES];
-    [minimizeButton setHidden:YES];
+    if(q_ptr->isUsingTrafficLightsOnMacOS())
+    {
+        [fullScreenButton setHidden:YES];
+        [closeButton setHidden:YES];
+        [minimizeButton setHidden:YES];
+    }
 }
 
 void FramelessWindowConverterMacos::showForTranslucency()
 {
-    [fullScreenButton setHidden:NO];
-    [closeButton setHidden:NO];
-    [minimizeButton setHidden:NO];
+    if(q_ptr->isUsingTrafficLightsOnMacOS())
+    {
+        [fullScreenButton setHidden:NO];
+        [closeButton setHidden:NO];
+        [minimizeButton setHidden:NO];
+    }
 }
-
-static bool isMouseInGroup = false;
-
-@interface TrafficLightsHelper : NSObject
-    - (BOOL)_mouseInGroup:(NSButton *)button;
-@end
-@implementation TrafficLightsHelper
-- (BOOL)_mouseInGroup:(NSButton *)button
-{
-    if(button || true) // get rid of unused warning
-        return isMouseInGroup;
-}
-@end
 
 void FramelessWindowConverterMacos::convertToFrameless()
 {
@@ -116,7 +163,6 @@ void FramelessWindowConverterMacos::convertToFrameless()
     window.styleMask |= NSClosableWindowMask;
     window.styleMask |= NSMiniaturizableWindowMask;
     window.styleMask &= ~NSResizableWindowMask; // Custom Resize
-    //window.styleMask |= NSResizableWindowMask;
 
     [window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
     // Enable Layer backing
@@ -126,59 +172,80 @@ void FramelessWindowConverterMacos::convertToFrameless()
     // The rest of the window would be more opaque with every repaint.
     nativeWidgetView.wantsLayer = YES;
 
-    // Traffic lights
-    [[window standardWindowButton:NSWindowCloseButton] setHidden:NO];
-    [[window standardWindowButton:NSWindowMiniaturizeButton] setHidden:NO];
-    [[window standardWindowButton:NSWindowZoomButton] setHidden:NO];
+    if(q_ptr->isUsingTrafficLightsOnMacOS())
+    {
+        // Traffic lights
+        [[window standardWindowButton:NSWindowCloseButton] setHidden:NO];
+        [[window standardWindowButton:NSWindowMiniaturizeButton] setHidden:NO];
+        [[window standardWindowButton:NSWindowZoomButton] setHidden:NO];
 
-    fullScreenButton = [window standardWindowButton:NSWindowZoomButton];
-    [fullScreenButton.superview willRemoveSubview:fullScreenButton];
-    [fullScreenButton removeFromSuperview];
-    [fullScreenButton viewWillMoveToSuperview:[window contentView]];
-    [window.contentView addSubview:fullScreenButton];
-    [fullScreenButton viewDidMoveToSuperview];
+        TrafficLightsHelper* tlHelper = [[TrafficLightsHelper alloc] initWithFWCMAndWindow:this :window];
 
-    closeButton = [window standardWindowButton:NSWindowCloseButton];
-    [closeButton.superview willRemoveSubview:closeButton];
-    [closeButton removeFromSuperview];
-    [closeButton viewWillMoveToSuperview:[window contentView]];
-    [window.contentView addSubview:closeButton];
-    [closeButton viewDidMoveToSuperview];
+        fullScreenButton = [window standardWindowButton:NSWindowZoomButton];
+        [fullScreenButton.superview willRemoveSubview:fullScreenButton];
+        [fullScreenButton removeFromSuperview];
+        [fullScreenButton viewWillMoveToSuperview:[window contentView]];
+        [window.contentView addSubview:fullScreenButton];
+        [fullScreenButton viewDidMoveToSuperview];
+        [fullScreenButton setTarget:tlHelper];
+        [fullScreenButton setAction:@selector(zoomButtonAction:)];
 
-    minimizeButton = [window standardWindowButton:NSWindowMiniaturizeButton];
-    [minimizeButton.superview willRemoveSubview:minimizeButton];
-    [minimizeButton removeFromSuperview];
-    [minimizeButton viewWillMoveToSuperview:[window contentView]];
-    [window.contentView addSubview:minimizeButton];
-    [minimizeButton viewDidMoveToSuperview];
+        closeButton = [window standardWindowButton:NSWindowCloseButton];
+        [closeButton.superview willRemoveSubview:closeButton];
+        [closeButton removeFromSuperview];
+        [closeButton viewWillMoveToSuperview:[window contentView]];
+        [window.contentView addSubview:closeButton];
+        [closeButton viewDidMoveToSuperview];
+        [closeButton setTarget:tlHelper];
+        [closeButton setAction:@selector(closeButtonAction:)];
 
-    [fullScreenButton setFrameOrigin:NSMakePoint(10+40, 10)];
-    [closeButton setFrameOrigin:NSMakePoint(10+0, 10)];
-    [minimizeButton setFrameOrigin:NSMakePoint(10+20, 10)];
+        minimizeButton = [window standardWindowButton:NSWindowMiniaturizeButton];
+        [minimizeButton.superview willRemoveSubview:minimizeButton];
+        [minimizeButton removeFromSuperview];
+        [minimizeButton viewWillMoveToSuperview:[window contentView]];
+        [window.contentView addSubview:minimizeButton];
+        [minimizeButton viewDidMoveToSuperview];
+        [minimizeButton setTarget:tlHelper];
+        [minimizeButton setAction:@selector(minimizeButtonAction:)];
 
-    // Every resize macos sets the position of the original buttons to the "preferred" state, so set the position manually here
-    [[NSNotificationCenter defaultCenter]
-            addObserverForName:NSWindowDidResizeNotification object:window queue:nil usingBlock:^(NSNotification *){
         [fullScreenButton setFrameOrigin:NSMakePoint(10+40, 10)];
         [closeButton setFrameOrigin:NSMakePoint(10+0, 10)];
         [minimizeButton setFrameOrigin:NSMakePoint(10+20, 10)];
-    }];
+
+        // Replace _mouseInGroup method in contentView to enable proper highlighting for traffic lights
+        SEL swizzledSelector = @selector(_mouseInGroup:);
+        Method swizzledMethod = class_getInstanceMethod([tlHelper class], swizzledSelector);
+        class_replaceMethod([nativeWidgetView class],
+                swizzledSelector,
+                method_getImplementation(swizzledMethod),
+                method_getTypeEncoding(swizzledMethod));
+
+        // Every resize macos sets the position of the original buttons to the "preferred" state, so set the position manually here
+        [[NSNotificationCenter defaultCenter]
+                addObserverForName:NSWindowDidResizeNotification object:window queue:nil usingBlock:^(NSNotification *){
+            [fullScreenButton setFrameOrigin:NSMakePoint(10+40, 10)];
+            [closeButton setFrameOrigin:NSMakePoint(10+0, 10)];
+            [minimizeButton setFrameOrigin:NSMakePoint(10+20, 10)];
+        }];
+    }
+    else
+    {
+        fullScreenButton = [window standardWindowButton:NSWindowZoomButton];
+        closeButton = [window standardWindowButton:NSWindowCloseButton];
+        minimizeButton = [window standardWindowButton:NSWindowMiniaturizeButton];
+
+        [closeButton setHidden:YES];
+        [minimizeButton setHidden:YES];
+        [fullScreenButton setHidden:YES];
+    }
 
     // Exiting fullscreen mode messes up everything, so fix it here
     [[NSNotificationCenter defaultCenter]
             addObserverForName:NSWindowDidExitFullScreenNotification object:window queue:nil usingBlock:^(NSNotification *){
         convertToFrameless();
+        // ToDo: send activate event instead.
         q_ptr->repaint();
     }];
-
-    SEL swizzledSelector = @selector(_mouseInGroup:);
-    TrafficLightsHelper* tlHelper = [[TrafficLightsHelper alloc] init];
-    Method swizzledMethod = class_getInstanceMethod([tlHelper class], swizzledSelector);
-
-    class_replaceMethod([nativeWidgetView class],
-            swizzledSelector,
-            method_getImplementation(swizzledMethod),
-            method_getTypeEncoding(swizzledMethod));
 
     // Control Cursor shape ourselves
     [window disableCursorRects];
@@ -440,24 +507,30 @@ bool FramelessWindowConverterMacos::filterNativeEvent(void *message, long *resul
     }
     if([event type] == NSEventTypeFlagsChanged)
     {
-        if(event.keyCode == 58) // option key pressed or released
-            [fullScreenButton setNeedsDisplay:YES]; // Properly show fullscreen or zoom button
+        if(q_ptr->isUsingTrafficLightsOnMacOS())
+        {
+            if(event.keyCode == 58) // option key pressed or released
+                [fullScreenButton setNeedsDisplay:YES]; // Properly show fullscreen or zoom button
+        }
     }
     if([event type] == NSMouseMoved)
     {
         showAppropriateCursor();
 
-        // Determine if Mouse Cursor is inside of traffic light area
-        NSPoint localPos = [[window contentView] convertPoint: [window mouseLocationOutsideOfEventStream] fromView: nil];
-        bool isInside = NSPointInRect(localPos, NSMakeRect(closeButton.frame.origin.x, closeButton.frame.origin.y,
-                                                           (fullScreenButton.frame.origin.x + fullScreenButton.frame.size.width) - closeButton.frame.origin.x,
-                                                           (fullScreenButton.frame.origin.y + fullScreenButton.frame.size.height) - closeButton.frame.origin.y));
-        if(isInside != isMouseInGroup)
+        if(q_ptr->isUsingTrafficLightsOnMacOS())
         {
-            isMouseInGroup = isInside;
-            [fullScreenButton setNeedsDisplay:YES];
-            [closeButton setNeedsDisplay:YES];
-            [minimizeButton setNeedsDisplay:YES];
+            // Determine if Mouse Cursor is inside of traffic light area
+            NSPoint localPos = [[window contentView] convertPoint: [window mouseLocationOutsideOfEventStream] fromView: nil];
+            bool isInside = NSPointInRect(localPos, NSMakeRect(closeButton.frame.origin.x, closeButton.frame.origin.y,
+                                                               (fullScreenButton.frame.origin.x + fullScreenButton.frame.size.width) - closeButton.frame.origin.x,
+                                                               (fullScreenButton.frame.origin.y + fullScreenButton.frame.size.height) - closeButton.frame.origin.y));
+            if(isInside != isMouseInGroup)
+            {
+                isMouseInGroup = isInside;
+                [fullScreenButton setNeedsDisplay:YES];
+                [closeButton setNeedsDisplay:YES];
+                [minimizeButton setNeedsDisplay:YES];
+            }
         }
 
         return false;

@@ -130,31 +130,40 @@ MachineClicker::MachineClicker(QWidget *parent) :
     });
     connect(MaximizeButton, &QAbstractButton::clicked, this, [this]()
     {
-        if(window()->isMaximized())
+#ifdef __APPLE__
+        if(!(qApp->keyboardModifiers() & Qt::AltModifier) || window()->isFullScreen())
         {
-            framelessWindowConverter.restoreWindow();
-            MaximizeButton->setStyleSheet("QPushButton { "
-                                          "image:url(:/images/icon_window_maximize.png);"
-                                          "background-color:black;"
-                                          "border:none;"
-                                          "width:20px;"
-                                          "height:20px;"
-                                          "padding:4px;"
-                                          "border-top-right-radius: 0px;}"
-                                          "QPushButton:hover{ background-color:grey; }");
+             framelessWindowConverter.toggleFullscreen();
         }
         else
+#endif
         {
-            framelessWindowConverter.maximizeWindow();
-            MaximizeButton->setStyleSheet("QPushButton { "
-                                          "image:url(:/images/icon_window_restore.png);"
-                                          "background-color:black;"
-                                          "border:none;"
-                                          "width:20px;"
-                                          "height:20px;"
-                                          "padding:4px;"
-                                          "border-top-right-radius: 0px;}"
-                                          "QPushButton:hover{ background-color:grey; }");
+            if(window()->isMaximized())
+            {
+                framelessWindowConverter.restoreWindow();
+                MaximizeButton->setStyleSheet("QPushButton { "
+                                              "image:url(:/images/icon_window_maximize.png);"
+                                              "background-color:black;"
+                                              "border:none;"
+                                              "width:20px;"
+                                              "height:20px;"
+                                              "padding:4px;"
+                                              "border-top-right-radius: 0px;}"
+                                              "QPushButton:hover{ background-color:grey; }");
+            }
+            else
+            {
+                framelessWindowConverter.maximizeWindow();
+                MaximizeButton->setStyleSheet("QPushButton { "
+                                              "image:url(:/images/icon_window_restore.png);"
+                                              "background-color:black;"
+                                              "border:none;"
+                                              "width:20px;"
+                                              "height:20px;"
+                                              "padding:4px;"
+                                              "border-top-right-radius: 0px;}"
+                                              "QPushButton:hover{ background-color:grey; }");
+            }
         }
     });
     connect(StartStopButton, SIGNAL (toggled(bool)), this, SLOT (handleStartStopButton(bool)));
@@ -367,6 +376,22 @@ bool MachineClicker::eventFilter(QObject* obj, QEvent* ev)
     }
 
     return false;
+}
+
+void MachineClicker::keyPressEvent(QKeyEvent* ev)
+{
+    if(ev->modifiers() & Qt::AltModifier)
+    {
+        // ToDo: macOS fullscreen button change image
+    }
+}
+
+void MachineClicker::keyReleaseEvent(QKeyEvent* ev)
+{
+    if(ev->modifiers() & Qt::AltModifier)
+    {
+        // ToDo: macOS fullscreen button change image
+    }
 }
 
 void MachineClicker::mouseReleaseEvent(QMouseEvent *)

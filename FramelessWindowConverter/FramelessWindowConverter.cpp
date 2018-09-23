@@ -65,6 +65,11 @@ void FramelessWindowConverter::restoreWindow()
     d_ptr->restoreWindow();
 }
 
+void FramelessWindowConverter::toggleFullscreen()
+{
+    d_ptr->toggleFullscreen();
+}
+
 void FramelessWindowConverter::hideForTranslucency()
 {
     d_ptr->hideForTranslucency();
@@ -75,3 +80,30 @@ void FramelessWindowConverter::showForTranslucency()
     d_ptr->showForTranslucency();
 }
 
+int FramelessWindowConverter::getMinimumWindowWidth() { return minimumWindowWidth; }
+int FramelessWindowConverter::getMinimumWindowHeight() { return minimumWindowHeight; }
+int FramelessWindowConverter::getMaximumWindowWidth() { return maximumWindowWidth; }
+int FramelessWindowConverter::getMaximumWindowHeight() { return maximumWindowHeight; }
+
+void FramelessWindowConverter::setMinimumWindowWidth(int inWidth) { minimumWindowWidth = inWidth; }
+void FramelessWindowConverter::setMinimumWindowHeight(int inHeight) { minimumWindowHeight = inHeight; }
+void FramelessWindowConverter::setMaximumWindowWidth(int inWidth) { maximumWindowWidth = inWidth; }
+void FramelessWindowConverter::setMaximumWindowHeight(int inHeight) { maximumWindowHeight = inHeight; }
+
+void FramelessWindowConverter::setMinMaxWindowSizes(int inMinWidth, int inMinHeight, int inMaxWidth, int inMaxHeight)
+{
+    minimumWindowWidth = inMinWidth;
+    minimumWindowHeight = inMinHeight;
+    maximumWindowWidth = inMaxWidth;
+    maximumWindowHeight = inMaxHeight;
+}
+
+void FramelessWindowConverter::useTrafficLightsOnMacOS(bool inUseTrafficLights)
+{
+    bUseTrafficLights = inUseTrafficLights;
+}
+
+ bool FramelessWindowConverter::isUsingTrafficLightsOnMacOS()
+ {
+     return bUseTrafficLights;
+ }

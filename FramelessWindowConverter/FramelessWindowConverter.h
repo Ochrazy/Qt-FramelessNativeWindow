@@ -38,23 +38,17 @@ public:
     inline std::function<void(void)> getReleaseMouseGrab() { return releaseMouseGrab; }
     void setReleaseMouseGrab(std::function<void(void)> inReleaseMouseGrab);
 
-    int getMinimumWindowWidth() { return minimumWindowWidth; }
-    int getMinimumWindowHeight() { return minimumWindowHeight; }
-    int getMaximumWindowWidth() { return maximumWindowWidth; }
-    int getMaximumWindowHeight() { return maximumWindowHeight; }
+    int getMinimumWindowWidth();
+    int getMinimumWindowHeight();
+    int getMaximumWindowWidth();
+    int getMaximumWindowHeight();
 
-    void setMinimumWindowWidth(int inWidth) { minimumWindowWidth = inWidth; }
-    void setMinimumWindowHeight(int inHeight) { minimumWindowHeight = inHeight; }
-    void setMaximumWindowWidth(int inWidth) { maximumWindowWidth = inWidth; }
-    void setMaximumWindowHeight(int inHeight) { maximumWindowHeight = inHeight; }
+    void setMinimumWindowWidth(int inWidth);
+    void setMinimumWindowHeight(int inHeight);
+    void setMaximumWindowWidth(int inWidth);
+    void setMaximumWindowHeight(int inHeight);
 
-    void setMinMaxWindowSizes(int inMinWidth, int inMinHeight, int inMaxWidth, int inMaxHeight)
-    {
-        minimumWindowWidth = inMinWidth;
-        minimumWindowHeight = inMinHeight;
-        maximumWindowWidth = inMaxWidth;
-        maximumWindowHeight = inMaxHeight;
-    }
+    void setMinMaxWindowSizes(int inMinWidth, int inMinHeight, int inMaxWidth, int inMaxHeight);
 
     void hideForTranslucency();
     void showForTranslucency();
@@ -62,7 +56,11 @@ public:
     void maximizeWindow();
     void restoreWindow();
     void closeWindow();
-    std::function<void(void)> repaint;
+    void toggleFullscreen();
+    std::function<void(void)> repaint; // only used under macOS
+
+    void useTrafficLightsOnMacOS(bool inUseTrafficLights);
+    bool isUsingTrafficLightsOnMacOS();
 
 private:
     class FramelessWindowConverterPrivate* d_ptr;
@@ -73,6 +71,7 @@ private:
     int minimumWindowHeight;
     int maximumWindowWidth;
     int maximumWindowHeight; 
+    bool bUseTrafficLights = false;
 };
 
 }

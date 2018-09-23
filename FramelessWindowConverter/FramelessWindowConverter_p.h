@@ -79,6 +79,7 @@ public:
     virtual void maximizeWindow() = 0;
     virtual void closeWindow() = 0;
     virtual void restoreWindow() = 0;
+    virtual void toggleFullscreen() {} // currently not used in Windows and Linux
 
 protected:
     FramelessWindowConverter* q_ptr;
