@@ -243,8 +243,6 @@ void FramelessWindowConverterMacos::convertToFrameless()
     [[NSNotificationCenter defaultCenter]
             addObserverForName:NSWindowDidExitFullScreenNotification object:window queue:nil usingBlock:^(NSNotification *){
         convertToFrameless();
-        // If user clicks on the window it will activate and repaint the translucent blur effect
-        [NSApp deactivate];
     }];
 
     // Control Cursor shape ourselves
@@ -495,13 +493,10 @@ bool FramelessWindowConverterMacos::filterNativeEvent(void *message, long *resul
         else if(isMoving)
         {
             NSRect newFrame = [window frame];
-
             newFrame.origin.x = [NSEvent mouseLocation].x - startDiffCursorFrameLocs.x;
             newFrame.origin.y = [NSEvent mouseLocation].y - startDiffCursorFrameLocs.y;
 
             [window setFrame:newFrame display:YES];
-            // Update Window
-            //q_ptr->repaint();
         }
         return false;
     }

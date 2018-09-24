@@ -139,7 +139,7 @@ MachineClicker::MachineClicker(QWidget *parent) :
 #ifdef __APPLE__
         if(!(qApp->keyboardModifiers() & Qt::AltModifier) || window()->isFullScreen())
         {
-             framelessWindowConverter.toggleFullscreen();
+            framelessWindowConverter.toggleFullscreen();
         }
         else
 #endif
@@ -372,6 +372,20 @@ bool MachineClicker::event(QEvent* ev)
             jj = false;
             repaint();
         }
+        // Currently only used and necessary on macOS
+        // If the user goes fullscreen switches back and e.g. moves windows around,
+        // a new screenshot has to be taken when coming out of fullscreen mode
+        else if(ev->type() == QEvent::WindowStateChange)
+        {
+            QWindowStateChangeEvent* stateEvent = static_cast<QWindowStateChangeEvent*>(ev);
+            if ((stateEvent->oldState() & Qt::WindowFullScreen) && !(windowState() & Qt::WindowFullScreen))
+            {
+                framelessWindowConverter.hideForTranslucency();
+                noDraw = true;
+                jj = false;
+                repaint();
+            }
+        }
     }
 
     return QWidget::event(ev);
@@ -413,15 +427,15 @@ void MachineClicker::keyPressEvent(QKeyEvent* ev)
     if(ev->modifiers() & Qt::AltModifier)
     {
 #ifdef __APPLE__
-                MaximizeButton->setStyleSheet("QPushButton { "
-                                              "image:url(:/images/icon_window_macOS_maximize.png);"
-                                              "background-color:black;"
-                                              "border:none;"
-                                              "width:20px;"
-                                              "height:20px;"
-                                              "padding:4px;"
-                                              "border-top-right-radius: 0px;}"
-                                              "QPushButton:hover{ background-color:grey; }");
+        MaximizeButton->setStyleSheet("QPushButton { "
+                                      "image:url(:/images/icon_window_macOS_maximize.png);"
+                                      "background-color:black;"
+                                      "border:none;"
+                                      "width:20px;"
+                                      "height:20px;"
+                                      "padding:4px;"
+                                      "border-top-right-radius: 0px;}"
+                                      "QPushButton:hover{ background-color:grey; }");
 #endif
     }
 }
@@ -431,15 +445,15 @@ void MachineClicker::keyReleaseEvent(QKeyEvent* ev)
     if(!(ev->modifiers() & Qt::AltModifier))
     {
 #ifdef __APPLE__
-                MaximizeButton->setStyleSheet("QPushButton { "
-                                              "image:url(:/images/icon_window_macOS_fullscreen.png);"
-                                              "background-color:black;"
-                                              "border:none;"
-                                              "width:20px;"
-                                              "height:20px;"
-                                              "padding:4px;"
-                                              "border-top-right-radius: 0px;}"
-                                              "QPushButton:hover{ background-color:grey; }");
+        MaximizeButton->setStyleSheet("QPushButton { "
+                                      "image:url(:/images/icon_window_macOS_fullscreen.png);"
+                                      "background-color:black;"
+                                      "border:none;"
+                                      "width:20px;"
+                                      "height:20px;"
+                                      "padding:4px;"
+                                      "border-top-right-radius: 0px;}"
+                                      "QPushButton:hover{ background-color:grey; }");
 #endif
     }
 }
