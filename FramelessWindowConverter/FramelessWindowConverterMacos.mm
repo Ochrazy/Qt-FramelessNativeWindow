@@ -243,8 +243,8 @@ void FramelessWindowConverterMacos::convertToFrameless()
     [[NSNotificationCenter defaultCenter]
             addObserverForName:NSWindowDidExitFullScreenNotification object:window queue:nil usingBlock:^(NSNotification *){
         convertToFrameless();
-        // ToDo: send activate event instead.
-        q_ptr->repaint();
+        // If user clicks on the window it will activate and repaint the translucent blur effect
+        [NSApp deactivate];
     }];
 
     // Control Cursor shape ourselves

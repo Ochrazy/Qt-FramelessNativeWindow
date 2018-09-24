@@ -57,7 +57,6 @@ public:
     void restoreWindow();
     void closeWindow();
     void toggleFullscreen();
-    std::function<void(void)> repaint; // only used under macOS
 
     void useTrafficLightsOnMacOS(bool inUseTrafficLights);
     bool isUsingTrafficLightsOnMacOS();

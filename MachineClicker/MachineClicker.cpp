@@ -116,12 +116,6 @@ MachineClicker::MachineClicker(QWidget *parent) :
     adjustSize(); // apply layout size (constraints) to window
     framelessWindowConverter.setMinMaxWindowSizes(minimumSize().width(), minimumSize().height(), maximumSize().width(), maximumSize().height());
 
-    framelessWindowConverter.repaint = [this]() {
-        framelessWindowConverter.hideForTranslucency();
-        noDraw = true;
-        jj = false;
-        repaint(); };
-
     FWC::FWCPARAMS fwcParams;
     fwcParams.windowHandle = winId();
     fwcParams.releaseMouseGrab = [this]() { windowHandle()->setMouseGrabEnabled(false); };
