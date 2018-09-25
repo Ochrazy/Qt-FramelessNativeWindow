@@ -6,7 +6,7 @@
 #include "InputSimulation/InputSimulation.h"
 #include "SystemWideHotkey/SystemWideHotkey.h"
 #include "FramelessWindowConverter/FramelessWindowConverter.h"
-#include "TranslucentBlurEffect.h"
+#include "TranslucentBlurEffect/TranslucentBlurEffect.h"
 #include <QOpenGLWidget>
 #include <QFrame>
 #include <QTimer>

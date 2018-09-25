@@ -1,5 +1,5 @@
-#ifndef TRANSLUCENCYBLUREFFECT_H
-#define TRANSLUCENCYBLUREFFECT_H
+#ifndef TRANSLUCENTBLUREFFECT_H
+#define TRANSLUCENTBLUREFFECT_H
 
 #include <QObject>
 #include <QWidget>
@@ -33,4 +33,4 @@ private:
     QImage blurredScreenshot;
 };
 
-#endif // TRANSLUCENCYBLUREFFECT_H
+#endif // TRANSLUCENTBLUREFFECT_H

@@ -13,6 +13,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 CONFIG += c++11
 
 include("../FramelessWindowConverter/FramelessWindowConverter.pri")
+include("../TranslucentBlurEffect/TranslucentBlurEffect.pri")
 
 SOURCES += \
         main.cpp \
@@ -22,8 +23,7 @@ SOURCES += \
     SystemWideHotkey/SystemWideHotkey_linux.cpp \
     SystemWideHotkey/SystemWideHotkey_windows.cpp \
     Clicker.cpp \
-    MachineClicker.cpp \
-    TranslucentBlurEffect.cpp
+    MachineClicker.cpp
 
 OBJECTIVE_SOURCES += SystemWideHotkey/SystemWideHotkey_macos.mm \
     InputSimulation/InputSimulation_macos.mm \
@@ -33,8 +33,7 @@ HEADERS += \
     InputSimulation/InputSimulation.h \
     SystemWideHotkey/SystemWideHotkey.h \
     Clicker.h \
-    MachineClicker.h \
-    TranslucentBlurEffect.h
+    MachineClicker.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -42,5 +41,3 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 RESOURCES += ../FramelessWindowImages.qrc
-
-FORMS +=
