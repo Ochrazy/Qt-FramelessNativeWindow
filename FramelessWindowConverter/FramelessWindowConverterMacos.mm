@@ -35,10 +35,12 @@ using namespace FWC;
     else return nil;
 }
 
+// Hack to get proper traffig light highlighting
+static bool isMouseInGroup = false;
 - (BOOL)_mouseInGroup:(NSButton *)button
 {
-    if(button || true) // get rid of unused warning
-        return self.fwcM->getIsMouseInGroup();
+    (void)button;
+    return isMouseInGroup;
 }
 
 - (void) minimizeButtonAction:(id)sender
@@ -174,6 +176,9 @@ void FramelessWindowConverterMacos::convertToFrameless()
 
     if(q_ptr->isUsingTrafficLightsOnMacOS())
     {
+        xPos = 50;
+        yPos = 50;
+
         // Traffic lights
         [[window standardWindowButton:NSWindowCloseButton] setHidden:NO];
         [[window standardWindowButton:NSWindowMiniaturizeButton] setHidden:NO];
@@ -208,9 +213,9 @@ void FramelessWindowConverterMacos::convertToFrameless()
         [minimizeButton setTarget:tlHelper];
         [minimizeButton setAction:@selector(minimizeButtonAction:)];
 
-        [fullScreenButton setFrameOrigin:NSMakePoint(10+40, 10)];
-        [closeButton setFrameOrigin:NSMakePoint(10+0, 10)];
-        [minimizeButton setFrameOrigin:NSMakePoint(10+20, 10)];
+        [fullScreenButton setFrameOrigin:NSMakePoint(xPos+40, yPos)];
+        [closeButton setFrameOrigin:NSMakePoint(xPos+0, yPos)];
+        [minimizeButton setFrameOrigin:NSMakePoint(xPos+20, yPos)];
 
         // Replace _mouseInGroup method in contentView to enable proper highlighting for traffic lights
         SEL swizzledSelector = @selector(_mouseInGroup:);
@@ -223,9 +228,9 @@ void FramelessWindowConverterMacos::convertToFrameless()
         // Every resize macos sets the position of the original buttons to the "preferred" state, so set the position manually here
         [[NSNotificationCenter defaultCenter]
                 addObserverForName:NSWindowDidResizeNotification object:window queue:nil usingBlock:^(NSNotification *){
-            [fullScreenButton setFrameOrigin:NSMakePoint(10+40, 10)];
-            [closeButton setFrameOrigin:NSMakePoint(10+0, 10)];
-            [minimizeButton setFrameOrigin:NSMakePoint(10+20, 10)];
+            [fullScreenButton setFrameOrigin:NSMakePoint(xPos+40, yPos)];
+            [closeButton setFrameOrigin:NSMakePoint(xPos+0, yPos)];
+            [minimizeButton setFrameOrigin:NSMakePoint(xPos+20, yPos)];
         }];
     }
     else

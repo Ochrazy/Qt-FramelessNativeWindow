@@ -134,6 +134,8 @@ MachineClicker::MachineClicker(QWidget *parent) :
     adjustSize(); // apply layout size (constraints) to window
     framelessWindowConverter.setMinMaxWindowSizes(minimumSize().width(), minimumSize().height(), maximumSize().width(), maximumSize().height());
 
+    framelessWindowConverter.useTrafficLightsOnMacOS(true);
+
     FWC::FWCPARAMS fwcParams;
     fwcParams.windowHandle = winId();
     fwcParams.releaseMouseGrab = [this]() { windowHandle()->setMouseGrabEnabled(false); };
