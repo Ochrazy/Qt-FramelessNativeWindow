@@ -14,19 +14,12 @@
 #include <QFrame>
 #include <QPainter>
 #include <QStyle>
-#include <QGraphicsBlurEffect>
 #include <QWindow>
-#include <QScreen>
-#include <QPixmap>
-
-static bool takingScreen = false;
-static bool noDraw = false;
-static bool bTakeScreenshot = false;
 
 MachineClicker::MachineClicker(QWidget *parent) :
-    QWidget(parent), framelessWindowConverter()
+    QWidget(parent), framelessWindowConverter(), translucencyBlurEffect(this, this)
 {
-    CloseButton = new QPushButton(this);
+    CloseButton = new QPushButton;
     CloseButton->setFixedSize(20, 20);
     CloseButton->setStyleSheet("QPushButton { "
                                "image:url(:/images/icon_window_close.png);"
@@ -38,7 +31,7 @@ MachineClicker::MachineClicker(QWidget *parent) :
                                "border-top-right-radius: 0px;}"
                                "QPushButton:hover{ background-color:red; }");
 
-    MinimizeButton = new QPushButton(this);
+    MinimizeButton = new QPushButton;
     MinimizeButton->setFixedSize(20, 20);
     MinimizeButton->setStyleSheet("QPushButton { "
                                   "image:url(:/images/icon_window_minimize.png);"
@@ -50,7 +43,7 @@ MachineClicker::MachineClicker(QWidget *parent) :
                                   "border-top-right-radius: 0px;}"
                                   "QPushButton:hover{ background-color:grey; }");
 
-    MaximizeButton = new QPushButton(this);
+    MaximizeButton = new QPushButton;
     MaximizeButton->setFixedSize(20, 20);
 #ifdef __APPLE__
     MaximizeButton->setStyleSheet("QPushButton { "
@@ -74,27 +67,27 @@ MachineClicker::MachineClicker(QWidget *parent) :
                                   "QPushButton:hover{ background-color:grey; }");
 #endif
 
-    StartStopButton = new QPushButton(this);
+    StartStopButton = new QPushButton;
     StartStopButton->setCheckable(true);
     StartStopButton->setText("Start");
     StartStopButton->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
 
-    IntervalSpinBox = new QSpinBox(this);
+    IntervalSpinBox = new QSpinBox;
     IntervalSpinBox->setMinimum(1);
     IntervalSpinBox->setMaximum(999);
     IntervalSpinBox->setValue(999);
 
-    HotkeyEdit = new QKeySequenceEdit(this);
+    HotkeyEdit = new QKeySequenceEdit;
 
-    HotkeyEditLabel = new QLabel(this);
+    HotkeyEditLabel = new QLabel;
     HotkeyEditLabel->setText("Start/Stop Hotkey: ");
 
     qApp->installEventFilter(this);
 
-    QLabel* windowTitle = new QLabel(this);
+    QLabel* windowTitle = new QLabel;
     windowTitle->setText("Native Frameless Window");
 
-    QGridLayout* GridLayout = new QGridLayout(this);
+    QGridLayout* GridLayout = new QGridLayout;
     GridLayout->addWidget(windowTitle, 0, 0, 1, 1);
     GridLayout->addWidget(StartStopButton, 1, 0, 2, 1);
     GridLayout->addWidget(IntervalSpinBox, 1, 1, 2, 1);
@@ -102,16 +95,41 @@ MachineClicker::MachineClicker(QWidget *parent) :
     GridLayout->addWidget(HotkeyEdit, 3, 1);
     GridLayout->setSizeConstraint(QLayout::SetDefaultConstraint);
 
-    QHBoxLayout* hBoxLayout = new QHBoxLayout();
+    QHBoxLayout* hBoxLayout = new QHBoxLayout;
     hBoxLayout->addWidget(MinimizeButton);
     hBoxLayout->addWidget(MaximizeButton);
     hBoxLayout->addWidget(CloseButton);
     GridLayout->addLayout(hBoxLayout, 0, 1, Qt::AlignRight);
+    GridLayout->setContentsMargins(8, 8, 8, 8);
+
+    // Background Widget
+    QWidget* backgroundWidget = new QWidget;
+    backgroundWidget->setStyleSheet("background-color:black;");
+    backgroundWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::MinimumExpanding);
+    backgroundWidget->setFixedWidth(200);
+
+    QLabel* testLabel = new QLabel(backgroundWidget);
+    testLabel->setText("Options go here - WIP");
+    testLabel->setStyleSheet("QLabel { background-color : black; color : white; }");
+
+    QVBoxLayout* optionsLayout = new QVBoxLayout(backgroundWidget);
+    optionsLayout->addWidget(testLabel);
+
+    // Main Layout left side are options -> right side are content
+    QHBoxLayout* TopLevelLayout = new QHBoxLayout(this);
+    TopLevelLayout->addWidget(backgroundWidget);
+    TopLevelLayout->addLayout(GridLayout);
+    TopLevelLayout->setContentsMargins(0,0,0,0);
 
     setWindowFlags(Qt::Widget | Qt::WindowSystemMenuHint/* | Qt::WindowStaysOnTopHint*/ | Qt::WindowTitleHint | Qt::FramelessWindowHint);
 
     setAttribute(Qt::WA_TranslucentBackground, true);
     setAttribute(Qt::WA_NoSystemBackground, true);
+
+    // Only necessary on macOS to hide Traffic Lights when they are used
+    // Otherwise empty methods are called and hopefully optimized away
+    connect(&translucencyBlurEffect, &TranslucentBlurEffect::hideNonQtWidgets, [this]() { framelessWindowConverter.hideForTranslucency(); });
+    connect(&translucencyBlurEffect, &TranslucentBlurEffect::showNonQtWidgets, [this]() { framelessWindowConverter.showForTranslucency(); });
 
     adjustSize(); // apply layout size (constraints) to window
     framelessWindowConverter.setMinMaxWindowSizes(minimumSize().width(), minimumSize().height(), maximumSize().width(), maximumSize().height());
@@ -119,9 +137,12 @@ MachineClicker::MachineClicker(QWidget *parent) :
     FWC::FWCPARAMS fwcParams;
     fwcParams.windowHandle = winId();
     fwcParams.releaseMouseGrab = [this]() { windowHandle()->setMouseGrabEnabled(false); };
-    fwcParams.shouldPerformWindowDrag =  [this](int mousePosXInWindow, int mousePosYInWindow)
+    fwcParams.shouldPerformWindowDrag =  [this, backgroundWidget](int mousePosXInWindow, int mousePosYInWindow)
     {
-        return childAt(mousePosXInWindow, mousePosYInWindow) ? false : true;
+        QWidget* widgetUnderCursor = childAt(mousePosXInWindow, mousePosYInWindow);
+        if(widgetUnderCursor == nullptr ||  widgetUnderCursor == backgroundWidget)
+            return true;
+        else return false;
     };
 
     framelessWindowConverter.convertWindowToFrameless(fwcParams);
@@ -211,8 +232,6 @@ MachineClicker::MachineClicker(QWidget *parent) :
     connect(this, &MachineClicker::signalStopClicking, clicker, &Clicker::stopClicking);
     connect(this, &MachineClicker::signalSetNewClickRate, clicker, &Clicker::setClickRate);
     timerThread->start();
-
-    pixmap = windowHandle()->screen()->grabWindow(0);
 }
 
 MachineClicker::~MachineClicker()
@@ -223,203 +242,6 @@ bool MachineClicker::nativeEvent(const QByteArray& eventType, void* message, lon
 {
     Q_UNUSED(eventType)
     return framelessWindowConverter.filterNativeEvents(message, result);
-}
-
-QImage blurImage(const QImage& image, const QRect& rect, int radius)
-{
-    int tab[] = { 14, 10, 8, 6, 5, 5, 4, 3, 3, 3, 3, 2, 2, 2, 2, 2, 2 };
-    int alpha = (radius < 1)  ? 16 : (radius > 17) ? 1 : tab[radius-1];
-
-    QImage result = image.convertToFormat(QImage::Format_ARGB32_Premultiplied);
-    int r1 = rect.top();
-    int r2 = rect.bottom();
-    int c1 = rect.left();
-    int c2 = rect.right();
-
-    int bpl = result.bytesPerLine();
-    int rgba[4];
-    unsigned char* p;
-
-    int i1 = 0;
-    int i2 = 3;
-
-    for (int col = c1; col <= c2; col++) {
-        p = result.scanLine(r1) + col * 4;
-        for (int i = i1; i <= i2; i++)
-            rgba[i] = p[i] << 4;
-
-        p += bpl;
-        for (int j = r1; j < r2; j++, p += bpl)
-            for (int i = i1; i <= i2; i++)
-                p[i] = static_cast<unsigned char>((rgba[i] += ((p[i] << 4) - rgba[i]) * alpha / 16) >> 4);
-    }
-
-    for (int row = r1; row <= r2; row++) {
-        p = result.scanLine(row) + c1 * 4;
-        for (int i = i1; i <= i2; i++)
-            rgba[i] = p[i] << 4;
-
-        p += 4;
-        for (int j = c1; j < c2; j++, p += 4)
-            for (int i = i1; i <= i2; i++)
-                p[i] = static_cast<unsigned char>((rgba[i] += ((p[i] << 4) - rgba[i]) * alpha / 16) >> 4);
-    }
-
-    for (int col = c1; col <= c2; col++) {
-        p = result.scanLine(r2) + col * 4;
-        for (int i = i1; i <= i2; i++)
-            rgba[i] = p[i] << 4;
-
-        p -= bpl;
-        for (int j = r1; j < r2; j++, p -= bpl)
-            for (int i = i1; i <= i2; i++)
-                p[i] = static_cast<unsigned char>((rgba[i] += ((p[i] << 4) - rgba[i]) * alpha / 16) >> 4);
-    }
-
-    for (int row = r1; row <= r2; row++) {
-        p = result.scanLine(row) + c2 * 4;
-        for (int i = i1; i <= i2; i++)
-            rgba[i] = p[i] << 4;
-
-        p -= 4;
-        for (int j = c1; j < c2; j++, p -= 4)
-            for (int i = i1; i <= i2; i++)
-                p[i] = static_cast<unsigned char>((rgba[i] += ((p[i] << 4) - rgba[i]) * alpha / 16) >> 4);
-    }
-
-    return result;
-}
-
-
-static QImage blurredScreenshot;
-void MachineClicker::paintEvent(QPaintEvent* ev)
-{
-    if(useTranslucentBackgroundBlur == false)
-    {
-        QPainter painter(this);
-        painter.setOpacity(0.9);
-        painter.setCompositionMode(QPainter::CompositionMode_Source);
-        painter.fillRect(ev->rect(),QColor(100,100,100,255));
-        painter.end();
-
-        bTakeScreenshot = false;
-        noDraw = false;
-        takingScreen = false;
-    }
-    else
-    {
-        if(jj)
-        {
-            QPainter painter;
-
-            if(bTakeScreenshot)
-            {
-                pixmap = windowHandle()->screen()->grabWindow(0);
-                blurredScreenshot = blurImage(pixmap.toImage(), pixmap.rect(), 25);
-                bTakeScreenshot = false;
-                noDraw = false;
-                takingScreen = false;
-                framelessWindowConverter.showForTranslucency();
-            }
-
-            painter.begin(this);
-            painter.setOpacity(1.0);
-            painter.setCompositionMode(QPainter::CompositionMode_Clear);
-            painter.fillRect(ev->rect(),QColor(100,100,100,255));
-
-            painter.setOpacity(1.0);
-            painter.setCompositionMode(QPainter::CompositionMode_Source);
-            painter.drawImage(ev->rect(), blurredScreenshot,
-                              QRect(mapToGlobal(ev->rect().topLeft()), mapToGlobal(ev->rect().bottomRight())));
-
-            painter.setOpacity(0.25);
-            painter.setCompositionMode(QPainter::CompositionMode_Darken);
-            painter.fillRect(ev->rect(),QColor(0,0,0,255));
-
-            painter.end();
-
-        }
-        else
-        {
-            QPainter painter;
-            painter.begin(this);
-            painter.setOpacity(0.0);
-            painter.setCompositionMode(QPainter::CompositionMode_Source);
-            painter.fillRect(ev->rect(),QColor(250,100,100,255));
-            painter.end();
-
-            if(!takingScreen)
-            {
-                takingScreen = true;
-                QTimer::singleShot(400, this, [this](){
-                    bTakeScreenshot = true;
-                    jj = true;
-                    repaint();
-                });
-            }
-        }
-    }
-}
-
-bool MachineClicker::event(QEvent* ev)
-{
-    if(useTranslucentBackgroundBlur)
-    {
-        if(ev->type() == QEvent::WindowActivate)
-        {
-            framelessWindowConverter.hideForTranslucency();
-            noDraw = true;
-            jj = false;
-            repaint();
-        }
-        // Currently only used and necessary on macOS
-        // If the user goes fullscreen switches back and e.g. moves windows around,
-        // a new screenshot has to be taken when coming out of fullscreen mode
-        else if(ev->type() == QEvent::WindowStateChange)
-        {
-            QWindowStateChangeEvent* stateEvent = static_cast<QWindowStateChangeEvent*>(ev);
-            if ((stateEvent->oldState() & Qt::WindowFullScreen) && !(windowState() & Qt::WindowFullScreen))
-            {
-                framelessWindowConverter.hideForTranslucency();
-                noDraw = true;
-                jj = false;
-                repaint();
-            }
-        }
-    }
-
-    return QWidget::event(ev);
-}
-
-void MachineClicker::moveEvent(QMoveEvent*)
-{
-    if(useTranslucentBackgroundBlur)
-    {
-        repaint();
-        update();
-    }
-}
-
-bool MachineClicker::eventFilter(QObject* obj, QEvent* ev)
-{
-    switch(ev->type())
-    {
-    case QEvent::Paint:
-    {
-        if(!noDraw || (obj == this) ) { return false; }
-        QPainter painter;
-        painter.begin(dynamic_cast<QWidget*>(obj));
-        painter.setOpacity(0.0);
-        painter.setCompositionMode(QPainter::CompositionMode_Source);
-        painter.fillRect(rect(),QColor(100,100,100,255));
-        painter.end();
-        return true;
-    }
-    default:
-        break;
-    }
-
-    return false;
 }
 
 void MachineClicker::keyPressEvent(QKeyEvent* ev)
@@ -458,8 +280,13 @@ void MachineClicker::keyReleaseEvent(QKeyEvent* ev)
     }
 }
 
-void MachineClicker::mouseReleaseEvent(QMouseEvent *)
+void MachineClicker::paintEvent(QPaintEvent* ev)
 {
+    // Darken the blurred background
+    QPainter painter(this);
+    painter.setOpacity(0.25);
+    painter.setCompositionMode(QPainter::CompositionMode_Darken);
+    painter.fillRect(ev->rect(),QColor(0,0,0,255));
 }
 
 void MachineClicker::enterEvent(QEvent *)

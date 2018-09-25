@@ -23,6 +23,7 @@ SOURCES += \
     SystemWideHotkey/SystemWideHotkey_windows.cpp \
     Clicker.cpp \
     MachineClicker.cpp \
+    TranslucentBlurEffect.cpp
 
 OBJECTIVE_SOURCES += SystemWideHotkey/SystemWideHotkey_macos.mm \
     InputSimulation/InputSimulation_macos.mm \
@@ -32,7 +33,8 @@ HEADERS += \
     InputSimulation/InputSimulation.h \
     SystemWideHotkey/SystemWideHotkey.h \
     Clicker.h \
-    MachineClicker.h
+    MachineClicker.h \
+    TranslucentBlurEffect.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -40,3 +42,5 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 RESOURCES += ../FramelessWindowImages.qrc
+
+FORMS +=

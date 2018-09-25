@@ -6,6 +6,7 @@
 #include "InputSimulation/InputSimulation.h"
 #include "SystemWideHotkey/SystemWideHotkey.h"
 #include "FramelessWindowConverter/FramelessWindowConverter.h"
+#include "TranslucentBlurEffect.h"
 #include <QOpenGLWidget>
 #include <QFrame>
 #include <QTimer>
@@ -24,13 +25,9 @@ public:
     ~MachineClicker() override;
 
     bool nativeEvent(const QByteArray& eventType, void* message, long* result) override;
-    bool eventFilter(QObject* obj, QEvent* ev) override;
     void enterEvent(QEvent *) override;
     void leaveEvent(QEvent *) override;
     void paintEvent(QPaintEvent*) override;
-    void mouseReleaseEvent(QMouseEvent *) override;
-    void moveEvent(QMoveEvent*) override;
-    bool event(QEvent*) override;
     void keyPressEvent(QKeyEvent* ev) override;
     void keyReleaseEvent(QKeyEvent* ev) override;
 
@@ -60,11 +57,7 @@ private:
     class QKeySequenceEdit* HotkeyEdit;
 
     FWC::FramelessWindowConverter framelessWindowConverter;
-    QColor colora;
-
-    QPixmap pixmap;
-    bool jj = true;
-    bool useTranslucentBackgroundBlur = true;
+    TranslucentBlurEffect translucencyBlurEffect;
 };
 
 #endif // MACHINECLICKER_H
