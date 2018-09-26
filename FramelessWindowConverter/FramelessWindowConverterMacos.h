@@ -36,8 +36,6 @@ public:
     void hideForTranslucency() override;
     void showForTranslucency() override;
 
-    inline bool getIsMouseInGroup() { return isMouseInGroup; }
-
 private:
     NSView* nativeWidgetView;
     NSWindow* window;
@@ -46,12 +44,15 @@ private:
     NSButton* minimizeButton;
     bool isResizing = false;
     bool isMoving = false;
-    bool isMouseInGroup = false;
     FWC::FWCBorderHitTestResult currentBHTR = FWC::FWCBorderHitTestResult::NONE;
     FWCFloatingPoint startDiffCursorFrameLocs;
     void showCursorByHitResult(FWCBorderHitTestResult inBorderHitResult);
     void showAppropriateCursor();
     void resizeWindow(FWCFloatingPoint mouseLocationInWindow);
+
+    // ToDo: FWC set positions individually
+    // Traffic ligth position
+    int xPos, yPos;
 };
 
 }
