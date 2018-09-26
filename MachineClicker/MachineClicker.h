@@ -30,6 +30,7 @@ public:
     void paintEvent(QPaintEvent*) override;
     void keyPressEvent(QKeyEvent* ev) override;
     void keyReleaseEvent(QKeyEvent* ev) override;
+    void resizeEvent(QResizeEvent* ev) override;
 
 signals:
     void signalStartClicking();
@@ -55,6 +56,11 @@ private:
     class QSpinBox* IntervalSpinBox;
     class QLabel* HotkeyEditLabel;
     class QKeySequenceEdit* HotkeyEdit;
+
+    QWidget* rightBackgroundWidget;
+    QWidget* leftBackgroundWidget;
+    QLabel* testLabel;
+    int widthOfRightBackgroundWidget = 200;
 
     FWC::FramelessWindowConverter framelessWindowConverter;
     TranslucentBlurEffect translucencyBlurEffect;
