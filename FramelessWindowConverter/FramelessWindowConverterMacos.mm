@@ -176,8 +176,8 @@ void FramelessWindowConverterMacos::convertToFrameless()
 
     if(q_ptr->isUsingTrafficLightsOnMacOS())
     {
-        xPos = 50;
-        yPos = 50;
+        xPos = 10;
+        yPos = 10;
 
         // Traffic lights
         [[window standardWindowButton:NSWindowCloseButton] setHidden:NO];

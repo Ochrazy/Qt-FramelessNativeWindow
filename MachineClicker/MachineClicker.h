@@ -5,8 +5,6 @@
 #include <QThread>
 #include "InputSimulation/InputSimulation.h"
 #include "SystemWideHotkey/SystemWideHotkey.h"
-#include "FramelessWindowConverter/FramelessWindowConverter.h"
-#include "TranslucentBlurEffect/TranslucentBlurEffect.h"
 #include <QOpenGLWidget>
 #include <QFrame>
 #include <QTimer>
@@ -24,13 +22,8 @@ public:
     explicit MachineClicker(QWidget *parent = nullptr);
     ~MachineClicker() override;
 
-    bool nativeEvent(const QByteArray& eventType, void* message, long* result) override;
     void enterEvent(QEvent *) override;
     void leaveEvent(QEvent *) override;
-    void paintEvent(QPaintEvent*) override;
-    void keyPressEvent(QKeyEvent* ev) override;
-    void keyReleaseEvent(QKeyEvent* ev) override;
-    void resizeEvent(QResizeEvent* ev) override;
 
 signals:
     void signalStartClicking();
@@ -48,22 +41,10 @@ private:
     class Clicker* clicker;
     SystemWideHotkey startStopHotkey;
 
-    class QPushButton* CloseButton;
-    QPushButton* MinimizeButton;
-    QPushButton* MaximizeButton;
-
-    QPushButton* StartStopButton;
+    class QPushButton* StartStopButton;
     class QSpinBox* IntervalSpinBox;
     class QLabel* HotkeyEditLabel;
     class QKeySequenceEdit* HotkeyEdit;
-
-    QWidget* rightBackgroundWidget;
-    QWidget* leftBackgroundWidget;
-    QLabel* testLabel;
-    int widthOfRightBackgroundWidget = 200;
-
-    FWC::FramelessWindowConverter framelessWindowConverter;
-    TranslucentBlurEffect translucencyBlurEffect;
 };
 
 #endif // MACHINECLICKER_H
