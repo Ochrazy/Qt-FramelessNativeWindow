@@ -8,7 +8,7 @@ class TranslucentBlurEffect : public QObject
 {
     Q_OBJECT
 public:
-    explicit TranslucentBlurEffect(QWidget* inWidgetToAddEffect, QObject *parent = nullptr, int inBlurStrength = 25);
+    explicit TranslucentBlurEffect(QWidget* inWidgetToAddEffect, QObject *parent = nullptr, int inBlurStrength = 0);
 
     bool eventFilter(QObject *object, QEvent *event) override;
 
@@ -24,7 +24,7 @@ signals:
 
 private:
     QWidget* widgetToAddEffect;
-    bool noDrawBackground = true;
+    bool noDrawBackground = false;
     QPixmap pixmap;
     int blurStrength;
     bool takingScreen = false;

@@ -6,6 +6,8 @@
 #include <QScreen>
 #include <QTimer>
 
+#include <X11/Xlib.h>
+
 TranslucentBlurEffect::TranslucentBlurEffect(QWidget* inWidgetToAddEffect, QObject *parent, int inBlurStrength) : QObject(parent), blurStrength(inBlurStrength)
 {
     qApp->installEventFilter(this);
@@ -111,7 +113,7 @@ bool TranslucentBlurEffect::eventFilter(QObject* object, QEvent* event)
     {
         emit hideNonQtWidgets();
         noDrawOtherWidgets = true;
-        noDrawBackground = false;
+        noDrawBackground = true;
         widgetToAddEffect->repaint();
         break;
     }
@@ -125,7 +127,7 @@ bool TranslucentBlurEffect::eventFilter(QObject* object, QEvent* event)
         {
             emit hideNonQtWidgets();
             noDrawOtherWidgets = true;
-            noDrawBackground = false;
+            noDrawBackground = true;
             widgetToAddEffect->repaint();
         }
         break;
@@ -146,7 +148,7 @@ bool TranslucentBlurEffect::eventFilter(QObject* object, QEvent* event)
 
         if(object == widgetToAddEffect)
         {
-            if(noDrawBackground)
+            if(!noDrawBackground)
             {
                 QPainter painter;
 
@@ -177,17 +179,17 @@ bool TranslucentBlurEffect::eventFilter(QObject* object, QEvent* event)
             {
                 QPainter painter;
                 painter.begin(widgetToAddEffect);
-                painter.setOpacity(0.0);
-                painter.setCompositionMode(QPainter::CompositionMode_Source);
+                painter.setOpacity(1.0);
+                painter.setCompositionMode(QPainter::CompositionMode_Clear);
                 painter.fillRect(paintEvent->rect(),QColor(250,100,100,255));
                 painter.end();
 
                 if(!takingScreen)
                 {
                     takingScreen = true;
-                    QTimer::singleShot(400, this, [this](){
+                    QTimer::singleShot(100, this, [this](){
                         bTakeScreenshot = true;
-                        noDrawBackground = true;
+                        noDrawBackground = false;
                         widgetToAddEffect->repaint();
                     });
                 }
