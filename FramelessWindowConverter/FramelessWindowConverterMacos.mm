@@ -224,14 +224,6 @@ void FramelessWindowConverterMacos::convertToFrameless()
                 swizzledSelector,
                 method_getImplementation(swizzledMethod),
                 method_getTypeEncoding(swizzledMethod));
-
-        // Every resize macos sets the position of the original buttons to the "preferred" state, so set the position manually here
-        [[NSNotificationCenter defaultCenter]
-                addObserverForName:NSWindowDidResizeNotification object:window queue:nil usingBlock:^(NSNotification *){
-            [fullScreenButton setFrameOrigin:NSMakePoint(xPos+40, yPos)];
-            [closeButton setFrameOrigin:NSMakePoint(xPos+0, yPos)];
-            [minimizeButton setFrameOrigin:NSMakePoint(xPos+20, yPos)];
-        }];
     }
     else
     {
@@ -459,6 +451,11 @@ bool FramelessWindowConverterMacos::filterNativeEvent(void *message, long *resul
             }
 
             isResizing = true;
+            // Every resize traffic lights get reset to "preferred" position
+            // just hide them while resizing
+            [closeButton setHidden:YES];
+            [minimizeButton setHidden:YES];
+            [fullScreenButton setHidden:YES];
             return false;
         }
         else // Move
@@ -476,6 +473,16 @@ bool FramelessWindowConverterMacos::filterNativeEvent(void *message, long *resul
         {
             isResizing = !isResizing;
             showCursorByHitResult(FWCBorderHitTestResult::CLIENT);
+
+            // Every resize macos sets the position of the original buttons to the "preferred" state,
+            // so set the position manually here
+            [fullScreenButton setFrameOrigin:NSMakePoint(xPos+40, yPos)];
+            [closeButton setFrameOrigin:NSMakePoint(xPos+0, yPos)];
+            [minimizeButton setFrameOrigin:NSMakePoint(xPos+20, yPos)];
+
+            [closeButton setHidden:NO];
+            [minimizeButton setHidden:NO];
+            [fullScreenButton setHidden:NO];
             return false;
         }
         else if(isMoving)
