@@ -302,7 +302,11 @@ void MachineClicker::paintEvent(QPaintEvent* ev)
 {
     // Color the blurred background (supports macOS DarkMode)
     QPainter painter(this);
+#ifdef __APPLE__
     QColor color = this->palette().color(QPalette::ColorRole::Background);
+#else
+    QColor color(0,0,0);
+#endif
     color.setAlpha(255);
     painter.setOpacity(0.5);
     painter.setCompositionMode(QPainter::CompositionMode_SourceOver);

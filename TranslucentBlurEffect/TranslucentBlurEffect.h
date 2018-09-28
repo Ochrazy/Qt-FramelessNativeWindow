@@ -8,7 +8,7 @@ class TranslucentBlurEffect : public QObject
 {
     Q_OBJECT
 public:
-    explicit TranslucentBlurEffect(QWidget* inWidgetToAddEffect, QObject *parent = nullptr, int inBlurStrength = 0);
+    explicit TranslucentBlurEffect(QWidget* inWidgetToAddEffect, QObject *parent = nullptr, int inBlurStrength = 25);
 
     bool eventFilter(QObject *object, QEvent *event) override;
 
