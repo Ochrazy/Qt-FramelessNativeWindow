@@ -104,21 +104,21 @@ MachineClicker::MachineClicker(QWidget *parent) :
     GridLayout->setContentsMargins(8, 8, 8, 8);
 
     // Background Widget
-    QWidget* backgroundWidget = new QWidget;
-    backgroundWidget->setStyleSheet("background-color:black;");
-    backgroundWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::MinimumExpanding);
-    backgroundWidget->setFixedWidth(200);
+    leftBackgroundWidget = new QWidget;
+    leftBackgroundWidget->setStyleSheet("background-color:black;");
+    leftBackgroundWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::MinimumExpanding);
+    leftBackgroundWidget->setFixedWidth(widthOfRightBackgroundWidget);
 
-    QLabel* testLabel = new QLabel(backgroundWidget);
+    testLabel = new QLabel(leftBackgroundWidget);
     testLabel->setText("Options go here - WIP");
     testLabel->setStyleSheet("QLabel { background-color : black; color : white; }");
 
-    QVBoxLayout* optionsLayout = new QVBoxLayout(backgroundWidget);
+    QVBoxLayout* optionsLayout = new QVBoxLayout(leftBackgroundWidget);
     optionsLayout->addWidget(testLabel);
 
     // Main Layout left side are options -> right side are content
     QHBoxLayout* TopLevelLayout = new QHBoxLayout(this);
-    TopLevelLayout->addWidget(backgroundWidget);
+    TopLevelLayout->addWidget(leftBackgroundWidget);
     TopLevelLayout->addLayout(GridLayout);
     TopLevelLayout->setContentsMargins(0,0,0,0);
 
@@ -133,17 +133,17 @@ MachineClicker::MachineClicker(QWidget *parent) :
     connect(&translucencyBlurEffect, &TranslucentBlurEffect::showNonQtWidgets, [this]() { framelessWindowConverter.showForTranslucency(); });
 
     adjustSize(); // apply layout size (constraints) to window
-    framelessWindowConverter.setMinMaxWindowSizes(minimumSize().width(), minimumSize().height(), maximumSize().width(), maximumSize().height());
+    framelessWindowConverter.setMinMaxWindowSizes(minimumSize().width() - widthOfRightBackgroundWidget, minimumSize().height(), maximumSize().width(), maximumSize().height());
 
     framelessWindowConverter.useTrafficLightsOnMacOS(true);
 
     FWC::FWCPARAMS fwcParams;
     fwcParams.windowHandle = winId();
     fwcParams.releaseMouseGrab = [this]() { windowHandle()->setMouseGrabEnabled(false); };
-    fwcParams.shouldPerformWindowDrag =  [this, backgroundWidget](int mousePosXInWindow, int mousePosYInWindow)
+    fwcParams.shouldPerformWindowDrag =  [this](int mousePosXInWindow, int mousePosYInWindow)
     {
         QWidget* widgetUnderCursor = childAt(mousePosXInWindow, mousePosYInWindow);
-        if(widgetUnderCursor == nullptr ||  widgetUnderCursor == backgroundWidget)
+        if(widgetUnderCursor == nullptr ||  widgetUnderCursor == leftBackgroundWidget)
             return true;
         else return false;
     };
@@ -245,6 +245,21 @@ bool MachineClicker::nativeEvent(const QByteArray& eventType, void* message, lon
 {
     Q_UNUSED(eventType)
     return framelessWindowConverter.filterNativeEvents(message, result);
+}
+
+void MachineClicker::resizeEvent(QResizeEvent* ev)
+{
+    if(leftBackgroundWidget && ev->oldSize().width() != -1)
+    {
+        if(!leftBackgroundWidget->isHidden() && ev->size().width() < (framelessWindowConverter.getMinimumWindowWidth() + widthOfRightBackgroundWidget))
+        {
+            leftBackgroundWidget->hide();
+        }
+        else if(leftBackgroundWidget->isHidden() && ev->size().width() >= (framelessWindowConverter.getMinimumWindowWidth() + widthOfRightBackgroundWidget))
+        {
+            leftBackgroundWidget->show();
+        }
+    }
 }
 
 void MachineClicker::keyPressEvent(QKeyEvent* ev)
