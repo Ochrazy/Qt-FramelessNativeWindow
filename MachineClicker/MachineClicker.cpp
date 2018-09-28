@@ -28,7 +28,7 @@ MachineClicker::MachineClicker(QWidget *parent) :
                                "border:none;"
                                "width:20px;"
                                "height:20px;"
-                               "padding:4px;"
+                               "padding:0px;"
                                "border-top-right-radius: 0px;}"
                                "QPushButton:hover{ background-color:red; }");
 
@@ -40,7 +40,7 @@ MachineClicker::MachineClicker(QWidget *parent) :
                                   "border:none;"
                                   "width:20px;"
                                   "height:20px;"
-                                  "padding:4px;"
+                                  "padding:0px;"
                                   "border-top-right-radius: 0px;}"
                                   "QPushButton:hover{ background-color:grey; }");
 
@@ -53,7 +53,7 @@ MachineClicker::MachineClicker(QWidget *parent) :
                                   "border:none;"
                                   "width:20px;"
                                   "height:20px;"
-                                  "padding:4px;"
+                                  "padding:0px;"
                                   "border-top-right-radius: 0px;}"
                                   "QPushButton:hover{ background-color:grey; }");
 #else
@@ -63,7 +63,7 @@ MachineClicker::MachineClicker(QWidget *parent) :
                                   "border:none;"
                                   "width:20px;"
                                   "height:20px;"
-                                  "padding:4px;"
+                                  "padding:0px;"
                                   "border-top-right-radius: 0px;}"
                                   "QPushButton:hover{ background-color:grey; }");
 #endif
@@ -82,11 +82,13 @@ MachineClicker::MachineClicker(QWidget *parent) :
 
     HotkeyEditLabel = new QLabel;
     HotkeyEditLabel->setText("Start/Stop Hotkey: ");
+    HotkeyEditLabel->setStyleSheet("QLabel { background-color : none; color : white; }");
 
     qApp->installEventFilter(this);
 
     QLabel* windowTitle = new QLabel;
     windowTitle->setText("Native Frameless Window");
+    windowTitle->setStyleSheet("QLabel { background-color : none; color : white; }");
 
     QGridLayout* GridLayout = new QGridLayout;
     GridLayout->addWidget(windowTitle, 0, 0, 1, 1);
@@ -105,21 +107,27 @@ MachineClicker::MachineClicker(QWidget *parent) :
 
     // Background Widget
     leftBackgroundWidget = new QWidget;
-    leftBackgroundWidget->setStyleSheet("background-color:black;");
+    leftBackgroundWidget->setStyleSheet("background-color:none;");
     leftBackgroundWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::MinimumExpanding);
     leftBackgroundWidget->setFixedWidth(widthOfRightBackgroundWidget);
 
     testLabel = new QLabel(leftBackgroundWidget);
     testLabel->setText("Options go here - WIP");
-    testLabel->setStyleSheet("QLabel { background-color : black; color : white; }");
+    testLabel->setStyleSheet("QLabel { background-color : none; color : white; }");
 
     QVBoxLayout* optionsLayout = new QVBoxLayout(leftBackgroundWidget);
     optionsLayout->addWidget(testLabel);
 
+    // Right Background Widget
+    rightBackgroundWidget = new QWidget;
+    rightBackgroundWidget->setObjectName("rightBackgroundWidget");
+    rightBackgroundWidget->setStyleSheet("#rightBackgroundWidget { background-color:black; }");
+    rightBackgroundWidget->setLayout(GridLayout);
+
     // Main Layout left side are options -> right side are content
     QHBoxLayout* TopLevelLayout = new QHBoxLayout(this);
     TopLevelLayout->addWidget(leftBackgroundWidget);
-    TopLevelLayout->addLayout(GridLayout);
+    TopLevelLayout->addWidget(rightBackgroundWidget);
     TopLevelLayout->setContentsMargins(0,0,0,0);
 
     setWindowFlags(Qt::Widget | Qt::WindowSystemMenuHint/* | Qt::WindowStaysOnTopHint*/ | Qt::WindowTitleHint | Qt::FramelessWindowHint);
@@ -143,7 +151,7 @@ MachineClicker::MachineClicker(QWidget *parent) :
     fwcParams.shouldPerformWindowDrag =  [this](int mousePosXInWindow, int mousePosYInWindow)
     {
         QWidget* widgetUnderCursor = childAt(mousePosXInWindow, mousePosYInWindow);
-        if(widgetUnderCursor == nullptr ||  widgetUnderCursor == leftBackgroundWidget)
+        if(widgetUnderCursor == nullptr ||  widgetUnderCursor == rightBackgroundWidget ||  widgetUnderCursor == leftBackgroundWidget)
             return true;
         else return false;
     };
@@ -178,7 +186,7 @@ MachineClicker::MachineClicker(QWidget *parent) :
                                               "border:none;"
                                               "width:20px;"
                                               "height:20px;"
-                                              "padding:4px;"
+                                              "padding:0px;"
                                               "border-top-right-radius: 0px;}"
                                               "QPushButton:hover{ background-color:grey; }");
 #else
@@ -188,7 +196,7 @@ MachineClicker::MachineClicker(QWidget *parent) :
                                               "border:none;"
                                               "width:20px;"
                                               "height:20px;"
-                                              "padding:4px;"
+                                              "padding:0px;"
                                               "border-top-right-radius: 0px;}"
                                               "QPushButton:hover{ background-color:grey; }");
 #endif
@@ -203,7 +211,7 @@ MachineClicker::MachineClicker(QWidget *parent) :
                                               "border:none;"
                                               "width:20px;"
                                               "height:20px;"
-                                              "padding:4px;"
+                                              "padding:0px;"
                                               "border-top-right-radius: 0px;}"
                                               "QPushButton:hover{ background-color:grey; }");
 #else
@@ -213,7 +221,7 @@ MachineClicker::MachineClicker(QWidget *parent) :
                                               "border:none;"
                                               "width:20px;"
                                               "height:20px;"
-                                              "padding:4px;"
+                                              "padding:0px;"
                                               "border-top-right-radius: 0px;}"
                                               "QPushButton:hover{ background-color:grey; }");
 #endif
@@ -308,7 +316,7 @@ void MachineClicker::paintEvent(QPaintEvent* ev)
     QColor color(0,0,0);
 #endif
     color.setAlpha(255);
-    painter.setOpacity(0.5);
+    painter.setOpacity(0.4);
     painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
     painter.fillRect(ev->rect(),color);
 }
