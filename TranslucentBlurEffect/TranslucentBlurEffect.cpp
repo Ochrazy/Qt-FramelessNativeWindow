@@ -6,8 +6,6 @@
 #include <QScreen>
 #include <QTimer>
 
-#include <X11/Xlib.h>
-
 TranslucentBlurEffect::TranslucentBlurEffect(QWidget* inWidgetToAddEffect, QObject *parent, int inBlurStrength) : QObject(parent), blurStrength(inBlurStrength)
 {
     qApp->installEventFilter(this);
