@@ -87,13 +87,13 @@ void FramelessWindowConverterMacos::maximizeWindow()
 {
     // The NSWindow needs to be resizable, otherwise the window will
     // not be possible to zoom back to non-zoomed state.
-    const bool wasResizable = window.styleMask & NSResizableWindowMask;
-    window.styleMask |= NSResizableWindowMask;
+    const bool wasResizable = window.styleMask & NSWindowStyleMaskResizable;
+    window.styleMask |= NSWindowStyleMaskResizable;
 
     [window zoom:window];
 
     if (!wasResizable)
-        window.styleMask &= ~NSResizableWindowMask;
+        window.styleMask &= ~NSWindowStyleMaskResizable;
 
     if(q_ptr->isUsingTrafficLightsOnMacOS())
     {
@@ -159,12 +159,12 @@ void FramelessWindowConverterMacos::convertToFrameless()
     //[wind setMovableByWindowBackground:YES];
 
     // Reset Style Mask
-    window.styleMask &= ~NSBorderlessWindowMask;
-    window.styleMask |= NSFullSizeContentViewWindowMask;
-    window.styleMask |= NSTitledWindowMask;
-    window.styleMask |= NSClosableWindowMask;
-    window.styleMask |= NSMiniaturizableWindowMask;
-    window.styleMask &= ~NSResizableWindowMask; // Custom Resize
+    window.styleMask &= ~NSWindowStyleMaskBorderless;
+    window.styleMask |= NSWindowStyleMaskFullSizeContentView;
+    window.styleMask |= NSWindowStyleMaskTitled;
+    window.styleMask |= NSWindowStyleMaskClosable;
+    window.styleMask |= NSWindowStyleMaskMiniaturizable;
+    window.styleMask &= ~NSWindowStyleMaskResizable; // Custom Resize
 
     [window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
     // Enable Layer backing
@@ -410,7 +410,7 @@ bool FramelessWindowConverterMacos::filterNativeEvent(void *message, long *resul
 
     NSEvent *event = static_cast<NSEvent *>(message);
 
-    if ([event type] == NSLeftMouseDown)
+    if ([event type] == NSEventTypeLeftMouseDown)
     {
         // Convert NSPoint to QPoint (different origin of window)
         NSPoint localPos = [[window contentView] convertPoint: [event locationInWindow] fromView: nil];
@@ -470,7 +470,7 @@ bool FramelessWindowConverterMacos::filterNativeEvent(void *message, long *resul
         }
     }
 
-    if([event type] == NSLeftMouseUp)
+    if([event type] == NSEventTypeLeftMouseUp)
     {
         if(isResizing)
         {
@@ -483,7 +483,7 @@ bool FramelessWindowConverterMacos::filterNativeEvent(void *message, long *resul
             isMoving = !isMoving;
         }
     }
-    if ([event type] == NSLeftMouseDragged)
+    if ([event type] == NSEventTypeLeftMouseDragged)
     {
         if(isResizing == true)
         {
@@ -513,7 +513,7 @@ bool FramelessWindowConverterMacos::filterNativeEvent(void *message, long *resul
                 [fullScreenButton setNeedsDisplay:YES]; // Properly show fullscreen or zoom button
         }
     }
-    if([event type] == NSMouseMoved)
+    if([event type] == NSEventTypeMouseMoved)
     {
         showAppropriateCursor();
 

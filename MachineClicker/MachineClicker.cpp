@@ -15,6 +15,7 @@
 #include <QPainter>
 #include <QStyle>
 #include <QWindow>
+#include <QPalette>
 
 MachineClicker::MachineClicker(QWidget *parent) :
     QWidget(parent), framelessWindowConverter(), translucencyBlurEffect(this, this)
@@ -284,11 +285,13 @@ void MachineClicker::keyReleaseEvent(QKeyEvent* ev)
 
 void MachineClicker::paintEvent(QPaintEvent* ev)
 {
-    // Darken the blurred background
+    // Color the blurred background (supports macOS DarkMode)
     QPainter painter(this);
-    painter.setOpacity(0.25);
-    painter.setCompositionMode(QPainter::CompositionMode_Darken);
-    painter.fillRect(ev->rect(),QColor(0,0,0,255));
+    QColor color = this->palette().color(QPalette::ColorRole::Background);
+    color.setAlpha(255);
+    painter.setOpacity(0.5);
+    painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
+    painter.fillRect(ev->rect(),color);
 }
 
 void MachineClicker::enterEvent(QEvent *)
