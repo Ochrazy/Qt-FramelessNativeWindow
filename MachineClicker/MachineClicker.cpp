@@ -259,11 +259,12 @@ void MachineClicker::resizeEvent(QResizeEvent* ev)
 {
     if(leftBackgroundWidget && ev->oldSize().width() != -1)
     {
-        if(!leftBackgroundWidget->isHidden() && ev->size().width() < (framelessWindowConverter.getMinimumWindowWidth() + widthOfRightBackgroundWidget))
+
+        if(!leftBackgroundWidget->isHidden() && ev->size().width() <= (framelessWindowConverter.getMinimumWindowWidth() + widthOfRightBackgroundWidget))
         {
             leftBackgroundWidget->hide();
         }
-        else if(leftBackgroundWidget->isHidden() && ev->size().width() >= (framelessWindowConverter.getMinimumWindowWidth() + widthOfRightBackgroundWidget))
+        else if(leftBackgroundWidget->isHidden() && ev->size().width() > (framelessWindowConverter.getMinimumWindowWidth() + widthOfRightBackgroundWidget))
         {
             leftBackgroundWidget->show();
         }
