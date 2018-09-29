@@ -42,7 +42,6 @@ MachineClicker::MachineClicker(QWidget *parent) : QWidget(parent)
     GridLayout->addWidget(HotkeyEditLabel, 2, 0);
     GridLayout->addWidget(HotkeyEdit, 2, 1);
     GridLayout->setSizeConstraint(QLayout::SetDefaultConstraint);
-    GridLayout->setContentsMargins(8, 8, 8, 8);
 
 
     connect(StartStopButton, SIGNAL (toggled(bool)), this, SLOT (handleStartStopButton(bool)));

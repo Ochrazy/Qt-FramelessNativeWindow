@@ -222,13 +222,10 @@ bool FramelessWindowConverterLinux::filterNativeEvent(void *message, long*)
             FWCPoint mousePos(x, y);
 
             // Only this widget is used for dragging.
-            if (!q_ptr->getShouldPerformWindowDrag()(mousePos.x, mousePos.y))
-            {
-                return false;
-            }
+            bool shouldDrag = q_ptr->getShouldPerformWindowDrag()(mousePos.x, mousePos.y);
 
             // Double Click
-            if(lastButtonPressTime != 0 && (deviceEvent->time - lastButtonPressTime) < 400)
+            if(lastButtonPressTime != 0 && (deviceEvent->time - lastButtonPressTime) < 400 && shouldDrag)
             {
                 xcb_get_property_cookie_t cookie = xcb_get_property(connection, false, windowHandle, getAtom("_NET_WM_STATE"), XCB_ATOM_ATOM, 0, 32);
                 xcb_get_property_reply_t* reply = xcb_get_property_reply(connection, cookie, nullptr);
@@ -283,11 +280,15 @@ bool FramelessWindowConverterLinux::filterNativeEvent(void *message, long*)
             //                                       (const char *)&event);
             //                        XFlush(display);
 
+            // Test mouse cursor position in window and check if the window should be dragged
+            FWCBorderHitTestResult bhResult = doBorderHitTest(getCurrentWindowFrame(), mousePos, borderWidth);
+            if(bhResult == FWCBorderHitTestResult::CLIENT && shouldDrag == false) return false;
+
             // Qt gives a warning of a unhandled client message with xcb events -> use xlib event instead :)
             XEvent xev;
             // Set type of event
             // Either one of the different resize events or a Move event
-            xev.xclient.data.l[2] = static_cast<int>(doBorderHitTest(getCurrentWindowFrame(), mousePos, borderWidth));
+            xev.xclient.data.l[2] = static_cast<int>(bhResult);
 
             Atom netMoveResize = getAtom("_NET_WM_MOVERESIZE");
             xev.xclient.type = ClientMessage;

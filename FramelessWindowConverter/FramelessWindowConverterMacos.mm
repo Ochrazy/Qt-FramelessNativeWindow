@@ -409,15 +409,13 @@ bool FramelessWindowConverterMacos::filterNativeEvent(void *message, long *resul
         FWCPoint mousePos(static_cast<int>(localPos.x), static_cast<int>(localPos.y));
 
         // Only this widget is used for dragging.
-        if (!q_ptr->getShouldPerformWindowDrag()(mousePos.x, mousePos.y))
-        {
-            return false;
-        }
+        bool shouldDrag = q_ptr->getShouldPerformWindowDrag()(mousePos.x, mousePos.y);
 
         // Double Click
         if([event clickCount] == 2)
         {
-            [window zoom:window];
+            if(shouldDrag)
+                [window zoom:window];
             return false;
         }
 
@@ -458,7 +456,7 @@ bool FramelessWindowConverterMacos::filterNativeEvent(void *message, long *resul
             [fullScreenButton setHidden:YES];
             return false;
         }
-        else // Move
+        else if(shouldDrag) // Move
         {
             startDiffCursorFrameLocs.x = globalMousePos.x - currentFrame.origin.x;
             startDiffCursorFrameLocs.y = globalMousePos.y - currentFrame.origin.y;

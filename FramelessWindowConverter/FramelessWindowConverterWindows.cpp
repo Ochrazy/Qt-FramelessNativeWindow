@@ -236,12 +236,6 @@ bool FramelessWindowConverterWindows::filterNativeEvent(void *message, long *res
     {
         FWCPoint mousePos(getCurrentMousePos(msg->lParam));
 
-        // Only this widget is used for dragging.
-        if (!q_ptr->getShouldPerformWindowDrag()(mousePos.x, mousePos.y))
-        {
-            return false;
-        }
-
         switch (doBorderHitTest(getCurrentClientRect(), mousePos, 8))
         {
         case FWCBorderHitTestResult::LEFT:
@@ -277,10 +271,15 @@ bool FramelessWindowConverterWindows::filterNativeEvent(void *message, long *res
             SendMessage(handle, WM_NCLBUTTONDOWN, HTTOPRIGHT, msg->lParam);
             break;
         default:
-            ReleaseCapture();
-            SendMessage(handle, WM_NCLBUTTONDOWN, HTCAPTION, msg->lParam);
+            // Only this widget is used for dragging.
+            if (q_ptr->getShouldPerformWindowDrag()(mousePos.x, mousePos.y))
+            {
+                ReleaseCapture();
+                SendMessage(handle, WM_NCLBUTTONDOWN, HTCAPTION, msg->lParam);
+            }
             break;
         }
+
         break;
     }
     case WM_MOUSEMOVE:

@@ -23,12 +23,23 @@ private:
     TranslucentBlurEffect translucencyBlurEffect;
     MachineClicker* machineClicker;
 
+    // Frameless Window
+    void setupFramelessWindow();
+    int titleBarHeight = 25;
+
+    // Main Widgets
     QWidget* rightBackgroundWidget;
     QWidget* leftBackgroundWidget;
-    QLabel* testLabel;
     int widthOfRightBackgroundWidget = 200;
 
-    class QPushButton* CloseButton;
+    // Left side widgets
+    void createLeftSideWidgets();
+    QLabel* windowTitle;
+    class QPushButton* machineClickerOptionButton;
+
+    // Right side widgets
+    void createRightSideWidgets();
+    QPushButton* CloseButton;
     QPushButton* MinimizeButton;
     QPushButton* MaximizeButton;
     QString getSystemButtonStyleSheetString(QString iconName, QString hoverBackgroundColor);

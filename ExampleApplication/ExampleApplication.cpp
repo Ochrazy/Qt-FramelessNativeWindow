@@ -10,35 +10,71 @@
 ExampleApplication::ExampleApplication(QWidget *parent) : QWidget(parent),
     framelessWindowConverter(), translucencyBlurEffect(this, this)
 {
+    qApp->installEventFilter(this);
+
+    createLeftSideWidgets();
+    createRightSideWidgets();
+
+    // Main Layout left side are options -> right side is content
+    QHBoxLayout* TopLevelLayout = new QHBoxLayout(this);
+    TopLevelLayout->setSpacing(0);
+    TopLevelLayout->addWidget(leftBackgroundWidget);
+    TopLevelLayout->addWidget(rightBackgroundWidget);
+    TopLevelLayout->setContentsMargins(0,0,0,0);
+
+    setupFramelessWindow();
+}
+
+void ExampleApplication::createLeftSideWidgets()
+{
+    leftBackgroundWidget = new QWidget;
+    leftBackgroundWidget->setStyleSheet("background-color:none;");
+    leftBackgroundWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::MinimumExpanding);
+    leftBackgroundWidget->setFixedWidth(widthOfRightBackgroundWidget);
+    leftBackgroundWidget->setContentsMargins(0, 0, 0, 0);
+
+    windowTitle = new QLabel(this);
+    windowTitle->setText("Example Application");
+    windowTitle->setStyleSheet("QLabel { background-color : none; color : white; }");
+    windowTitle->setFixedHeight(titleBarHeight);
+    windowTitle->setAlignment(Qt::AlignLeft | Qt::AlignTop);
+    windowTitle->setContentsMargins(5,5,0,0);
+
+    machineClickerOptionButton = new QPushButton;
+    machineClickerOptionButton->setText("Machine Clicker");
+    machineClickerOptionButton->setFixedHeight(50);
+    machineClickerOptionButton->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
+
+    QVBoxLayout* optionsLayout = new QVBoxLayout;
+    optionsLayout->addWidget(machineClickerOptionButton);
+    optionsLayout->setSpacing(0);
+    optionsLayout->setContentsMargins(0, 5, 0, 0);
+    optionsLayout->addStretch(0);
+
+    QVBoxLayout* leftTitleBar = new QVBoxLayout(leftBackgroundWidget);
+    leftTitleBar->setSpacing(0);
+    leftTitleBar->addWidget(windowTitle);
+    leftTitleBar->addLayout(optionsLayout); // content
+    leftTitleBar->setContentsMargins(0, 0, 0, 0);
+}
+
+void ExampleApplication::createRightSideWidgets()
+{
     CloseButton = new QPushButton;
-    CloseButton->setFixedSize(35, 25);
+    CloseButton->setFixedSize(35, titleBarHeight);
     CloseButton->setStyleSheet(getSystemButtonStyleSheetString("image:url(:/images/icon_window_close.png)", "red"));
 
     MinimizeButton = new QPushButton;
-    MinimizeButton->setFixedSize(35, 25);
-    MinimizeButton->setStyleSheet(getSystemButtonStyleSheetString("image:url(:/images/icon_window_minimize.png)", "red"));
+    MinimizeButton->setFixedSize(35, titleBarHeight);
+    MinimizeButton->setStyleSheet(getSystemButtonStyleSheetString("image:url(:/images/icon_window_minimize.png)", "grey"));
 
     MaximizeButton = new QPushButton;
-    MaximizeButton->setFixedSize(35, 25);
+    MaximizeButton->setFixedSize(35, titleBarHeight);
 #ifdef __APPLE__
     MaximizeButton->setStyleSheet(getSystemButtonStyleSheetString("image:url(:/images/icon_window_macOS_fullscreen.png)", "grey"));
 #else
     MaximizeButton->setStyleSheet(getSystemButtonStyleSheetString("image:url(:/images/icon_window_maximize.png)", "grey"));
 #endif
-
-    // Background Widget
-    leftBackgroundWidget = new QWidget;
-    leftBackgroundWidget->setStyleSheet("background-color:none;");
-    leftBackgroundWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::MinimumExpanding);
-    leftBackgroundWidget->setFixedWidth(widthOfRightBackgroundWidget);
-
-    testLabel = new QLabel(leftBackgroundWidget);
-    testLabel->setText("Options go here - WIP");
-    testLabel->setStyleSheet("QLabel { background-color : none; color : white; }");
-    testLabel->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
-
-    QVBoxLayout* optionsLayout = new QVBoxLayout(leftBackgroundWidget);
-    optionsLayout->addWidget(testLabel);
 
     // Right Background Widget
     rightBackgroundWidget = new QWidget;
@@ -52,23 +88,18 @@ ExampleApplication::ExampleApplication(QWidget *parent) : QWidget(parent),
     hBoxLayout->addWidget(MaximizeButton);
     hBoxLayout->addWidget(CloseButton);
 
-    QVBoxLayout* rightWidgetLayout = new QVBoxLayout(rightBackgroundWidget);
-    rightWidgetLayout->setSpacing(0);
-    rightWidgetLayout->addLayout(hBoxLayout);
+    QVBoxLayout* rightTitleBar = new QVBoxLayout(rightBackgroundWidget);
+    rightTitleBar->setSpacing(0);
+    rightTitleBar->addLayout(hBoxLayout);
     machineClicker = new MachineClicker;
-    rightWidgetLayout->addWidget(machineClicker);
+    machineClicker->layout()->setContentsMargins(8, 5, 8, 8);
+    rightTitleBar->addWidget(machineClicker);
+    rightTitleBar->setContentsMargins(0, 0, 0, 0);
+}
 
-    // Main Layout left side are options -> right side is content
-    QHBoxLayout* TopLevelLayout = new QHBoxLayout(this);
-    TopLevelLayout->setSpacing(0);
-    TopLevelLayout->addWidget(leftBackgroundWidget);
-    TopLevelLayout->addWidget(rightBackgroundWidget);
-    TopLevelLayout->setContentsMargins(0,0,0,0);
-
-    qApp->installEventFilter(this);
-
+void ExampleApplication::setupFramelessWindow()
+{
     setWindowFlags(Qt::Widget | Qt::WindowSystemMenuHint/* | Qt::WindowStaysOnTopHint*/ | Qt::WindowTitleHint | Qt::FramelessWindowHint);
-
     setAttribute(Qt::WA_TranslucentBackground, true);
     setAttribute(Qt::WA_NoSystemBackground, true);
 
@@ -77,9 +108,9 @@ ExampleApplication::ExampleApplication(QWidget *parent) : QWidget(parent),
     connect(&translucencyBlurEffect, &TranslucentBlurEffect::hideNonQtWidgets, [this]() { framelessWindowConverter.hideForTranslucency(); });
     connect(&translucencyBlurEffect, &TranslucentBlurEffect::showNonQtWidgets, [this]() { framelessWindowConverter.showForTranslucency(); });
 
+    // Set some options
     adjustSize(); // apply layout size (constraints) to window
     framelessWindowConverter.setMinMaxWindowSizes(minimumSize().width() - widthOfRightBackgroundWidget, minimumSize().height(), maximumSize().width(), maximumSize().height());
-
     framelessWindowConverter.useTrafficLightsOnMacOS(true);
 
     FWC::FWCPARAMS fwcParams;
@@ -89,14 +120,16 @@ ExampleApplication::ExampleApplication(QWidget *parent) : QWidget(parent),
     {
         QWidget* widgetUnderCursor = childAt(mousePosXInWindow, mousePosYInWindow);
         // Set all background widgets draggable
-        if(widgetUnderCursor == nullptr ||  widgetUnderCursor == rightBackgroundWidget ||  widgetUnderCursor == leftBackgroundWidget
-                || widgetUnderCursor == machineClicker)
+        if((widgetUnderCursor == nullptr ||  widgetUnderCursor == rightBackgroundWidget ||  widgetUnderCursor == leftBackgroundWidget
+            || widgetUnderCursor == machineClicker || widgetUnderCursor == windowTitle) &&
+                (mousePosYInWindow < titleBarHeight))
             return true;
         else return false;
     };
 
     framelessWindowConverter.convertWindowToFrameless(fwcParams);
 
+    // Connect custom System Buttons
     connect(CloseButton, &QAbstractButton::clicked, this, [this]()
     {
         framelessWindowConverter.closeWindow();
@@ -143,8 +176,6 @@ QString ExampleApplication::getSystemButtonStyleSheetString(QString iconName, QS
                     + iconName + ";"
                                  "background-color:none;"
                                  "border:none;"
-                                 "width:20px;"
-                                 "height:20px;"
                                  "padding:0px;"
                                  "border-top-right-radius: 0px;}"
                                  "QPushButton:hover{ background-color:" + hoverBackgroundColor + "; }");
