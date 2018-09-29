@@ -21,7 +21,6 @@ public:
 private:
     FWC::FramelessWindowConverter framelessWindowConverter;
     TranslucentBlurEffect translucencyBlurEffect;
-    MachineClicker* machineClicker;
 
     // Frameless Window
     void setupFramelessWindow();
@@ -42,7 +41,13 @@ private:
     QPushButton* CloseButton;
     QPushButton* MinimizeButton;
     QPushButton* MaximizeButton;
+    MachineClicker* machineClicker;
+    QPushButton* rightTest;
+    class QStackedLayout* rightStackedLayout;
+
+
     QString getSystemButtonStyleSheetString(QString iconName, QString hoverBackgroundColor);
+    QString getOptionButtonStyleSheetString();
 };
 
 #endif // OPTIONTAB_H

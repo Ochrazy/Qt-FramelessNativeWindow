@@ -6,6 +6,9 @@
 #include <QResizeEvent>
 #include <QPainter>
 #include <QWindow>
+#include <QStackedLayout>
+#include <QScrollArea>
+#include <QTimer>
 
 ExampleApplication::ExampleApplication(QWidget *parent) : QWidget(parent),
     framelessWindowConverter(), translucencyBlurEffect(this, this)
@@ -44,9 +47,24 @@ void ExampleApplication::createLeftSideWidgets()
     machineClickerOptionButton->setText("Machine Clicker");
     machineClickerOptionButton->setFixedHeight(50);
     machineClickerOptionButton->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
+    machineClickerOptionButton->setStyleSheet(getOptionButtonStyleSheetString());
+    connect(machineClickerOptionButton, &QPushButton::clicked, [this] () { rightStackedLayout->setCurrentWidget(machineClicker);
+        // Set new window size limits
+        framelessWindowConverter.setMinMaxWindowSizes(machineClicker->layout()->minimumSize().width() + 16,
+                                                      machineClicker->layout()->minimumSize().height() + titleBarHeight + 5,
+                                                      maximumSize().width(), maximumSize().height());
+    });
+
+
+    QPushButton* transparencyOptionButton = new QPushButton;
+    transparencyOptionButton->setText("Transparency");
+    transparencyOptionButton->setFixedHeight(50);
+    transparencyOptionButton->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
+    transparencyOptionButton->setStyleSheet(getOptionButtonStyleSheetString());
 
     QVBoxLayout* optionsLayout = new QVBoxLayout;
     optionsLayout->addWidget(machineClickerOptionButton);
+    optionsLayout->addWidget(transparencyOptionButton);
     optionsLayout->setSpacing(0);
     optionsLayout->setContentsMargins(0, 5, 0, 0);
     optionsLayout->addStretch(0);
@@ -92,8 +110,16 @@ void ExampleApplication::createRightSideWidgets()
     rightTitleBar->setSpacing(0);
     rightTitleBar->addLayout(hBoxLayout);
     machineClicker = new MachineClicker;
+    rightTest = new QPushButton;
+    rightTest->setFixedSize(100,50);
+    rightTest->setContentsMargins(8,5,8,8);
+
+    rightStackedLayout = new QStackedLayout;
+    rightStackedLayout->addWidget(rightTest);
+    rightStackedLayout->addWidget(machineClicker);
+
     machineClicker->layout()->setContentsMargins(8, 5, 8, 8);
-    rightTitleBar->addWidget(machineClicker);
+    rightTitleBar->addLayout(rightStackedLayout);
     rightTitleBar->setContentsMargins(0, 0, 0, 0);
 }
 
@@ -110,7 +136,10 @@ void ExampleApplication::setupFramelessWindow()
 
     // Set some options
     adjustSize(); // apply layout size (constraints) to window
-    framelessWindowConverter.setMinMaxWindowSizes(minimumSize().width() - widthOfRightBackgroundWidget, minimumSize().height(), maximumSize().width(), maximumSize().height());
+    rightStackedLayout->currentWidget()->adjustSize();
+    framelessWindowConverter.setMinMaxWindowSizes(rightStackedLayout->currentWidget()->size().width(),
+                                                  rightStackedLayout->currentWidget()->size().height(),
+                                                  maximumSize().width(), maximumSize().height());
     framelessWindowConverter.useTrafficLightsOnMacOS(true);
 
     FWC::FWCPARAMS fwcParams;
@@ -179,6 +208,16 @@ QString ExampleApplication::getSystemButtonStyleSheetString(QString iconName, QS
                                  "padding:0px;"
                                  "border-top-right-radius: 0px;}"
                                  "QPushButton:hover{ background-color:" + hoverBackgroundColor + "; }");
+}
+
+QString ExampleApplication::getOptionButtonStyleSheetString()
+{
+    return QString("QPushButton { background-color:none;"
+                   "border:none;"
+                   "padding:0px;"
+                   "border-top-right-radius: 0px;}"
+                   "QPushButton:hover{ background-color: none; border: 2px solid lightgrey; }"
+                   "QPushButton:pressed{ background-color: lightgrey;}");
 }
 
 bool ExampleApplication::nativeEvent(const QByteArray& eventType, void* message, long* result)
