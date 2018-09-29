@@ -12,50 +12,18 @@ ExampleApplication::ExampleApplication(QWidget *parent) : QWidget(parent),
 {
     CloseButton = new QPushButton;
     CloseButton->setFixedSize(35, 25);
-    CloseButton->setStyleSheet("QPushButton { "
-                               "image:url(:/images/icon_window_close.png);"
-                               "background-color:none;"
-                               "border:none;"
-                               "width:35px;"
-                               "height:25px;"
-                               "padding:2px;"
-                               "border-top-right-radius: 0px;}"
-                               "QPushButton:hover{ background-color:red; }");
+    CloseButton->setStyleSheet(getSystemButtonStyleSheetString("image:url(:/images/icon_window_close.png)", "red"));
 
     MinimizeButton = new QPushButton;
     MinimizeButton->setFixedSize(35, 25);
-    MinimizeButton->setStyleSheet("QPushButton { "
-                                  "image:url(:/images/icon_window_minimize.png);"
-                                  "background-color:none;"
-                                  "border:none;"
-                                  "width:35px;"
-                                  "height:25px;"
-                                  "padding:2px;"
-                                  "border-top-right-radius: 0px;}"
-                                  "QPushButton:hover{ background-color:grey; }");
+    MinimizeButton->setStyleSheet(getSystemButtonStyleSheetString("image:url(:/images/icon_window_minimize.png)", "red"));
 
     MaximizeButton = new QPushButton;
     MaximizeButton->setFixedSize(35, 25);
 #ifdef __APPLE__
-    MaximizeButton->setStyleSheet("QPushButton { "
-                                  "image:url(:/images/icon_window_macOS_fullscreen.png);"
-                                  "background-color:none;"
-                                  "border:none;"
-                                  "width:35px;"
-                                  "height:25px;"
-                                  "padding:2px;"
-                                  "border-top-right-radius: 0px;}"
-                                  "QPushButton:hover{ background-color:grey; }");
+    MaximizeButton->setStyleSheet(getSystemButtonStyleSheetString("image:url(:/images/icon_window_macOS_fullscreen.png)", "grey"));
 #else
-    MaximizeButton->setStyleSheet("QPushButton { "
-                                  "image:url(:/images/icon_window_maximize.png);"
-                                  "background-color:none;"
-                                  "border:none;"
-                                  "width:35px;"
-                                  "height:25px;"
-                                  "padding:2px;"
-                                  "border-top-right-radius: 0px;}"
-                                  "QPushButton:hover{ background-color:grey; }");
+    MaximizeButton->setStyleSheet(getSystemButtonStyleSheetString("image:url(:/images/icon_window_maximize.png)", "grey"));
 #endif
 
     // Background Widget
@@ -120,7 +88,9 @@ ExampleApplication::ExampleApplication(QWidget *parent) : QWidget(parent),
     fwcParams.shouldPerformWindowDrag =  [this](int mousePosXInWindow, int mousePosYInWindow)
     {
         QWidget* widgetUnderCursor = childAt(mousePosXInWindow, mousePosYInWindow);
-        if(widgetUnderCursor == nullptr ||  widgetUnderCursor == rightBackgroundWidget ||  widgetUnderCursor == leftBackgroundWidget)
+        // Set all background widgets draggable
+        if(widgetUnderCursor == nullptr ||  widgetUnderCursor == rightBackgroundWidget ||  widgetUnderCursor == leftBackgroundWidget
+                || widgetUnderCursor == machineClicker)
             return true;
         else return false;
     };
@@ -149,54 +119,35 @@ ExampleApplication::ExampleApplication(QWidget *parent) : QWidget(parent),
             {
                 framelessWindowConverter.restoreWindow();
 #ifdef __APPLE__
-                MaximizeButton->setStyleSheet("QPushButton { "
-                                              "image:url(:/images/icon_window_macOS_maximize.png);"
-                                              "background-color:none;"
-                                              "border:none;"
-                                              "width:35px;"
-                                              "height:25px;"
-                                              "padding:2px;"
-                                              "border-top-right-radius: 0px;}"
-                                              "QPushButton:hover{ background-color:grey; }");
+                MaximizeButton->setStyleSheet(getSystemButtonStyleSheetString("image:url(:/images/icon_window_macOS_maximize.png)", "grey"));
 #else
-                MaximizeButton->setStyleSheet("QPushButton { "
-                                              "image:url(:/images/icon_window_maximize.png);"
-                                              "background-color:none;"
-                                              "border:none;"
-                                              "width:35px;"
-                                              "height:25px;"
-                                              "padding:2px;"
-                                              "border-top-right-radius: 0px;}"
-                                              "QPushButton:hover{ background-color:grey; }");
+                MaximizeButton->setStyleSheet(getSystemButtonStyleSheetString("image:url(:/images/icon_window_maximize.png)", "grey"));
 #endif
             }
             else
             {
                 framelessWindowConverter.maximizeWindow();
 #ifdef __APPLE__
-                MaximizeButton->setStyleSheet("QPushButton { "
-                                              "image:url(:/images/icon_window_macOS_maximize.png);"
-                                              "background-color:none;"
-                                              "border:none;"
-                                              "width:20px;"
-                                              "height:20px;"
-                                              "padding:0px;"
-                                              "border-top-right-radius: 0px;}"
-                                              "QPushButton:hover{ background-color:grey; }");
+                MaximizeButton->setStyleSheet(getSystemButtonStyleSheetString("image:url(:/images/icon_window_macOS_maximize.png)", "grey"));
 #else
-                MaximizeButton->setStyleSheet("QPushButton { "
-                                              "image:url(:/images/icon_window_restore.png);"
-                                              "background-color:none;"
-                                              "border:none;"
-                                              "width:20px;"
-                                              "height:20px;"
-                                              "padding:0px;"
-                                              "border-top-right-radius: 0px;}"
-                                              "QPushButton:hover{ background-color:grey; }");
+                MaximizeButton->setStyleSheet(getSystemButtonStyleSheetString("image:url(:/images/icon_window_restore.png)", "grey"));
 #endif
             }
         }
     });
+}
+
+QString ExampleApplication::getSystemButtonStyleSheetString(QString iconName, QString hoverBackgroundColor)
+{
+    return  QString("QPushButton { "
+                    + iconName + ";"
+                                 "background-color:none;"
+                                 "border:none;"
+                                 "width:20px;"
+                                 "height:20px;"
+                                 "padding:0px;"
+                                 "border-top-right-radius: 0px;}"
+                                 "QPushButton:hover{ background-color:" + hoverBackgroundColor + "; }");
 }
 
 bool ExampleApplication::nativeEvent(const QByteArray& eventType, void* message, long* result)
@@ -226,15 +177,7 @@ void ExampleApplication::keyPressEvent(QKeyEvent* ev)
     if(ev->modifiers() & Qt::AltModifier)
     {
 #ifdef __APPLE__
-        MaximizeButton->setStyleSheet("QPushButton { "
-                                      "image:url(:/images/icon_window_macOS_maximize.png);"
-                                      "background-color:black;"
-                                      "border:none;"
-                                      "width:20px;"
-                                      "height:20px;"
-                                      "padding:4px;"
-                                      "border-top-right-radius: 0px;}"
-                                      "QPushButton:hover{ background-color:grey; }");
+        MaximizeButton->setStyleSheet(getSystemButtonStyleSheetString("image:url(:/images/icon_window_macOS_maximize.png)", "grey"));
 #endif
     }
 }
@@ -244,15 +187,7 @@ void ExampleApplication::keyReleaseEvent(QKeyEvent* ev)
     if(!(ev->modifiers() & Qt::AltModifier))
     {
 #ifdef __APPLE__
-        MaximizeButton->setStyleSheet("QPushButton { "
-                                      "image:url(:/images/icon_window_macOS_fullscreen.png);"
-                                      "background-color:black;"
-                                      "border:none;"
-                                      "width:20px;"
-                                      "height:20px;"
-                                      "padding:4px;"
-                                      "border-top-right-radius: 0px;}"
-                                      "QPushButton:hover{ background-color:grey; }");
+        MaximizeButton->setStyleSheet(getSystemButtonStyleSheetString("image:url(:/images/icon_window_macOS_fullscreen.png)", "grey"));
 #endif
     }
 }

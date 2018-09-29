@@ -31,6 +31,7 @@ private:
     class QPushButton* CloseButton;
     QPushButton* MinimizeButton;
     QPushButton* MaximizeButton;
+    QString getSystemButtonStyleSheetString(QString iconName, QString hoverBackgroundColor);
 };
 
 #endif // OPTIONTAB_H
