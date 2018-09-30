@@ -69,40 +69,40 @@ void ExampleApplication::createLeftSideWidgets()
     scrollWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     scrollWidget->verticalScrollBar()->setStyleSheet(
                 "QScrollBar:vertical {"
-                    "border: 0px solid grey;"
-                   // "background: rgba(0,0,0,255);"
-                  // "height: 15px;"
-                  //  "margin: 0px 20px 0 20px;"
+                "border: 0px solid grey;"
+                // "background: rgba(0,0,0,255);"
+                // "height: 15px;"
+                //  "margin: 0px 20px 0 20px;"
                 "}"
                 /*"QScrollBar::handle:vertical {"
-                    "background: white;"
-                    //"min-width: 20px;"
-                "}"
-               " QScrollBar::add-line:vertical {"
-                    "border: 0px solid grey;"
-                    "background: #32CC99;"
-                   // "width: 20px;"
-                   " subcontrol-position: right;"
-                   " subcontrol-origin: margin;"
-               " }"
+                                                        "background: white;"
+                                                        //"min-width: 20px;"
+                                                    "}"
+                                                   " QScrollBar::add-line:vertical {"
+                                                        "border: 0px solid grey;"
+                                                        "background: #32CC99;"
+                                                       // "width: 20px;"
+                                                       " subcontrol-position: right;"
+                                                       " subcontrol-origin: margin;"
+                                                   " }"
 
-                "QScrollBar::sub-line:vertical {"
-                    "border: 0px solid grey;"
-                   " background: #32CC99;"
-                  //  "width: 20px;"
-                    "subcontrol-position: left;"
-                    "subcontrol-origin: margin;"
-               "}"
-                "QScrollBar:left-arrow:vertical, QScrollBar::right-arrow:vertical {"
-                    "border: 0px solid grey;"
-                  // " width: 3px;"
-                   // "height: 3px;"
-                    "background: white;"
-              "  }"
+                                                    "QScrollBar::sub-line:vertical {"
+                                                        "border: 0px solid grey;"
+                                                       " background: #32CC99;"
+                                                      //  "width: 20px;"
+                                                        "subcontrol-position: left;"
+                                                        "subcontrol-origin: margin;"
+                                                   "}"
+                                                    "QScrollBar:left-arrow:vertical, QScrollBar::right-arrow:vertical {"
+                                                        "border: 0px solid grey;"
+                                                      // " width: 3px;"
+                                                       // "height: 3px;"
+                                                        "background: white;"
+                                                  "  }"
 
-                "QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {"
-                   " background: none;"
-                "}"*/);
+                                                    "QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {"
+                                                       " background: none;"
+                                                    "}"*/);
 
     QWidget* containerWidget = new QWidget;
     QVBoxLayout* optionsLayout = new QVBoxLayout(containerWidget);
@@ -225,23 +225,9 @@ void ExampleApplication::setupFramelessWindow()
 #endif
         {
             if(window()->isMaximized())
-            {
                 framelessWindowConverter.restoreWindow();
-#ifdef __APPLE__
-                MaximizeButton->setStyleSheet(getSystemButtonStyleSheetString("image:url(:/images/icon_window_macOS_maximize.png)", "grey"));
-#else
-                MaximizeButton->setStyleSheet(getSystemButtonStyleSheetString("image:url(:/images/icon_window_maximize.png)", "grey"));
-#endif
-            }
             else
-            {
                 framelessWindowConverter.maximizeWindow();
-#ifdef __APPLE__
-                MaximizeButton->setStyleSheet(getSystemButtonStyleSheetString("image:url(:/images/icon_window_macOS_maximize.png)", "grey"));
-#else
-                MaximizeButton->setStyleSheet(getSystemButtonStyleSheetString("image:url(:/images/icon_window_restore.png)", "grey"));
-#endif
-            }
         }
     });
 }
@@ -271,6 +257,37 @@ bool ExampleApplication::nativeEvent(const QByteArray& eventType, void* message,
 {
     Q_UNUSED(eventType)
     return framelessWindowConverter.filterNativeEvents(message, result);
+}
+
+bool ExampleApplication::event(QEvent* ev)
+{
+    switch(ev->type())
+    {
+    case QEvent::WindowStateChange:
+    {
+        QWindowStateChangeEvent* stateEvent = static_cast<QWindowStateChangeEvent*>(ev);
+        if (!(windowState() & Qt::WindowMaximized) && (stateEvent->oldState() & Qt::WindowMaximized))
+        {
+#ifdef __APPLE__
+            MaximizeButton->setStyleSheet(getSystemButtonStyleSheetString("image:url(:/images/icon_window_macOS_maximize.png)", "grey"));
+#else
+            MaximizeButton->setStyleSheet(getSystemButtonStyleSheetString("image:url(:/images/icon_window_maximize.png)", "grey"));
+#endif
+        }
+        else if (windowState() & Qt::WindowMaximized && !(stateEvent->oldState() & Qt::WindowMaximized))
+        {
+#ifdef __APPLE__
+            MaximizeButton->setStyleSheet(getSystemButtonStyleSheetString("image:url(:/images/icon_window_macOS_maximize.png)", "grey"));
+#else
+            MaximizeButton->setStyleSheet(getSystemButtonStyleSheetString("image:url(:/images/icon_window_restore.png)", "grey"));
+#endif
+        }
+        break;
+    }
+    default:
+        break;
+    }
+    return QWidget::event(ev);
 }
 
 void ExampleApplication::resizeEvent(QResizeEvent* ev)

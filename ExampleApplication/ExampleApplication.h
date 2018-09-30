@@ -17,6 +17,7 @@ public:
     void keyPressEvent(QKeyEvent* ev) override;
     void keyReleaseEvent(QKeyEvent* ev) override;
     void paintEvent(QPaintEvent* ev) override;
+    bool event(QEvent* ev) override;
 
 private:
     FWC::FramelessWindowConverter framelessWindowConverter;

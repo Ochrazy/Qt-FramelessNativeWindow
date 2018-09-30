@@ -130,11 +130,14 @@ bool FramelessWindowConverterWindows::filterNativeEvent(void *message, long *res
     {
         if (msg->wParam == TRUE && borderless)
         {
+            // auto& params = *reinterpret_cast<NCCALCSIZE_PARAMS*>(msg->lParam);
+            //adjust_maximized_client_rect(handle, params.rgrc[0]);
             *result = 0;
             return true;
         }
         break;
     }
+
     case WM_NCACTIVATE:
     {
         // Prevents window frame reappearing on window activation in "basic" theme,
@@ -320,6 +323,19 @@ bool FramelessWindowConverterWindows::filterNativeEvent(void *message, long *res
     {
         MINMAXINFO* minMaxInfo = reinterpret_cast<MINMAXINFO*>(msg->lParam);
 
+        // Get Monitor Info
+        auto monitor = ::MonitorFromWindow(handle, MONITOR_DEFAULTTONULL);
+        MONITORINFO monitor_info{};
+        monitor_info.cbSize = sizeof(monitor_info);
+        GetMonitorInfoW(monitor, &monitor_info);
+
+        // Set position and size of maximized window
+        minMaxInfo->ptMaxPosition.x = 0;
+        minMaxInfo->ptMaxPosition.y = 0;
+        minMaxInfo->ptMaxSize.x = monitor_info.rcWork.right - monitor_info.rcWork.left;
+        minMaxInfo->ptMaxSize.y = monitor_info.rcWork.bottom - monitor_info.rcWork.top;
+
+        // Set limits of the size of the window
         bool bMinMaxInfo = false;
         if(q_ptr->getMinimumWindowWidth() >= 0)
         {
