@@ -130,8 +130,6 @@ bool FramelessWindowConverterWindows::filterNativeEvent(void *message, long *res
     {
         if (msg->wParam == TRUE && borderless)
         {
-            // auto& params = *reinterpret_cast<NCCALCSIZE_PARAMS*>(msg->lParam);
-            //adjust_maximized_client_rect(handle, params.rgrc[0]);
             *result = 0;
             return true;
         }
