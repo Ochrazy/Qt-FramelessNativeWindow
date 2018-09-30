@@ -9,6 +9,7 @@
 #include <QStackedLayout>
 #include <QScrollArea>
 #include <QTimer>
+#include <QScrollBar>
 
 ExampleApplication::ExampleApplication(QWidget *parent) : QWidget(parent),
     framelessWindowConverter(), translucencyBlurEffect(this, this)
@@ -62,7 +63,53 @@ void ExampleApplication::createLeftSideWidgets()
     transparencyOptionButton->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
     transparencyOptionButton->setStyleSheet(getOptionButtonStyleSheetString());
 
-    QVBoxLayout* optionsLayout = new QVBoxLayout;
+    QScrollArea* scrollWidget = new QScrollArea;
+    scrollWidget->setFrameShape(QFrame::NoFrame);
+    scrollWidget->viewport()->setStyleSheet("background-color: rgba(0,0,0,0);");
+    scrollWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    scrollWidget->verticalScrollBar()->setStyleSheet(
+                "QScrollBar:vertical {"
+                    "border: 0px solid grey;"
+                   // "background: rgba(0,0,0,255);"
+                  // "height: 15px;"
+                  //  "margin: 0px 20px 0 20px;"
+                "}"
+                /*"QScrollBar::handle:vertical {"
+                    "background: white;"
+                    //"min-width: 20px;"
+                "}"
+               " QScrollBar::add-line:vertical {"
+                    "border: 0px solid grey;"
+                    "background: #32CC99;"
+                   // "width: 20px;"
+                   " subcontrol-position: right;"
+                   " subcontrol-origin: margin;"
+               " }"
+
+                "QScrollBar::sub-line:vertical {"
+                    "border: 0px solid grey;"
+                   " background: #32CC99;"
+                  //  "width: 20px;"
+                    "subcontrol-position: left;"
+                    "subcontrol-origin: margin;"
+               "}"
+                "QScrollBar:left-arrow:vertical, QScrollBar::right-arrow:vertical {"
+                    "border: 0px solid grey;"
+                  // " width: 3px;"
+                   // "height: 3px;"
+                    "background: white;"
+              "  }"
+
+                "QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {"
+                   " background: none;"
+                "}"*/);
+
+    QWidget* containerWidget = new QWidget;
+    QVBoxLayout* optionsLayout = new QVBoxLayout(containerWidget);
+    scrollWidget->setWidget(containerWidget);
+    scrollWidget->setWidgetResizable(true);
+
+
     optionsLayout->addWidget(machineClickerOptionButton);
     optionsLayout->addWidget(transparencyOptionButton);
     optionsLayout->setSpacing(0);
@@ -72,7 +119,7 @@ void ExampleApplication::createLeftSideWidgets()
     QVBoxLayout* leftTitleBar = new QVBoxLayout(leftBackgroundWidget);
     leftTitleBar->setSpacing(0);
     leftTitleBar->addWidget(windowTitle);
-    leftTitleBar->addLayout(optionsLayout); // content
+    leftTitleBar->addWidget(scrollWidget); // content
     leftTitleBar->setContentsMargins(0, 0, 0, 0);
 }
 
