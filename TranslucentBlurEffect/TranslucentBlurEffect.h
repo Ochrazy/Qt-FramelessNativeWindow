@@ -18,6 +18,8 @@ public:
     void setBlurStrength(int inBlurStrength);
     int getBlurStrength();
 
+    bool isActive();
+
 signals:
     void hideNonQtWidgets();
     void showNonQtWidgets();
@@ -31,6 +33,7 @@ private:
     bool noDrawOtherWidgets = false;
     bool bTakeScreenshot = false;
     QImage blurredScreenshot;
+    bool bIsActive = true;
 };
 
 #endif // TRANSLUCENTBLUREFFECT_H

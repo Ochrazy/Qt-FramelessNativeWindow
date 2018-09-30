@@ -16,11 +16,15 @@ TranslucentBlurEffect::TranslucentBlurEffect(QWidget* inWidgetToAddEffect, QObje
 void TranslucentBlurEffect::reactivateEffect()
 {
     qApp->installEventFilter(this);
+    bIsActive = true;
+    widgetToAddEffect->update();
 }
 
 void TranslucentBlurEffect::deactivateEffect()
 {
     qApp->removeEventFilter(this);
+    bIsActive = false;
+    widgetToAddEffect->update();
 }
 
 void TranslucentBlurEffect::setBlurStrength(int inBlurStrength)
@@ -31,6 +35,11 @@ void TranslucentBlurEffect::setBlurStrength(int inBlurStrength)
 int TranslucentBlurEffect::getBlurStrength()
 {
     return blurStrength;
+}
+
+bool TranslucentBlurEffect::isActive()
+{
+    return bIsActive;
 }
 
 QImage blurImage(const QImage& image, const QRect& rect, int radius)
@@ -169,14 +178,17 @@ bool TranslucentBlurEffect::eventFilter(QObject* object, QEvent* event)
                 painter.setCompositionMode(QPainter::CompositionMode_Clear);
                 painter.fillRect(paintEvent->rect(),QColor(100,100,100,255));
 
-                // Draw blurred background image (taking multi monitor setups into account)
-                painter.setOpacity(1.0);
-                painter.setCompositionMode(QPainter::CompositionMode_Source);
-                painter.drawImage(paintEvent->rect(), blurredScreenshot,
-                                  QRect(widgetToAddEffect->mapToGlobal(paintEvent->rect().topLeft()) - QPoint(rectOfAllScreens.x(), rectOfAllScreens.y()),
-                                        widgetToAddEffect->mapToGlobal(paintEvent->rect().bottomRight()) - QPoint(rectOfAllScreens.x(), rectOfAllScreens.y())));
+                if(bIsActive)
+                {
+                    // Draw blurred background image (taking multi monitor setups into account)
+                    painter.setOpacity(1.0);
+                    painter.setCompositionMode(QPainter::CompositionMode_Source);
+                    painter.drawImage(paintEvent->rect(), blurredScreenshot,
+                                      QRect(widgetToAddEffect->mapToGlobal(paintEvent->rect().topLeft()) - QPoint(rectOfAllScreens.x(), rectOfAllScreens.y()),
+                                            widgetToAddEffect->mapToGlobal(paintEvent->rect().bottomRight()) - QPoint(rectOfAllScreens.x(), rectOfAllScreens.y())));
 
-                painter.end();
+                    painter.end();
+                }
             }
             else
             {

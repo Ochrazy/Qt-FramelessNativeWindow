@@ -62,6 +62,12 @@ void ExampleApplication::createLeftSideWidgets()
     transparencyOptionButton->setFixedHeight(50);
     transparencyOptionButton->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
     transparencyOptionButton->setStyleSheet(getOptionButtonStyleSheetString());
+    connect(transparencyOptionButton, &QPushButton::clicked, [this] () { rightStackedLayout->setCurrentWidget(rightTest);
+        // Set new window size limits
+        framelessWindowConverter.setMinMaxWindowSizes(machineClicker->layout()->minimumSize().width() + 16,
+                                                      machineClicker->layout()->minimumSize().height() + titleBarHeight + 5,
+                                                      maximumSize().width(), maximumSize().height());
+    });
 
     QScrollArea* scrollWidget = new QScrollArea;
     scrollWidget->setFrameShape(QFrame::NoFrame);
@@ -158,8 +164,15 @@ void ExampleApplication::createRightSideWidgets()
     rightTitleBar->addLayout(hBoxLayout);
     machineClicker = new MachineClicker;
     rightTest = new QPushButton;
-    rightTest->setFixedSize(100,50);
+    rightTest->setText("Window Transparency Effects");
+    rightTest->setFixedHeight(50);
+    rightTest->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
+   // rightTest->setStyleSheet(getOptionButtonStyleSheetString());
     rightTest->setContentsMargins(8,5,8,8);
+    connect(rightTest, &QAbstractButton::clicked, this, [this]() {
+        translucencyBlurEffect.deactivateEffect();
+        setAttribute(Qt::WA_TranslucentBackground, false);
+        setAttribute(Qt::WA_NoSystemBackground, false);});
 
     rightStackedLayout = new QStackedLayout;
     rightStackedLayout->addWidget(rightTest);
