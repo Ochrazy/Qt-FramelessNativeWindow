@@ -13,7 +13,10 @@ void ToggleButton::paintEvent(QPaintEvent* event)
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
     QPainterPath path;
+
     QColor color("#0078d7");
+    if(!isEnabled())
+        color = Qt::gray;
     int arcWidth = 2;
     int arcHalfWidth = 1;
     QPen pen(color, arcWidth);
