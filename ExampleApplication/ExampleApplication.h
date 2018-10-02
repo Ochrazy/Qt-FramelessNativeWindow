@@ -5,6 +5,7 @@
 #include "MachineClicker/MachineClicker.h"
 #include "FramelessWindowConverter/FramelessWindowConverter.h"
 #include "TranslucentBlurEffect/TranslucentBlurEffect.h"
+#include "WindowButtons.h"
 
 class ExampleApplication : public QWidget
 {
@@ -17,7 +18,6 @@ public:
     void keyPressEvent(QKeyEvent* ev) override;
     void keyReleaseEvent(QKeyEvent* ev) override;
     void paintEvent(QPaintEvent* ev) override;
-    bool event(QEvent* ev) override;
 
 private:
     FWC::FramelessWindowConverter framelessWindowConverter;
@@ -30,24 +30,23 @@ private:
     // Main Widgets
     QWidget* rightBackgroundWidget;
     QWidget* leftBackgroundWidget;
-    int widthOfRightBackgroundWidget = 200;
+    int widthOfLeftBackgroundWidget = 400;
 
     // Left side widgets
     void createLeftSideWidgets();
     QLabel* windowTitle;
-    class QPushButton* machineClickerOptionButton;
+    QWidget* selectionIndicator;
+    class QPushButton* transparencyOptionButton;
+    QPushButton* machineClickerOptionButton;
+    class QScrollArea* leftScrollArea;
 
     // Right side widgets
     void createRightSideWidgets();
-    QPushButton* CloseButton;
-    QPushButton* MinimizeButton;
-    QPushButton* MaximizeButton;
+    WindowButtons* windowButtons;
     MachineClicker* machineClicker;
     QPushButton* rightTest;
     class QStackedLayout* rightStackedLayout;
 
-
-    QString getSystemButtonStyleSheetString(QString iconName, QString hoverBackgroundColor);
     QString getOptionButtonStyleSheetString();
 };
 

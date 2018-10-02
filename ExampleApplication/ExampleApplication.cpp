@@ -10,6 +10,10 @@
 #include <QScrollArea>
 #include <QTimer>
 #include <QScrollBar>
+#include <QStyle>
+#include "MinimalScrollBar.h"
+#include "ToggleButton.h"
+#include "QPropertyAnimation"
 
 ExampleApplication::ExampleApplication(QWidget *parent) : QWidget(parent),
     framelessWindowConverter(), translucencyBlurEffect(this, this)
@@ -27,6 +31,8 @@ ExampleApplication::ExampleApplication(QWidget *parent) : QWidget(parent),
     TopLevelLayout->setContentsMargins(0,0,0,0);
 
     setupFramelessWindow();
+
+    qApp->installEventFilter(this);
 }
 
 void ExampleApplication::createLeftSideWidgets()
@@ -34,15 +40,21 @@ void ExampleApplication::createLeftSideWidgets()
     leftBackgroundWidget = new QWidget;
     leftBackgroundWidget->setStyleSheet("background-color:none;");
     leftBackgroundWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::MinimumExpanding);
-    leftBackgroundWidget->setFixedWidth(widthOfRightBackgroundWidget);
+    leftBackgroundWidget->setFixedWidth(widthOfLeftBackgroundWidget);
     leftBackgroundWidget->setContentsMargins(0, 0, 0, 0);
 
     windowTitle = new QLabel(this);
-    windowTitle->setText("Example Application");
+    // windowTitle->setText("Example Application");
     windowTitle->setStyleSheet("QLabel { background-color : none; color : white; }");
     windowTitle->setFixedHeight(titleBarHeight);
     windowTitle->setAlignment(Qt::AlignLeft | Qt::AlignTop);
     windowTitle->setContentsMargins(5,5,0,0);
+
+    selectionIndicator = new QWidget;
+    selectionIndicator->setFixedSize(10, 25);
+    selectionIndicator->setStyleSheet("background-color: rgba(100,100,255,255);");
+    selectionIndicator->move(0, 12);
+
 
     machineClickerOptionButton = new QPushButton;
     machineClickerOptionButton->setText("Machine Clicker");
@@ -51,130 +63,100 @@ void ExampleApplication::createLeftSideWidgets()
     machineClickerOptionButton->setStyleSheet(getOptionButtonStyleSheetString());
     connect(machineClickerOptionButton, &QPushButton::clicked, [this] () { rightStackedLayout->setCurrentWidget(machineClicker);
         // Set new window size limits
+        // +16 and +6 for contents margins
         framelessWindowConverter.setMinMaxWindowSizes(machineClicker->layout()->minimumSize().width() + 16,
-                                                      machineClicker->layout()->minimumSize().height() + titleBarHeight + 5,
+                                                      machineClicker->layout()->minimumSize().height() + titleBarHeight + 6,
                                                       maximumSize().width(), maximumSize().height());
+        selectionIndicator->setParent(machineClickerOptionButton);
+        selectionIndicator->show();
     });
 
 
-    QPushButton* transparencyOptionButton = new QPushButton;
+    transparencyOptionButton = new QPushButton;
     transparencyOptionButton->setText("Transparency");
     transparencyOptionButton->setFixedHeight(50);
     transparencyOptionButton->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
     transparencyOptionButton->setStyleSheet(getOptionButtonStyleSheetString());
     connect(transparencyOptionButton, &QPushButton::clicked, [this] () { rightStackedLayout->setCurrentWidget(rightTest);
         // Set new window size limits
+        // +16 and +6 for contents margins
         framelessWindowConverter.setMinMaxWindowSizes(machineClicker->layout()->minimumSize().width() + 16,
-                                                      machineClicker->layout()->minimumSize().height() + titleBarHeight + 5,
+                                                      machineClicker->layout()->minimumSize().height() + titleBarHeight + 6,
                                                       maximumSize().width(), maximumSize().height());
+
+        selectionIndicator->setParent(transparencyOptionButton);
+        selectionIndicator->show();
     });
 
-    QScrollArea* scrollWidget = new QScrollArea;
-    scrollWidget->setFrameShape(QFrame::NoFrame);
-    scrollWidget->viewport()->setStyleSheet("background-color: rgba(0,0,0,0);");
-    scrollWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    scrollWidget->verticalScrollBar()->setStyleSheet(
-                "QScrollBar:vertical {"
-                "border: 0px solid grey;"
-                // "background: rgba(0,0,0,255);"
-                // "height: 15px;"
-                //  "margin: 0px 20px 0 20px;"
-                "}"
-                /*"QScrollBar::handle:vertical {"
-                                                        "background: white;"
-                                                        //"min-width: 20px;"
-                                                    "}"
-                                                   " QScrollBar::add-line:vertical {"
-                                                        "border: 0px solid grey;"
-                                                        "background: #32CC99;"
-                                                       // "width: 20px;"
-                                                       " subcontrol-position: right;"
-                                                       " subcontrol-origin: margin;"
-                                                   " }"
+    QPushButton* translucentBlurEffectOptionButton = new QPushButton;
+    translucentBlurEffectOptionButton->setText("Translucent Blur Effect");
+    translucentBlurEffectOptionButton->setFixedHeight(50);
+    translucentBlurEffectOptionButton->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
+    translucentBlurEffectOptionButton->setStyleSheet(getOptionButtonStyleSheetString());
 
-                                                    "QScrollBar::sub-line:vertical {"
-                                                        "border: 0px solid grey;"
-                                                       " background: #32CC99;"
-                                                      //  "width: 20px;"
-                                                        "subcontrol-position: left;"
-                                                        "subcontrol-origin: margin;"
-                                                   "}"
-                                                    "QScrollBar:left-arrow:vertical, QScrollBar::right-arrow:vertical {"
-                                                        "border: 0px solid grey;"
-                                                      // " width: 3px;"
-                                                       // "height: 3px;"
-                                                        "background: white;"
-                                                  "  }"
-
-                                                    "QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {"
-                                                       " background: none;"
-                                                    "}"*/);
+    leftScrollArea = new QScrollArea;
+    leftScrollArea->setFrameShape(QFrame::NoFrame);
+    leftScrollArea->viewport()->setStyleSheet("background-color: rgba(0,0,0,0);"
+                                              "margin: 0px 4px 0px 0px;");
+    leftScrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    MinimalScrollBar* minimalScrollBar = new MinimalScrollBar;
+    leftScrollArea->setVerticalScrollBar(minimalScrollBar);
 
     QWidget* containerWidget = new QWidget;
     QVBoxLayout* optionsLayout = new QVBoxLayout(containerWidget);
-    scrollWidget->setWidget(containerWidget);
-    scrollWidget->setWidgetResizable(true);
+    leftScrollArea->setWidget(containerWidget);
+    leftScrollArea->setWidgetResizable(true);
 
-
+    optionsLayout->addSpacing(5);
     optionsLayout->addWidget(machineClickerOptionButton);
     optionsLayout->addWidget(transparencyOptionButton);
+    optionsLayout->addWidget(translucentBlurEffectOptionButton);
     optionsLayout->setSpacing(0);
-    optionsLayout->setContentsMargins(0, 5, 0, 0);
+    optionsLayout->setContentsMargins(0, 0, 0, 0);
     optionsLayout->addStretch(0);
 
     QVBoxLayout* leftTitleBar = new QVBoxLayout(leftBackgroundWidget);
     leftTitleBar->setSpacing(0);
     leftTitleBar->addWidget(windowTitle);
-    leftTitleBar->addWidget(scrollWidget); // content
+    leftTitleBar->addWidget(leftScrollArea); // content
     leftTitleBar->setContentsMargins(0, 0, 0, 0);
 }
 
 void ExampleApplication::createRightSideWidgets()
 {
-    CloseButton = new QPushButton;
-    CloseButton->setFixedSize(35, titleBarHeight);
-    CloseButton->setStyleSheet(getSystemButtonStyleSheetString("image:url(:/images/icon_window_close.png)", "red"));
-
-    MinimizeButton = new QPushButton;
-    MinimizeButton->setFixedSize(35, titleBarHeight);
-    MinimizeButton->setStyleSheet(getSystemButtonStyleSheetString("image:url(:/images/icon_window_minimize.png)", "grey"));
-
-    MaximizeButton = new QPushButton;
-    MaximizeButton->setFixedSize(35, titleBarHeight);
-#ifdef __APPLE__
-    MaximizeButton->setStyleSheet(getSystemButtonStyleSheetString("image:url(:/images/icon_window_macOS_fullscreen.png)", "grey"));
-#else
-    MaximizeButton->setStyleSheet(getSystemButtonStyleSheetString("image:url(:/images/icon_window_maximize.png)", "grey"));
-#endif
+    windowButtons = new WindowButtons(titleBarHeight);
 
     // Right Background Widget
     rightBackgroundWidget = new QWidget;
     rightBackgroundWidget->setObjectName("rightBackgroundWidget");
     rightBackgroundWidget->setStyleSheet("#rightBackgroundWidget { background-color:black; }");
 
-    QHBoxLayout* hBoxLayout = new QHBoxLayout;
-    hBoxLayout->setSpacing(0);
-    hBoxLayout->addStretch();
-    hBoxLayout->addWidget(MinimizeButton);
-    hBoxLayout->addWidget(MaximizeButton);
-    hBoxLayout->addWidget(CloseButton);
-
     QVBoxLayout* rightTitleBar = new QVBoxLayout(rightBackgroundWidget);
     rightTitleBar->setSpacing(0);
-    rightTitleBar->addLayout(hBoxLayout);
+    rightTitleBar->addWidget(windowButtons);
+    rightTitleBar->addSpacing(5);
+
     machineClicker = new MachineClicker;
     rightTest = new QPushButton;
     rightTest->setText("Window Transparency Effects");
     rightTest->setFixedHeight(50);
     rightTest->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
-   // rightTest->setStyleSheet(getOptionButtonStyleSheetString());
+    // rightTest->setStyleSheet(getOptionButtonStyleSheetString());
     rightTest->setContentsMargins(8,5,8,8);
     connect(rightTest, &QAbstractButton::clicked, this, [this]() {
         translucencyBlurEffect.deactivateEffect();
         setAttribute(Qt::WA_TranslucentBackground, false);
         setAttribute(Qt::WA_NoSystemBackground, false);});
 
+    ToggleButton* toggleButton = new ToggleButton;
+    connect(toggleButton, &QAbstractButton::toggled, this, [this, toggleButton]() {
+        if(toggleButton->isChecked())
+            translucencyBlurEffect.deactivateEffect();
+        else translucencyBlurEffect.reactivateEffect();
+    });
+
     rightStackedLayout = new QStackedLayout;
+    rightStackedLayout->addWidget(toggleButton);
     rightStackedLayout->addWidget(rightTest);
     rightStackedLayout->addWidget(machineClicker);
 
@@ -197,8 +179,8 @@ void ExampleApplication::setupFramelessWindow()
     // Set some options
     adjustSize(); // apply layout size (constraints) to window
     rightStackedLayout->currentWidget()->adjustSize();
-    framelessWindowConverter.setMinMaxWindowSizes(rightStackedLayout->currentWidget()->size().width(),
-                                                  rightStackedLayout->currentWidget()->size().height(),
+    framelessWindowConverter.setMinMaxWindowSizes(rightStackedLayout->currentWidget()->size().width() + 16,
+                                                  rightStackedLayout->currentWidget()->size().height() + titleBarHeight + 6,
                                                   maximumSize().width(), maximumSize().height());
     framelessWindowConverter.useTrafficLightsOnMacOS(true);
 
@@ -210,7 +192,7 @@ void ExampleApplication::setupFramelessWindow()
         QWidget* widgetUnderCursor = childAt(mousePosXInWindow, mousePosYInWindow);
         // Set all background widgets draggable
         if((widgetUnderCursor == nullptr ||  widgetUnderCursor == rightBackgroundWidget ||  widgetUnderCursor == leftBackgroundWidget
-            || widgetUnderCursor == machineClicker || widgetUnderCursor == windowTitle) &&
+            || widgetUnderCursor == machineClicker || widgetUnderCursor == windowTitle || widgetUnderCursor == windowButtons) &&
                 (mousePosYInWindow < titleBarHeight))
             return true;
         else return false;
@@ -219,15 +201,15 @@ void ExampleApplication::setupFramelessWindow()
     framelessWindowConverter.convertWindowToFrameless(fwcParams);
 
     // Connect custom System Buttons
-    connect(CloseButton, &QAbstractButton::clicked, this, [this]()
+    connect(windowButtons->getCloseButton(), &QAbstractButton::clicked, this, [this]()
     {
         framelessWindowConverter.closeWindow();
     });
-    connect(MinimizeButton, &QAbstractButton::clicked, this, [this]()
+    connect(windowButtons->getMinimizeButton(), &QAbstractButton::clicked, this, [this]()
     {
         framelessWindowConverter.minimizeWindow();
     });
-    connect(MaximizeButton, &QAbstractButton::clicked, this, [this]()
+    connect(windowButtons->getMaximizeButton(), &QAbstractButton::clicked, this, [this]()
     {
 #ifdef __APPLE__
         if(!(qApp->keyboardModifiers() & Qt::AltModifier) || window()->isFullScreen())
@@ -245,25 +227,14 @@ void ExampleApplication::setupFramelessWindow()
     });
 }
 
-QString ExampleApplication::getSystemButtonStyleSheetString(QString iconName, QString hoverBackgroundColor)
-{
-    return  QString("QPushButton { "
-                    + iconName + ";"
-                                 "background-color:none;"
-                                 "border:none;"
-                                 "padding:0px;"
-                                 "border-top-right-radius: 0px;}"
-                                 "QPushButton:hover{ background-color:" + hoverBackgroundColor + "; }");
-}
-
 QString ExampleApplication::getOptionButtonStyleSheetString()
 {
     return QString("QPushButton { background-color:none;"
                    "border:none;"
                    "padding:0px;"
                    "border-top-right-radius: 0px;}"
-                   "QPushButton:hover{ background-color: none; border: 2px solid lightgrey; }"
-                   "QPushButton:pressed{ background-color: lightgrey;}");
+                   "QPushButton:hover{ background-color: lightgrey; border: none; }"
+                   "QPushButton:pressed{ background-color: grey;}");
 }
 
 bool ExampleApplication::nativeEvent(const QByteArray& eventType, void* message, long* result)
@@ -272,47 +243,15 @@ bool ExampleApplication::nativeEvent(const QByteArray& eventType, void* message,
     return framelessWindowConverter.filterNativeEvents(message, result);
 }
 
-bool ExampleApplication::event(QEvent* ev)
-{
-    switch(ev->type())
-    {
-    case QEvent::WindowStateChange:
-    {
-        QWindowStateChangeEvent* stateEvent = static_cast<QWindowStateChangeEvent*>(ev);
-        if (!(windowState() & Qt::WindowMaximized) && (stateEvent->oldState() & Qt::WindowMaximized))
-        {
-#ifdef __APPLE__
-            MaximizeButton->setStyleSheet(getSystemButtonStyleSheetString("image:url(:/images/icon_window_macOS_maximize.png)", "grey"));
-#else
-            MaximizeButton->setStyleSheet(getSystemButtonStyleSheetString("image:url(:/images/icon_window_maximize.png)", "grey"));
-#endif
-        }
-        else if (windowState() & Qt::WindowMaximized && !(stateEvent->oldState() & Qt::WindowMaximized))
-        {
-#ifdef __APPLE__
-            MaximizeButton->setStyleSheet(getSystemButtonStyleSheetString("image:url(:/images/icon_window_macOS_maximize.png)", "grey"));
-#else
-            MaximizeButton->setStyleSheet(getSystemButtonStyleSheetString("image:url(:/images/icon_window_restore.png)", "grey"));
-#endif
-        }
-        break;
-    }
-    default:
-        break;
-    }
-    return QWidget::event(ev);
-}
-
 void ExampleApplication::resizeEvent(QResizeEvent* ev)
 {
     if(leftBackgroundWidget && ev->oldSize().width() != -1)
     {
-
-        if(!leftBackgroundWidget->isHidden() && ev->size().width() <= (framelessWindowConverter.getMinimumWindowWidth() + widthOfRightBackgroundWidget))
+        if(!leftBackgroundWidget->isHidden() && ev->size().width() <= (framelessWindowConverter.getMinimumWindowWidth() + widthOfLeftBackgroundWidget))
         {
             leftBackgroundWidget->hide();
         }
-        else if(leftBackgroundWidget->isHidden() && ev->size().width() > (framelessWindowConverter.getMinimumWindowWidth() + widthOfRightBackgroundWidget))
+        else if(leftBackgroundWidget->isHidden() && ev->size().width() > (framelessWindowConverter.getMinimumWindowWidth() + widthOfLeftBackgroundWidget))
         {
             leftBackgroundWidget->show();
         }

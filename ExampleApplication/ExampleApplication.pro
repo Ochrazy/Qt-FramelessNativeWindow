@@ -16,7 +16,10 @@ include("../FramelessWindowConverter/FramelessWindowConverter.pri")
 include("../TranslucentBlurEffect/TranslucentBlurEffect.pri")
 
 SOURCES += main.cpp \
-    ExampleApplication.cpp
+    ExampleApplication.cpp \
+    MinimalScrollBar.cpp \
+    ToggleButton.cpp \
+    WindowButtons.cpp
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -24,4 +27,7 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 HEADERS += \
-    ExampleApplication.h
+    ExampleApplication.h \
+    MinimalScrollBar.h \
+    ToggleButton.h \
+    WindowButtons.h
