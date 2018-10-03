@@ -34,17 +34,19 @@ private:
     void createLeftSideWidgets();
     QLabel* windowTitle;
     QWidget* selectionIndicator;
+    QWidget* transparencyOptionWidget;
     class QPushButton* transparencyOptionButton;
     QPushButton* machineClickerOptionButton;
-    QPushButton* translucentBlurEffectOptionButton;
+    QPushButton* FramelessOptionButton;
     class QScrollArea* leftScrollArea;
 
     // Right side widgets
     void createRightSideWidgets();
     WindowButtons* windowButtons;
     MachineClicker* machineClicker;
-    class ToggleButton* translucentBlurOption;
-    ToggleButton* transparentOption;
+    void createTransparencyOptionWidget();
+    class ToggleOption* translucentBlurOption;
+    class ToggleOption* transparentOption;
     class QStackedLayout* rightStackedLayout;
 
     QString getOptionButtonStyleSheetString();

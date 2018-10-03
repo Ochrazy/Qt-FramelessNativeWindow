@@ -11,13 +11,19 @@ public:
     explicit ToggleButton(QWidget *parent = nullptr);
 
     void paintEvent(QPaintEvent* event) override;
+    void enterEvent(QEvent* event) override;
+    void leaveEvent(QEvent* event) override;
+    void mouseReleaseEvent(QMouseEvent* event) override;
+    bool event(QEvent* event) override;
 
 private slots:
     void playToggleAnimation();
 
 private:
-    int percentAnimationPlayed = -1;
+    float percentAnimationPlayed = 100;
     QTimer animationTimer;
+    bool mouseHover = false;
+    void startAnimation();
 };
 
 #endif // TOGGLEBUTTON_H

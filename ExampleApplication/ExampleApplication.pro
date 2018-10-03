@@ -19,7 +19,8 @@ SOURCES += main.cpp \
     ExampleApplication.cpp \
     MinimalScrollBar.cpp \
     ToggleButton.cpp \
-    WindowButtons.cpp
+    WindowButtons.cpp \
+    ToggleOption.cpp
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -30,4 +31,5 @@ HEADERS += \
     ExampleApplication.h \
     MinimalScrollBar.h \
     ToggleButton.h \
-    WindowButtons.h
+    WindowButtons.h \
+    ToggleOption.h

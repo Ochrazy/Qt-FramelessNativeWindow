@@ -14,6 +14,7 @@
 #include "MinimalScrollBar.h"
 #include "ToggleButton.h"
 #include "QPropertyAnimation"
+#include "ToggleOption.h"
 
 ExampleApplication::ExampleApplication(QWidget *parent) : QWidget(parent),
     framelessWindowConverter(), translucencyBlurEffect(this, this)
@@ -44,7 +45,7 @@ void ExampleApplication::createLeftSideWidgets()
     leftBackgroundWidget->setContentsMargins(0, 0, 0, 0);
 
     windowTitle = new QLabel(this);
-    // windowTitle->setText("Example Application");
+    windowTitle->setText("Example Application");
     windowTitle->setStyleSheet("QLabel { background-color : none; color : white; }");
     windowTitle->setFixedHeight(titleBarHeight);
     windowTitle->setAlignment(Qt::AlignLeft | Qt::AlignTop);
@@ -82,33 +83,33 @@ void ExampleApplication::createLeftSideWidgets()
     transparencyOptionButton->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
     transparencyOptionButton->setStyleSheet(getOptionButtonStyleSheetString());
     connect(transparencyOptionButton, &QPushButton::clicked, [this] () {
-        rightStackedLayout->setCurrentWidget(transparentOption);
+        rightStackedLayout->setCurrentWidget(transparencyOptionWidget);
         // Set new window size limits
         // +16 and +6 for contents margins
-        framelessWindowConverter.setMinMaxWindowSizes(transparentOption->minimumWidth(),
-                                                      transparentOption->minimumHeight() + titleBarHeight + 6,
+        framelessWindowConverter.setMinMaxWindowSizes(transparencyOptionWidget->layout()->minimumSize().width(),
+                                                      transparencyOptionWidget->layout()->minimumSize().height() + titleBarHeight + 6,
                                                       maximumSize().width(), maximumSize().height());
-        rightBackgroundWidget->setMinimumWidth(transparentOption->minimumWidth());
-        rightBackgroundWidget->setMinimumHeight( transparentOption->minimumHeight() + titleBarHeight + 6);
+        rightBackgroundWidget->setMinimumWidth(transparencyOptionWidget->layout()->minimumSize().width());
+        rightBackgroundWidget->setMinimumHeight( transparencyOptionWidget->layout()->minimumSize().height() + titleBarHeight + 6);
         selectionIndicator->setParent(transparencyOptionButton);
         selectionIndicator->show();
     });
 
-    translucentBlurEffectOptionButton = new QPushButton;
-    translucentBlurEffectOptionButton->setText("Translucent Blur Effect");
-    translucentBlurEffectOptionButton->setFixedHeight(50);
-    translucentBlurEffectOptionButton->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
-    translucentBlurEffectOptionButton->setStyleSheet(getOptionButtonStyleSheetString());
-    connect(translucentBlurEffectOptionButton, &QPushButton::clicked, [this] () {
+    FramelessOptionButton = new QPushButton;
+    FramelessOptionButton->setText("Frameless window options");
+    FramelessOptionButton->setFixedHeight(50);
+    FramelessOptionButton->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
+    FramelessOptionButton->setStyleSheet(getOptionButtonStyleSheetString());
+    connect(FramelessOptionButton, &QPushButton::clicked, [this] () {
         rightStackedLayout->setCurrentWidget(translucentBlurOption);
         // Set new window size limits
         // +16 and +6 for contents margins
-        framelessWindowConverter.setMinMaxWindowSizes(transparentOption->minimumWidth(),
-                                                      transparentOption->minimumHeight() + titleBarHeight + 6,
+        framelessWindowConverter.setMinMaxWindowSizes(translucentBlurOption->minimumWidth(),
+                                                      translucentBlurOption->minimumHeight() + titleBarHeight + 6,
                                                       maximumSize().width(), maximumSize().height());
-        rightBackgroundWidget->setMinimumWidth(transparentOption->minimumWidth());
-        rightBackgroundWidget->setMinimumHeight(transparentOption->minimumHeight() + titleBarHeight + 6);
-        selectionIndicator->setParent(translucentBlurEffectOptionButton);
+        rightBackgroundWidget->setMinimumWidth(translucentBlurOption->minimumWidth());
+        rightBackgroundWidget->setMinimumHeight(translucentBlurOption->minimumHeight() + titleBarHeight + 6);
+        selectionIndicator->setParent(FramelessOptionButton);
         selectionIndicator->show();
     });
 
@@ -128,16 +129,54 @@ void ExampleApplication::createLeftSideWidgets()
     optionsLayout->addSpacing(5);
     optionsLayout->addWidget(machineClickerOptionButton);
     optionsLayout->addWidget(transparencyOptionButton);
-    optionsLayout->addWidget(translucentBlurEffectOptionButton);
+    optionsLayout->addWidget(FramelessOptionButton);
     optionsLayout->setSpacing(0);
     optionsLayout->setContentsMargins(0, 0, 0, 0);
-    optionsLayout->addStretch(0);
+    optionsLayout->addStretch(1);
 
     QVBoxLayout* leftTitleBar = new QVBoxLayout(leftBackgroundWidget);
     leftTitleBar->setSpacing(0);
     leftTitleBar->addWidget(windowTitle);
     leftTitleBar->addWidget(leftScrollArea); // content
     leftTitleBar->setContentsMargins(0, 0, 0, 0);
+}
+
+void ExampleApplication::createTransparencyOptionWidget()
+{
+    transparentOption = new ToggleOption;
+    transparentOption->setDescription("Turn all transparency effects on/off");
+    connect(transparentOption->getButton(), &QAbstractButton::toggled, this, [this](bool checked) {
+        if(checked)
+        {
+            translucencyBlurEffect.deactivateEffect();
+            setAttribute(Qt::WA_TranslucentBackground, false);
+            setAttribute(Qt::WA_NoSystemBackground, false);
+            translucentBlurOption->getButton()->setChecked(true);
+            translucentBlurOption->setEnabled(false);
+        }
+        else
+        {
+            translucencyBlurEffect.reactivateEffect();
+            setAttribute(Qt::WA_TranslucentBackground, true);
+            setAttribute(Qt::WA_NoSystemBackground, true);
+            translucentBlurOption->getButton()->setChecked(false);
+            translucentBlurOption->setEnabled(true);
+        }
+    });
+
+    translucentBlurOption = new ToggleOption;
+    translucentBlurOption->setDescription("Turn the translucent blur effect on/off");
+    connect(translucentBlurOption->getButton(), &QAbstractButton::toggled, this, [this]() {
+        if(translucentBlurOption->getButton()->isChecked())
+            translucencyBlurEffect.deactivateEffect();
+        else translucencyBlurEffect.reactivateEffect();
+    });
+
+    transparencyOptionWidget = new QWidget;
+    QVBoxLayout* transparencyOptionLayout = new QVBoxLayout(transparencyOptionWidget);
+    transparencyOptionLayout->addWidget(transparentOption);
+    transparencyOptionLayout->addWidget(translucentBlurOption);
+    transparencyOptionLayout->addStretch(1);
 }
 
 void ExampleApplication::createRightSideWidgets()
@@ -154,41 +193,13 @@ void ExampleApplication::createRightSideWidgets()
     rightTitleBar->addWidget(windowButtons);
     rightTitleBar->addSpacing(5);
 
-    machineClicker = new MachineClicker;
-    transparentOption = new ToggleButton;
-    transparentOption->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
-    // transparentOption->setStyleSheet(getOptionButtonStyleSheetString());
-    transparentOption->setContentsMargins(8,5,8,8);
-    connect(transparentOption, &QAbstractButton::toggled, this, [this]() {
-        if(transparentOption->isChecked())
-        {
-            translucencyBlurEffect.deactivateEffect();
-            setAttribute(Qt::WA_TranslucentBackground, false);
-            setAttribute(Qt::WA_NoSystemBackground, false);
-            translucentBlurOption->setChecked(true);
-            translucentBlurOption->setEnabled(false);
-        }
-        else
-        {
-            translucencyBlurEffect.reactivateEffect();
-            setAttribute(Qt::WA_TranslucentBackground, true);
-            setAttribute(Qt::WA_NoSystemBackground, true);
-            translucentBlurOption->setChecked(false);
-            translucentBlurOption->setEnabled(true);
-        }
-    });
 
-    translucentBlurOption = new ToggleButton;
-    connect(translucentBlurOption, &QAbstractButton::toggled, this, [this]() {
-        if(translucentBlurOption->isChecked())
-            translucencyBlurEffect.deactivateEffect();
-        else translucencyBlurEffect.reactivateEffect();
-    });
+    machineClicker = new MachineClicker;
+    createTransparencyOptionWidget();
 
     rightStackedLayout = new QStackedLayout;
     rightStackedLayout->addWidget(machineClicker);
-    rightStackedLayout->addWidget(transparentOption);
-    rightStackedLayout->addWidget(translucentBlurOption);
+    rightStackedLayout->addWidget(transparencyOptionWidget);
 
     machineClicker->layout()->setContentsMargins(8, 5, 8, 8);
     rightTitleBar->addLayout(rightStackedLayout);

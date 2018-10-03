@@ -7,10 +7,10 @@ ToggleButton::ToggleButton(QWidget *parent) : QAbstractButton(parent)
     setFixedSize(44, 20);
     setCheckable(true);
 
-    animationTimer.setInterval(33);
+    animationTimer.stop();
+    animationTimer.setInterval(10);
 
-    connect(&animationTimer, &QTimer::timeout, this, &ToggleButton::playToggleAnimation);
-    connect(this, &QAbstractButton::toggled, [this]() { animationTimer.start(); });
+    connect(&animationTimer, &QTimer::timeout, this, &ToggleButton::playToggleAnimation, Qt::UniqueConnection);
 }
 
 void ToggleButton::paintEvent(QPaintEvent* event)
@@ -21,8 +21,23 @@ void ToggleButton::paintEvent(QPaintEvent* event)
     QPainterPath path;
 
     QColor color("#0078d7");
+
+    if(mouseHover)
+        color = QColor("#006cc1");
+    if(isChecked() && mouseHover == false)
+        color = QColor("#cccccc");
+    else if(isChecked() && mouseHover)
+    {
+        color = QColor("#ffffff");
+    }
+
+    if(isDown())
+    {
+        color = QColor("#cccccc");
+    }
+
     if(!isEnabled())
-        color = Qt::gray;
+        color = Qt::darkGray;
     int arcWidth = 2;
     int arcHalfWidth = 1;
     QPen pen(color, arcWidth);
@@ -47,16 +62,81 @@ void ToggleButton::paintEvent(QPaintEvent* event)
     path.closeSubpath();
 
     painter.drawPath(path);
-    if(!isChecked()) painter.fillPath(path, color);
+    if(!isChecked() || isDown()) painter.fillPath(path, color);
 
     color = QColor(Qt::white);
+    if(!mouseHover && isChecked())
+    {
+        color = QColor("#cccccc");
+    }
+    if(!isEnabled())
+        color = Qt::darkGray;
+
     painter.setPen(color);
     painter.setBrush(color);
-    painter.drawEllipse(29, 6, 8, 8);
+
+    static constexpr float d = 23.f/100.f;
+    if(isChecked())
+    {
+        painter.drawEllipse(29 - static_cast<int>(d*percentAnimationPlayed), 6, 8, 8);
+    }
+    else
+    {
+        painter.drawEllipse(6 + static_cast<int>(d*percentAnimationPlayed), 6, 8, 8);
+    }
+}
+
+void ToggleButton::startAnimation()
+{
+    // If the animation is still playing this immediatley ends it and starts the new one
+    percentAnimationPlayed = 0.0;
+    animationTimer.start();
 }
 
 void ToggleButton::playToggleAnimation()
 {
-    percentAnimationPlayed += 1;
-    update();
+    if(percentAnimationPlayed < 100)
+    {
+        percentAnimationPlayed += 10;
+        if(percentAnimationPlayed > 100)
+            percentAnimationPlayed = 100;
+        update();
+    }
+    else
+    {
+        animationTimer.stop();
+    }
+}
+
+void ToggleButton::mouseReleaseEvent(QMouseEvent* event)
+{
+    if (event->button() == Qt::LeftButton)
+    {
+        startAnimation();
+    }
+    QAbstractButton::mouseReleaseEvent(event);
+}
+
+void ToggleButton::enterEvent(QEvent* event)
+{
+    mouseHover = true;
+    QAbstractButton::enterEvent(event);
+}
+
+void ToggleButton::leaveEvent(QEvent* event)
+{
+    mouseHover = false;
+    QAbstractButton::leaveEvent(event);
+}
+
+bool ToggleButton::event(QEvent* event)
+{
+    if(event->type() == QEvent::EnabledChange)
+    {
+        if(isEnabled())
+        {
+            startAnimation();
+        }
+    }
+    return QAbstractButton::event(event);
 }
