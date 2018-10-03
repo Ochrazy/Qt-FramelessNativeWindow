@@ -89,6 +89,28 @@ bool WindowButtons::eventFilter(QObject* obj, QEvent* event)
         }
         break;
     }
+    case QEvent::KeyPress:
+    {
+        QKeyEvent* keyEvent = static_cast<QKeyEvent*>(event);
+        if(keyEvent->modifiers() & Qt::AltModifier)
+        {
+#ifdef __APPLE__
+            MaximizeButton->setStyleSheet(getStyleSheetString("image:url(:/images/icon_window_macOS_maximize.png)", "grey"));
+#endif
+        }
+        break;
+    }
+    case QEvent::KeyRelease:
+    {
+        QKeyEvent* keyEvent = static_cast<QKeyEvent*>(event);
+        if(!(keyEvent->modifiers() & Qt::AltModifier))
+        {
+#ifdef __APPLE__
+            MaximizeButton->setStyleSheet(getStyleSheetString("image:url(:/images/icon_window_macOS_fullscreen.png)", "grey"));
+#endif
+        }
+        break;
+    }
     default:
         break;
     }

@@ -15,8 +15,6 @@ public:
 
     bool nativeEvent(const QByteArray& eventType, void* message, long* result) override;
     void resizeEvent(QResizeEvent* ev) override;
-    void keyPressEvent(QKeyEvent* ev) override;
-    void keyReleaseEvent(QKeyEvent* ev) override;
     void paintEvent(QPaintEvent* ev) override;
 
 private:
@@ -38,13 +36,15 @@ private:
     QWidget* selectionIndicator;
     class QPushButton* transparencyOptionButton;
     QPushButton* machineClickerOptionButton;
+    QPushButton* translucentBlurEffectOptionButton;
     class QScrollArea* leftScrollArea;
 
     // Right side widgets
     void createRightSideWidgets();
     WindowButtons* windowButtons;
     MachineClicker* machineClicker;
-    QPushButton* rightTest;
+    class ToggleButton* translucentBlurOption;
+    ToggleButton* transparentOption;
     class QStackedLayout* rightStackedLayout;
 
     QString getOptionButtonStyleSheetString();
