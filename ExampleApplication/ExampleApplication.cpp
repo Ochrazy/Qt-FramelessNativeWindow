@@ -43,6 +43,8 @@ void ExampleApplication::createLeftSideWidgets()
     leftBackgroundWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::MinimumExpanding);
     leftBackgroundWidget->setFixedWidth(widthOfLeftBackgroundWidget);
     leftBackgroundWidget->setContentsMargins(0, 0, 0, 0);
+    leftBackgroundWidget->setMinimumWidth(widthOfLeftBackgroundWidget);
+    leftBackgroundWidget->setMinimumHeight(titleBarHeight + 6);
 
     windowTitle = new QLabel(this);
     windowTitle->setText("Example Application");
@@ -65,11 +67,13 @@ void ExampleApplication::createLeftSideWidgets()
     connect(machineClickerOptionButton, &QPushButton::clicked, [this] () { rightStackedLayout->setCurrentWidget(machineClicker);
         // Set new window size limits
         // +16 and +6 for contents margins
-        framelessWindowConverter.setMinMaxWindowSizes(machineClicker->layout()->minimumSize().width() + 16,
-                                                      machineClicker->layout()->minimumSize().height() + titleBarHeight + 6,
+        int minimumWidth = machineClicker->layout()->minimumSize().width() + 16;
+        int minimumHeight = machineClicker->layout()->minimumSize().height() + titleBarHeight + 6;
+        framelessWindowConverter.setMinMaxWindowSizes(minimumWidth,
+                                                      minimumHeight,
                                                       maximumSize().width(), maximumSize().height());
-        rightBackgroundWidget->setMinimumWidth(machineClicker->layout()->minimumSize().width() + 16);
-        rightBackgroundWidget->setMinimumHeight(machineClicker->layout()->minimumSize().height() + titleBarHeight + 6);
+        rightBackgroundWidget->setMinimumWidth(minimumWidth);
+        rightBackgroundWidget->setMinimumHeight(minimumHeight);
         selectionIndicator->setParent(machineClickerOptionButton);
         selectionIndicator->show();
     });
@@ -101,14 +105,14 @@ void ExampleApplication::createLeftSideWidgets()
     FramelessOptionButton->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
     FramelessOptionButton->setStyleSheet(getOptionButtonStyleSheetString());
     connect(FramelessOptionButton, &QPushButton::clicked, [this] () {
-        rightStackedLayout->setCurrentWidget(translucentBlurOption);
+        rightStackedLayout->setCurrentWidget(framelessOption);
         // Set new window size limits
         // +16 and +6 for contents margins
-        framelessWindowConverter.setMinMaxWindowSizes(translucentBlurOption->minimumWidth(),
-                                                      translucentBlurOption->minimumHeight() + titleBarHeight + 6,
+        framelessWindowConverter.setMinMaxWindowSizes(framelessOption->minimumWidth(),
+                                                      framelessOption->minimumHeight() + titleBarHeight + 6,
                                                       maximumSize().width(), maximumSize().height());
-        rightBackgroundWidget->setMinimumWidth(translucentBlurOption->minimumWidth());
-        rightBackgroundWidget->setMinimumHeight(translucentBlurOption->minimumHeight() + titleBarHeight + 6);
+        rightBackgroundWidget->setMinimumWidth(framelessOption->minimumWidth());
+        rightBackgroundWidget->setMinimumHeight(framelessOption->minimumHeight() + titleBarHeight + 6);
         selectionIndicator->setParent(FramelessOptionButton);
         selectionIndicator->show();
     });
@@ -196,10 +200,13 @@ void ExampleApplication::createRightSideWidgets()
 
     machineClicker = new MachineClicker;
     createTransparencyOptionWidget();
+    framelessOption = new ToggleOption;
+    framelessOption->setDescription("Convert window to a frameless native window");
 
     rightStackedLayout = new QStackedLayout;
     rightStackedLayout->addWidget(machineClicker);
     rightStackedLayout->addWidget(transparencyOptionWidget);
+    rightStackedLayout->addWidget(framelessOption);
 
     machineClicker->layout()->setContentsMargins(8, 5, 8, 8);
     rightTitleBar->addLayout(rightStackedLayout);

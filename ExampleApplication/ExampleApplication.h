@@ -46,7 +46,8 @@ private:
     MachineClicker* machineClicker;
     void createTransparencyOptionWidget();
     class ToggleOption* translucentBlurOption;
-    class ToggleOption* transparentOption;
+    ToggleOption* transparentOption;
+    ToggleOption* framelessOption;
     class QStackedLayout* rightStackedLayout;
 
     QString getOptionButtonStyleSheetString();
