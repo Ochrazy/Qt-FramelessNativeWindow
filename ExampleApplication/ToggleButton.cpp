@@ -6,12 +6,18 @@ ToggleButton::ToggleButton(QWidget *parent) : QAbstractButton(parent)
 {
     setFixedSize(44, 20);
     setCheckable(true);
+
+    animationTimer.setInterval(33);
+
+    connect(&animationTimer, &QTimer::timeout, this, &ToggleButton::playToggleAnimation);
+    connect(this, &QAbstractButton::toggled, [this]() { animationTimer.start(); });
 }
 
 void ToggleButton::paintEvent(QPaintEvent* event)
 {
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
+
     QPainterPath path;
     QColor color("#0078d7");
     int arcWidth = 2;
@@ -37,6 +43,17 @@ void ToggleButton::paintEvent(QPaintEvent* event)
     path.arcTo(rectOfLeftHalfCircle, startAngle + 180.0, angleSpan);
     path.closeSubpath();
 
-   painter.drawPath(path);
+    painter.drawPath(path);
     if(!isChecked()) painter.fillPath(path, color);
+
+    color = QColor(Qt::white);
+    painter.setPen(color);
+    painter.setBrush(color);
+    painter.drawEllipse(29, 6, 8, 8);
+}
+
+void ToggleButton::playToggleAnimation()
+{
+    percentAnimationPlayed += 1;
+    update();
 }
