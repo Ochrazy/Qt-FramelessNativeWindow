@@ -74,7 +74,7 @@ bool WindowButtons::eventFilter(QObject* obj, QEvent* event)
         if (!(windowWidget->windowState() & Qt::WindowMaximized) && (stateEvent->oldState() & Qt::WindowMaximized))
         {
 #ifdef __APPLE__
-            MaximizeButton->setStyleSheet(getStyleSheetString("image:url(:/images/icon_window_macOS_maximize.png)", "grey"));
+            // Do nothing -> show fullscreen icon
 #else
             MaximizeButton->setStyleSheet(getStyleSheetString("image:url(:/images/icon_window_maximize.png)", "grey"));
 #endif
@@ -82,7 +82,7 @@ bool WindowButtons::eventFilter(QObject* obj, QEvent* event)
         else if (windowWidget->windowState() & Qt::WindowMaximized && !(stateEvent->oldState() & Qt::WindowMaximized))
         {
 #ifdef __APPLE__
-            MaximizeButton->setStyleSheet(getStyleSheetString("image:url(:/images/icon_window_macOS_maximize.png)", "grey"));
+            // Do nothing -> show fullscreen icon
 #else
             MaximizeButton->setStyleSheet(getStyleSheetString("image:url(:/images/icon_window_restore.png)", "grey"));
 #endif

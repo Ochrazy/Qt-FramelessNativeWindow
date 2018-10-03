@@ -18,6 +18,7 @@ void ToggleButton::paintEvent(QPaintEvent* event)
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
 
+    // Draw button background
     QPainterPath path;
 
     QColor color("#0078d7");
@@ -25,8 +26,10 @@ void ToggleButton::paintEvent(QPaintEvent* event)
     if(mouseHover)
         color = QColor("#006cc1");
     if(isChecked() && mouseHover == false)
+    {
         color = QColor("#cccccc");
-    else if(isChecked() && mouseHover)
+    }
+    else if(isChecked() && mouseHover == true)
     {
         color = QColor("#ffffff");
     }
@@ -64,6 +67,7 @@ void ToggleButton::paintEvent(QPaintEvent* event)
     painter.drawPath(path);
     if(!isChecked() || isDown()) painter.fillPath(path, color);
 
+    // Draw filled circle
     color = QColor(Qt::white);
     if(!mouseHover && isChecked())
     {
@@ -120,12 +124,14 @@ void ToggleButton::mouseReleaseEvent(QMouseEvent* event)
 void ToggleButton::enterEvent(QEvent* event)
 {
     mouseHover = true;
+    update();
     QAbstractButton::enterEvent(event);
 }
 
 void ToggleButton::leaveEvent(QEvent* event)
 {
     mouseHover = false;
+    update();
     QAbstractButton::leaveEvent(event);
 }
 

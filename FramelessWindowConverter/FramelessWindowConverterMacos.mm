@@ -84,7 +84,10 @@ void FramelessWindowConverterMacos::minimizeWindow()
 }
 
 void FramelessWindowConverterMacos::maximizeWindow()
-{
+{  
+    hideForTranslucency();
+    isResizing = true;
+
     // The NSWindow needs to be resizable, otherwise the window will
     // not be possible to zoom back to non-zoomed state.
     const bool wasResizable = window.styleMask & NSWindowStyleMaskResizable;
@@ -103,7 +106,14 @@ void FramelessWindowConverterMacos::maximizeWindow()
         [window.contentView addSubview:closeButton];
         [minimizeButton removeFromSuperview];
         [window.contentView addSubview:minimizeButton];
+
+        [fullScreenButton setFrameOrigin:NSMakePoint(xPos, yPos+40)];
+        [closeButton setFrameOrigin:NSMakePoint(xPos, yPos+0)];
+        [minimizeButton setFrameOrigin:NSMakePoint(xPos, yPos+20)];
     }
+
+    isResizing = false;
+    showForTranslucency();
 }
 
 void FramelessWindowConverterMacos::restoreWindow()
@@ -124,7 +134,9 @@ void FramelessWindowConverterMacos::closeWindow()
 
 void FramelessWindowConverterMacos::toggleFullscreen()
 {
+    isResizing = true;
     [window toggleFullScreen:window];
+    isResizing = false;
 }
 
 void FramelessWindowConverterMacos::hideForTranslucency()
@@ -177,7 +189,7 @@ void FramelessWindowConverterMacos::convertToFrameless()
     if(q_ptr->isUsingTrafficLightsOnMacOS())
     {
         xPos = 10;
-        yPos = 10;
+        yPos = 25;
 
         // Traffic lights
         [[window standardWindowButton:NSWindowCloseButton] setHidden:NO];
@@ -213,9 +225,9 @@ void FramelessWindowConverterMacos::convertToFrameless()
         [minimizeButton setTarget:tlHelper];
         [minimizeButton setAction:@selector(minimizeButtonAction:)];
 
-        [fullScreenButton setFrameOrigin:NSMakePoint(xPos+40, yPos)];
-        [closeButton setFrameOrigin:NSMakePoint(xPos+0, yPos)];
-        [minimizeButton setFrameOrigin:NSMakePoint(xPos+20, yPos)];
+        [fullScreenButton setFrameOrigin:NSMakePoint(xPos, yPos+40)];
+        [closeButton setFrameOrigin:NSMakePoint(xPos, yPos+0)];
+        [minimizeButton setFrameOrigin:NSMakePoint(xPos, yPos+20)];
 
         // Replace _mouseInGroup method in contentView to enable proper highlighting for traffic lights
         SEL swizzledSelector = @selector(_mouseInGroup:);
@@ -240,6 +252,18 @@ void FramelessWindowConverterMacos::convertToFrameless()
     [[NSNotificationCenter defaultCenter]
             addObserverForName:NSWindowDidExitFullScreenNotification object:window queue:nil usingBlock:^(NSNotification *){
         convertToFrameless();
+    }];
+
+    // Exiting fullscreen mode messes up everything, so fix it here
+    [[NSNotificationCenter defaultCenter]
+            addObserverForName:NSWindowDidResizeNotification object:window queue:nil usingBlock:^(NSNotification *){
+        // Catch resizing events not caught by this class directly
+        if(!isResizing)
+        {
+            [fullScreenButton setFrameOrigin:NSMakePoint(xPos, yPos+40)];
+            [closeButton setFrameOrigin:NSMakePoint(xPos, yPos+0)];
+            [minimizeButton setFrameOrigin:NSMakePoint(xPos, yPos+20)];
+        }
     }];
 
     // Control Cursor shape ourselves
@@ -415,7 +439,7 @@ bool FramelessWindowConverterMacos::filterNativeEvent(void *message, long *resul
         if([event clickCount] == 2)
         {
             if(shouldDrag)
-                [window zoom:window];
+                maximizeWindow();
             return false;
         }
 
@@ -474,9 +498,9 @@ bool FramelessWindowConverterMacos::filterNativeEvent(void *message, long *resul
 
             // Every resize macos sets the position of the original buttons to the "preferred" state,
             // so set the position manually here
-            [fullScreenButton setFrameOrigin:NSMakePoint(xPos+40, yPos)];
-            [closeButton setFrameOrigin:NSMakePoint(xPos+0, yPos)];
-            [minimizeButton setFrameOrigin:NSMakePoint(xPos+20, yPos)];
+            [fullScreenButton setFrameOrigin:NSMakePoint(xPos, yPos+40)];
+            [closeButton setFrameOrigin:NSMakePoint(xPos, yPos+0)];
+            [minimizeButton setFrameOrigin:NSMakePoint(xPos, yPos+20)];
 
             [closeButton setHidden:NO];
             [minimizeButton setHidden:NO];
