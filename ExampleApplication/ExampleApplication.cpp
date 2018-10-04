@@ -38,7 +38,7 @@ ExampleApplication::ExampleApplication(QWidget *parent) : QWidget(parent),
     qApp->installEventFilter(this);
 }
 
-QPushButton* ExampleApplication::createOptionSelectionButton(const QString& inText, QWidget* inOptionWidget)
+QPushButton* ExampleApplication::createOptionSelectionButton(const QString& inText, QWidget* inOptionWidget, QLayout* inLayout)
 {
     QPushButton* newOptionSelectionButton = new QPushButton;
     newOptionSelectionButton->setText(inText);
@@ -77,6 +77,7 @@ QPushButton* ExampleApplication::createOptionSelectionButton(const QString& inTe
         }
     });
 
+    inLayout->addWidget(newOptionSelectionButton);
     return newOptionSelectionButton;
 }
 
@@ -102,13 +103,6 @@ void ExampleApplication::createLeftSideWidgets()
     selectionIndicator->setStyleSheet("background-color: #0078d7;");
     selectionIndicator->move(0, 13);
 
-    machineClickerOptionButton = createOptionSelectionButton("Machine Clicker", machineClicker);
-    selectionIndicator->setParent(machineClickerOptionButton);
-    selectionIndicator->show();
-
-    transparencyOptionButton = createOptionSelectionButton("Transparency", transparencyOptionWidget);
-    FramelessOptionButton = createOptionSelectionButton("Frameless window options", framelessOption);
-
     leftScrollArea = new QScrollArea;
     leftScrollArea->setFrameShape(QFrame::NoFrame);
     leftScrollArea->viewport()->setStyleSheet("background-color: rgba(0,0,0,0);"
@@ -123,11 +117,14 @@ void ExampleApplication::createLeftSideWidgets()
 
     QVBoxLayout* optionsLayout = new QVBoxLayout(containerWidget);
     optionsLayout->addSpacing(5);
-    optionsLayout->addWidget(machineClickerOptionButton);
-    optionsLayout->addWidget(transparencyOptionButton);
-    optionsLayout->addWidget(FramelessOptionButton);
-    optionsLayout->setSpacing(0);
     optionsLayout->setContentsMargins(0, 0, 0, 0);
+
+    // Create option buttons
+    selectionIndicator->setParent(createOptionSelectionButton("Machine Clicker", machineClicker, optionsLayout));
+    selectionIndicator->show();
+    createOptionSelectionButton("Transparency", transparencyOptionWidget, optionsLayout);
+    createOptionSelectionButton("Frameless window options", framelessOption, optionsLayout);
+    createOptionSelectionButton("macOS options", macOSOption, optionsLayout);
     optionsLayout->addStretch(1);
 
     QVBoxLayout* leftTitleBar = new QVBoxLayout(leftBackgroundWidget);
@@ -195,10 +192,17 @@ void ExampleApplication::createRightSideWidgets()
     framelessOption = new ToggleOption;
     framelessOption->setDescription("Convert window to a frameless native window");
 
+    macOSOption = new ToggleOption;
+    macOSOption->setDescription("Use original traffic light buttons");
+    connect(macOSOption->getButton(), &QAbstractButton::toggled, this, [this]() {
+            framelessWindowConverter.useTrafficLightsOnMacOS(!macOSOption->getButton()->isChecked());
+    });
+
     rightStackedLayout = new QStackedLayout;
     rightStackedLayout->addWidget(machineClicker);
     rightStackedLayout->addWidget(transparencyOptionWidget);
     rightStackedLayout->addWidget(framelessOption);
+    rightStackedLayout->addWidget(macOSOption);
 
     machineClicker->layout()->setContentsMargins(8, 5, 8, 8);
     rightTitleBar->addLayout(rightStackedLayout);
