@@ -21,8 +21,10 @@ ExampleApplication::ExampleApplication(QWidget *parent) : QWidget(parent),
 {
     qApp->installEventFilter(this);
 
-    createLeftSideWidgets();
+    // First create widgets on the right side
+    // Then create selection widget on the left side
     createRightSideWidgets();
+    createLeftSideWidgets();
 
     // Main Layout left side are options -> right side is content
     QHBoxLayout* TopLevelLayout = new QHBoxLayout(this);
@@ -34,6 +36,48 @@ ExampleApplication::ExampleApplication(QWidget *parent) : QWidget(parent),
     setupFramelessWindow();
 
     qApp->installEventFilter(this);
+}
+
+QPushButton* ExampleApplication::createOptionSelectionButton(const QString& inText, QWidget* inOptionWidget)
+{
+    QPushButton* newOptionSelectionButton = new QPushButton;
+    newOptionSelectionButton->setText(inText);
+    newOptionSelectionButton->setFixedHeight(50);
+    newOptionSelectionButton->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
+    newOptionSelectionButton->setStyleSheet(getOptionButtonStyleSheetString());
+    connect(newOptionSelectionButton, &QPushButton::clicked, [this, inOptionWidget, newOptionSelectionButton] () {
+        rightStackedLayout->setCurrentWidget(inOptionWidget);
+        // Set new window size limits
+        // +16 and +6 for contents margins
+        int minimumWidth = 0;
+        int minimumHeight = 0;
+        if(inOptionWidget->layout())
+        {
+            minimumWidth = inOptionWidget->layout()->minimumSize().width() + 16;
+            minimumHeight = inOptionWidget->layout()->minimumSize().height() + titleBarHeight + 6;
+        }
+        else
+        {
+            minimumWidth = inOptionWidget->minimumWidth() + 16;
+            minimumHeight = inOptionWidget->minimumHeight() + titleBarHeight + 6;
+        }
+        framelessWindowConverter.setMinMaxWindowSizes(minimumWidth,
+                                                      minimumHeight,
+                                                      maximumSize().width(), maximumSize().height());
+        rightBackgroundWidget->setMinimumWidth(minimumWidth);
+        rightBackgroundWidget->setMinimumHeight(minimumHeight);
+        selectionIndicator->setParent(newOptionSelectionButton);
+        selectionIndicator->show();
+
+        // Resize widget to always show option selection widget after clicking an option
+        int minimumWindowWidth = minimumWidth + widthOfLeftBackgroundWidget;
+        if(minimumWindowWidth > windowHandle()->size().width())
+        {
+            resize(minimumWindowWidth+1, windowHandle()->size().height());
+        }
+    });
+
+    return newOptionSelectionButton;
 }
 
 void ExampleApplication::createLeftSideWidgets()
@@ -54,68 +98,16 @@ void ExampleApplication::createLeftSideWidgets()
     windowTitle->setContentsMargins(5,5,0,0);
 
     selectionIndicator = new QWidget;
-    selectionIndicator->setFixedSize(10, 25);
-    selectionIndicator->setStyleSheet("background-color: rgba(100,100,255,255);");
-    selectionIndicator->move(0, 12);
+    selectionIndicator->setFixedSize(10, 24);
+    selectionIndicator->setStyleSheet("background-color: #0078d7;");
+    selectionIndicator->move(0, 13);
 
-
-    machineClickerOptionButton = new QPushButton;
-    machineClickerOptionButton->setText("Machine Clicker");
-    machineClickerOptionButton->setFixedHeight(50);
-    machineClickerOptionButton->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
-    machineClickerOptionButton->setStyleSheet(getOptionButtonStyleSheetString());
-    connect(machineClickerOptionButton, &QPushButton::clicked, [this] () { rightStackedLayout->setCurrentWidget(machineClicker);
-        // Set new window size limits
-        // +16 and +6 for contents margins
-        int minimumWidth = machineClicker->layout()->minimumSize().width() + 16;
-        int minimumHeight = machineClicker->layout()->minimumSize().height() + titleBarHeight + 6;
-        framelessWindowConverter.setMinMaxWindowSizes(minimumWidth,
-                                                      minimumHeight,
-                                                      maximumSize().width(), maximumSize().height());
-        rightBackgroundWidget->setMinimumWidth(minimumWidth);
-        rightBackgroundWidget->setMinimumHeight(minimumHeight);
-        selectionIndicator->setParent(machineClickerOptionButton);
-        selectionIndicator->show();
-    });
+    machineClickerOptionButton = createOptionSelectionButton("Machine Clicker", machineClicker);
     selectionIndicator->setParent(machineClickerOptionButton);
     selectionIndicator->show();
 
-
-    transparencyOptionButton = new QPushButton;
-    transparencyOptionButton->setText("Transparency");
-    transparencyOptionButton->setFixedHeight(50);
-    transparencyOptionButton->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
-    transparencyOptionButton->setStyleSheet(getOptionButtonStyleSheetString());
-    connect(transparencyOptionButton, &QPushButton::clicked, [this] () {
-        rightStackedLayout->setCurrentWidget(transparencyOptionWidget);
-        // Set new window size limits
-        // +16 and +6 for contents margins
-        framelessWindowConverter.setMinMaxWindowSizes(transparencyOptionWidget->layout()->minimumSize().width(),
-                                                      transparencyOptionWidget->layout()->minimumSize().height() + titleBarHeight + 6,
-                                                      maximumSize().width(), maximumSize().height());
-        rightBackgroundWidget->setMinimumWidth(transparencyOptionWidget->layout()->minimumSize().width());
-        rightBackgroundWidget->setMinimumHeight( transparencyOptionWidget->layout()->minimumSize().height() + titleBarHeight + 6);
-        selectionIndicator->setParent(transparencyOptionButton);
-        selectionIndicator->show();
-    });
-
-    FramelessOptionButton = new QPushButton;
-    FramelessOptionButton->setText("Frameless window options");
-    FramelessOptionButton->setFixedHeight(50);
-    FramelessOptionButton->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
-    FramelessOptionButton->setStyleSheet(getOptionButtonStyleSheetString());
-    connect(FramelessOptionButton, &QPushButton::clicked, [this] () {
-        rightStackedLayout->setCurrentWidget(framelessOption);
-        // Set new window size limits
-        // +16 and +6 for contents margins
-        framelessWindowConverter.setMinMaxWindowSizes(framelessOption->minimumWidth(),
-                                                      framelessOption->minimumHeight() + titleBarHeight + 6,
-                                                      maximumSize().width(), maximumSize().height());
-        rightBackgroundWidget->setMinimumWidth(framelessOption->minimumWidth());
-        rightBackgroundWidget->setMinimumHeight(framelessOption->minimumHeight() + titleBarHeight + 6);
-        selectionIndicator->setParent(FramelessOptionButton);
-        selectionIndicator->show();
-    });
+    transparencyOptionButton = createOptionSelectionButton("Transparency", transparencyOptionWidget);
+    FramelessOptionButton = createOptionSelectionButton("Frameless window options", framelessOption);
 
     leftScrollArea = new QScrollArea;
     leftScrollArea->setFrameShape(QFrame::NoFrame);
@@ -126,10 +118,10 @@ void ExampleApplication::createLeftSideWidgets()
     leftScrollArea->setVerticalScrollBar(minimalScrollBar);
 
     QWidget* containerWidget = new QWidget;
-    QVBoxLayout* optionsLayout = new QVBoxLayout(containerWidget);
     leftScrollArea->setWidget(containerWidget);
     leftScrollArea->setWidgetResizable(true);
 
+    QVBoxLayout* optionsLayout = new QVBoxLayout(containerWidget);
     optionsLayout->addSpacing(5);
     optionsLayout->addWidget(machineClickerOptionButton);
     optionsLayout->addWidget(transparencyOptionButton);
@@ -282,7 +274,11 @@ QString ExampleApplication::getOptionButtonStyleSheetString()
     return QString("QPushButton { background-color:none;"
                    "border:none;"
                    "padding:0px;"
-                   "border-top-right-radius: 0px;}"
+                   "border-top-right-radius: 0px;"
+                   "Text-align:left;"
+                   "padding-left: 12px;"
+                   "font-size: 15px;"
+                   "color: white;}"
                    "QPushButton:hover{ background-color: lightgrey; border: none; }"
                    "QPushButton:pressed{ background-color: grey;}");
 }

@@ -32,10 +32,11 @@ private:
 
     // Left side widgets
     void createLeftSideWidgets();
+    class QPushButton* createOptionSelectionButton(const QString& inText, QWidget* inOptionWidget);
     QLabel* windowTitle;
     QWidget* selectionIndicator;
     QWidget* transparencyOptionWidget;
-    class QPushButton* transparencyOptionButton;
+    QPushButton* transparencyOptionButton;
     QPushButton* machineClickerOptionButton;
     QPushButton* FramelessOptionButton;
     class QScrollArea* leftScrollArea;
