@@ -80,6 +80,9 @@ void FramelessWindowConverter::showForTranslucency()
     d_ptr->showForTranslucency();
 }
 
+void FramelessWindowConverter::setBorderWidth(int inBorderWidth) { borderWidth = inBorderWidth; }
+int FramelessWindowConverter::getBorderWidth() { return borderWidth; }
+
 int FramelessWindowConverter::getMinimumWindowWidth() { return minimumWindowWidth; }
 int FramelessWindowConverter::getMinimumWindowHeight() { return minimumWindowHeight; }
 int FramelessWindowConverter::getMaximumWindowWidth() { return maximumWindowWidth; }

@@ -220,7 +220,7 @@ void ExampleApplication::setupFramelessWindow()
     connect(&translucencyBlurEffect, &TranslucentBlurEffect::hideNonQtWidgets, [this]() { framelessWindowConverter.hideForTranslucency(); });
     connect(&translucencyBlurEffect, &TranslucentBlurEffect::showNonQtWidgets, [this]() { framelessWindowConverter.showForTranslucency(); });
 
-    // Set some options
+    // Set some settings
     adjustSize(); // apply layout size (constraints) to window
     rightStackedLayout->currentWidget()->adjustSize();
     framelessWindowConverter.setMinMaxWindowSizes(rightStackedLayout->currentWidget()->size().width() + 16,
@@ -229,6 +229,7 @@ void ExampleApplication::setupFramelessWindow()
     rightBackgroundWidget->setMinimumWidth(rightStackedLayout->currentWidget()->size().width() + 16);
     rightBackgroundWidget->setMinimumHeight( rightStackedLayout->currentWidget()->size().height() + titleBarHeight + 6);
     framelessWindowConverter.useTrafficLightsOnMacOS(true);
+    framelessWindowConverter.setBorderWidth(5);
 
     FWC::FWCPARAMS fwcParams;
     fwcParams.windowHandle = winId();

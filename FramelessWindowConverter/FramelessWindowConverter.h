@@ -38,6 +38,11 @@ public:
     inline std::function<void(void)> getReleaseMouseGrab() { return releaseMouseGrab; }
     void setReleaseMouseGrab(std::function<void(void)> inReleaseMouseGrab);
 
+    // Border Width for resizing (default is 8 pixels)
+    void setBorderWidth(int inBorderWidth);
+    int getBorderWidth();
+
+    // Minimum and maximum window sizes
     int getMinimumWindowWidth();
     int getMinimumWindowHeight();
     int getMaximumWindowWidth();
@@ -50,6 +55,7 @@ public:
 
     void setMinMaxWindowSizes(int inMinWidth, int inMinHeight, int inMaxWidth, int inMaxHeight);
 
+    // Window control
     void hideForTranslucency();
     void showForTranslucency();
     void minimizeWindow();
@@ -58,6 +64,7 @@ public:
     void closeWindow();
     void toggleFullscreen();
 
+    // macOS settings
     void useTrafficLightsOnMacOS(bool inUseTrafficLights);
     bool isUsingTrafficLightsOnMacOS();
 
@@ -66,6 +73,7 @@ private:
     unsigned long long windowHandle;
     std::function<bool(int,int)> shouldPerformWindowDrag;
     std::function<void(void)> releaseMouseGrab;
+    int borderWidth = 8;
     int minimumWindowWidth;
     int minimumWindowHeight;
     int maximumWindowWidth;

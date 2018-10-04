@@ -34,7 +34,6 @@ private:
     xcb_window_t windowHandle;
 
     void changeCursorShape(unsigned int shape);
-    int borderWidth;
     int xiOpCode; // XInput
     unsigned int lastButtonPressTime;   
      bool isSystemOpRunning = false; // resize or move

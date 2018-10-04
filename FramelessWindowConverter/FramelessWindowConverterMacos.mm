@@ -332,7 +332,7 @@ void FramelessWindowConverterMacos::showAppropriateCursor()
     FWCPoint mousePos(static_cast<int>(localPos.x), static_cast<int>(localPos.y));
     FWCRect rect(0, 0, static_cast<int>(window.frame.size.width), static_cast<int>(window.frame.size.height));
 
-    showCursorByHitResult(doBorderHitTest(rect, mousePos, 8));
+    showCursorByHitResult(doBorderHitTest(rect, mousePos, q_ptr->getBorderWidth()));
 }
 
 void FramelessWindowConverterMacos::resizeWindow(FWCFloatingPoint mouseLocationInWindow)
@@ -447,7 +447,7 @@ bool FramelessWindowConverterMacos::filterNativeEvent(void *message, long *resul
         NSRect currentFrame = [window frame];
         FWCRect rect(0, 0, static_cast<int>(window.frame.size.width), static_cast<int>(window.frame.size.height));
 
-        if((currentBHTR = doBorderHitTest(rect, mousePos, 8)) != FWCBorderHitTestResult::CLIENT) // Resize
+        if((currentBHTR = doBorderHitTest(rect, mousePos, q_ptr->getBorderWidth())) != FWCBorderHitTestResult::CLIENT) // Resize
         {
             // Save the difference between the frame border and the current mouse location
             if(currentBHTR == FWCBorderHitTestResult::LEFT || currentBHTR == FWCBorderHitTestResult::BOTTOM_LEFT ||

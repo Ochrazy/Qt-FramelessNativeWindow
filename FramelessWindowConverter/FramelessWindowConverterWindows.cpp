@@ -181,7 +181,7 @@ bool FramelessWindowConverterWindows::filterNativeEvent(void *message, long *res
         // This is also more consistent with the implementation on other platforms (linux, mac).
         break;
 
-        //        switch(doBorderHitTest(getCurrentWindowRect(), getCurrentMousePos(msg->lParam), 8))
+        //        switch(doBorderHitTest(getCurrentWindowRect(), getCurrentMousePos(msg->lParam), q_ptr->getBorderWidth()))
         //        {
         //        case FWCBorderHitTestResult::TOP_LEFT:
         //            *result = HTTOPLEFT;
@@ -226,7 +226,7 @@ bool FramelessWindowConverterWindows::filterNativeEvent(void *message, long *res
             return false;
         }
 
-        if(doBorderHitTest(getCurrentClientRect(), mousePos, 8) == FWCBorderHitTestResult::CLIENT)
+        if(doBorderHitTest(getCurrentClientRect(), mousePos, q_ptr->getBorderWidth()) == FWCBorderHitTestResult::CLIENT)
         {
             ReleaseCapture();
             SendMessage(handle, WM_NCLBUTTONDBLCLK, HTCAPTION, msg->lParam);
@@ -237,7 +237,7 @@ bool FramelessWindowConverterWindows::filterNativeEvent(void *message, long *res
     {
         FWCPoint mousePos(getCurrentMousePos(msg->lParam));
 
-        switch (doBorderHitTest(getCurrentClientRect(), mousePos, 8))
+        switch (doBorderHitTest(getCurrentClientRect(), mousePos, q_ptr->getBorderWidth()))
         {
         case FWCBorderHitTestResult::LEFT:
             ReleaseCapture();
@@ -285,7 +285,7 @@ bool FramelessWindowConverterWindows::filterNativeEvent(void *message, long *res
     }
     case WM_MOUSEMOVE:
     {
-        switch (doBorderHitTest(getCurrentClientRect(), getCurrentMousePos(msg->lParam), 8))
+        switch (doBorderHitTest(getCurrentClientRect(), getCurrentMousePos(msg->lParam), q_ptr->getBorderWidth()))
         {
         case FWCBorderHitTestResult::LEFT:
             SetCursor(LoadCursor(nullptr, getCursorResource(CursorNames::WEST_EAST)));

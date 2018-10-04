@@ -10,7 +10,7 @@
 
 using namespace FWC;
 
-FramelessWindowConverterLinux::FramelessWindowConverterLinux(FramelessWindowConverter* q) : FramelessWindowConverterPrivate(q), borderWidth(8), lastButtonPressTime(0)
+FramelessWindowConverterLinux::FramelessWindowConverterLinux(FramelessWindowConverter* q) : FramelessWindowConverterPrivate(q), lastButtonPressTime(0)
 {
 
 }
@@ -178,7 +178,7 @@ bool FramelessWindowConverterLinux::filterNativeEvent(void *message, long*)
             const int y = fixed1616ToInt(xev->event_y);
             FWCPoint mousePos(x, y);
 
-            switch (doBorderHitTest(getCurrentWindowFrame(), mousePos, borderWidth))
+            switch (doBorderHitTest(getCurrentWindowFrame(), mousePos, q_ptr->getBorderWidth()))
             {
             case FWCBorderHitTestResult::LEFT:
                 changeCursorShape( XC_left_side);
@@ -270,7 +270,7 @@ bool FramelessWindowConverterLinux::filterNativeEvent(void *message, long*)
             //                        event.data.data32[0] = fixed1616ToInt(deviceEvent->root_x);
             //                        event.data.data32[1] = fixed1616ToInt(deviceEvent->root_y);
             //                        // Either one of the different resize events or a Move event
-            //                        event.data.data32[2] = static_cast<int>(doBorderHitTest(getCurrentWindowFrame(), mousePos, borderWidth));
+            //                        event.data.data32[2] = static_cast<int>(doBorderHitTest(getCurrentWindowFrame(), mousePos, q_ptr->getBorderWidth()));
             //                        event.data.data32[3] = XCB_BUTTON_INDEX_1;
             //                        event.data.data32[4] = 0;
 
@@ -281,7 +281,7 @@ bool FramelessWindowConverterLinux::filterNativeEvent(void *message, long*)
             //                        XFlush(display);
 
             // Test mouse cursor position in window and check if the window should be dragged
-            FWCBorderHitTestResult bhResult = doBorderHitTest(getCurrentWindowFrame(), mousePos, borderWidth);
+            FWCBorderHitTestResult bhResult = doBorderHitTest(getCurrentWindowFrame(), mousePos, q_ptr->getBorderWidth());
             if(bhResult == FWCBorderHitTestResult::CLIENT && shouldDrag == false) return false;
 
             // Qt gives a warning of a unhandled client message with xcb events -> use xlib event instead :)
