@@ -29,6 +29,11 @@ void FramelessWindowConverter::convertToWindowWithFrame()
     d_ptr->convertToWindowWithFrame();
 }
 
+bool FramelessWindowConverter::isFrameless()
+{
+    return bIsFramless;
+}
+
 void FramelessWindowConverter::convertWindowToFrameless(const FWCPARAMS& fwcParams)
 {
     convertWindowToFrameless(fwcParams.windowHandle, fwcParams.releaseMouseGrab, fwcParams.shouldPerformWindowDrag);

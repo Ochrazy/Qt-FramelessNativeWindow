@@ -23,6 +23,11 @@ void FramelessWindowConverterLinux::convertToFrameless()
     windowHandle = static_cast<xcb_window_t>(q_ptr->getWindowHandle());
 }
 
+void FramelessWindowConverterLinux::convertToWindowWithFrame()
+{
+    // Do nothing, it just works!
+}
+
 void FramelessWindowConverterLinux::changeCursorShape(unsigned int shape)
 {
     Cursor cursor = XCreateFontCursor(display, shape);

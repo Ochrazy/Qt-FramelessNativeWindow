@@ -21,6 +21,7 @@ class FramelessWindowConverterLinux : public FramelessWindowConverterPrivate
 public:
     FramelessWindowConverterLinux(FramelessWindowConverter* q);
     void convertToFrameless() override;
+    void convertToWindowWithFrame() override;
     bool filterNativeEvent(void *message, long *result) override;
     void minimizeWindow() override;
     void maximizeWindow() override;
