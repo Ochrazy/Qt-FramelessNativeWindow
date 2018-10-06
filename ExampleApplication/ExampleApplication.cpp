@@ -68,15 +68,15 @@ QPushButton* ExampleApplication::createOptionSelectionButton(const QString& inTe
         rightBackgroundWidget->setMinimumHeight(minimumHeight);
         selectionIndicator->setParent(newOptionSelectionButton);
         selectionIndicator->show();
+        update();
 
         // Resize widget to always show option selection widget after clicking an option
         int minimumWindowWidth = minimumWidth + widthOfLeftBackgroundWidget;
         if(minimumWindowWidth > windowHandle()->size().width())
         {
+            adjustSize();
             resize(minimumWindowWidth+1, windowHandle()->size().height());
         }
-
-        update();
     });
 
     inLayout->addWidget(newOptionSelectionButton);
