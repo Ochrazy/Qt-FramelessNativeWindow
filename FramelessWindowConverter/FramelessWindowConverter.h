@@ -70,6 +70,20 @@ public:
     void useTrafficLightsOnMacOS(bool inUseTrafficLights);
     bool isUsingTrafficLightsOnMacOS();
 
+    // Positions are relative to upper left window corner
+    void setPosOfGreenTrafficLightOnMacOS(int inXPos, int inYPos);
+    void setPosOfRedTrafficLightOnMacOS(int inXPos, int inYPos);
+    void setPosOfYellowTrafficLightOnMacOS(int inXPos, int inYPos);
+
+    int getXPosOfGreenTrafficLightOnMacOS();
+    int getYPosOfGreenTrafficLightOnMacOS();
+
+    int getXPosOfRedTrafficLightOnMacOS();
+    int getYPosOfRedTrafficLightOnMacOS();
+
+    int getXPosOfYellowTrafficLightOnMacOS();
+    int getYPosOfYellowTrafficLightOnMacOS();
+
 private:
     class FramelessWindowConverterPrivate* d_ptr;
     unsigned long long windowHandle;
@@ -82,6 +96,11 @@ private:
     int maximumWindowHeight; 
     bool bUseTrafficLights = false;
     bool bIsFramless = false;
+
+    // Default is horizontal
+    int xPosOfGreen = 48, yPosOfGreen = 3;
+    int xPosOfRed = 7, yPosOfRed = 3;
+    int xPosOfYellow = 28, yPosOfYellow = 3;
 };
 
 }

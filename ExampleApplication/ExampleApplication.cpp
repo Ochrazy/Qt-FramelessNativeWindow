@@ -75,6 +75,8 @@ QPushButton* ExampleApplication::createOptionSelectionButton(const QString& inTe
         {
             resize(minimumWindowWidth+1, windowHandle()->size().height());
         }
+
+        update();
     });
 
     inLayout->addWidget(newOptionSelectionButton);
@@ -96,7 +98,7 @@ void ExampleApplication::createLeftSideWidgets()
     windowTitle->setStyleSheet("QLabel { background-color : none; color : white; }");
     windowTitle->setFixedHeight(titleBarHeight);
     windowTitle->setAlignment(Qt::AlignLeft | Qt::AlignTop);
-    windowTitle->setContentsMargins(5,5,0,0);
+    windowTitle->setContentsMargins(5,5,5,5);
 
     selectionIndicator = new QWidget;
     selectionIndicator->setFixedSize(10, 24);
@@ -141,19 +143,28 @@ void ExampleApplication::createTransparencyOptionWidget()
     connect(transparentOption->getButton(), &QAbstractButton::toggled, this, [this](bool checked) {
         if(checked)
         {
-            translucencyBlurEffect.deactivateEffect();
             setAttribute(Qt::WA_TranslucentBackground, false);
             setAttribute(Qt::WA_NoSystemBackground, false);
-            translucentBlurOption->getButton()->setChecked(true);
-            translucentBlurOption->setEnabled(false);
+
+            if(!framelessOption->getButton()->isChecked())
+            {
+                translucencyBlurEffect.deactivateEffect();
+                translucentBlurOption->getButton()->setChecked(true);
+                translucentBlurOption->setEnabled(false);
+            }
+            update();
         }
         else
         {
-            translucencyBlurEffect.reactivateEffect();
             setAttribute(Qt::WA_TranslucentBackground, true);
             setAttribute(Qt::WA_NoSystemBackground, true);
-            translucentBlurOption->getButton()->setChecked(false);
-            translucentBlurOption->setEnabled(true);
+            if(!framelessOption->getButton()->isChecked())
+            {
+                translucencyBlurEffect.reactivateEffect();
+                translucentBlurOption->getButton()->setChecked(false);
+                translucentBlurOption->setEnabled(true);
+            }
+            update();
         }
     });
 
@@ -196,16 +207,17 @@ void ExampleApplication::createRightSideWidgets()
         {
             framelessWindowConverter.convertToWindowWithFrame();
             // Override window flags (do not set FramelessWindowHint)
-            setWindowFlags(Qt::Widget | Qt::WindowSystemMenuHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowMinMaxButtonsHint);
+            setWindowFlags(Qt::Widget | Qt::WindowSystemMenuHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowMinMaxButtonsHint
+                           | Qt::WindowFullscreenButtonHint);
 #ifdef WIN32
             // On Windows Qt::FramelessWindowHint needs to be set for translucency
             setAttribute(Qt::WA_TranslucentBackground, false);
             setAttribute(Qt::WA_NoSystemBackground, false);
+            transparentOption->setEnabled(false);
+#endif
             // This effect would still work but there is no quick way to hide the window anymore
             translucencyBlurEffect.deactivateEffect();
-            transparentOption->setEnabled(false);
             translucentBlurOption->setEnabled(false);
-#endif
             show();
 
             // No need for custom window buttons and title
@@ -218,15 +230,14 @@ void ExampleApplication::createRightSideWidgets()
 #ifdef WIN32
             setAttribute(Qt::WA_TranslucentBackground, true);
             setAttribute(Qt::WA_NoSystemBackground, true);
-            translucencyBlurEffect.reactivateEffect();
             transparentOption->setEnabled(true);
-            translucentBlurOption->setEnabled(false);
 #endif
+            translucentBlurOption->setEnabled(true);
             show();
 
             // Convert window
             framelessWindowConverter.convertWindowToFrameless(fwcParams);
-show();
+            show();
             // Show custom window buttons and title
             windowButtons->show();
             windowTitle->show();
@@ -236,7 +247,22 @@ show();
     macOSOption = new ToggleOption;
     macOSOption->setDescription("Use original traffic light buttons");
     connect(macOSOption->getButton(), &QAbstractButton::toggled, this, [this]() {
-        framelessWindowConverter.useTrafficLightsOnMacOS(!macOSOption->getButton()->isChecked());
+        if(macOSOption->getButton()->isChecked())
+        {
+            framelessWindowConverter.useTrafficLightsOnMacOS(false);
+            windowTitle->setAlignment(Qt::AlignLeft | Qt::AlignTop);
+            windowTitle->setContentsMargins(5,10,0,0);
+            framelessWindowConverter.hideForTranslucency();
+            windowButtons->show();
+        }
+        else
+        {
+            framelessWindowConverter.useTrafficLightsOnMacOS(true);
+            windowTitle->setAlignment(Qt::AlignRight | Qt::AlignTop);
+            windowTitle->setContentsMargins(0,10,10,0);
+            framelessWindowConverter.showForTranslucency();
+            windowButtons->hide();
+        }
     });
 
     rightStackedLayout = new QStackedLayout;
@@ -270,6 +296,17 @@ void ExampleApplication::setupFramelessWindow()
     rightBackgroundWidget->setMinimumWidth(rightStackedLayout->currentWidget()->size().width() + 16);
     rightBackgroundWidget->setMinimumHeight( rightStackedLayout->currentWidget()->size().height() + titleBarHeight + 6);
     framelessWindowConverter.useTrafficLightsOnMacOS(true);
+    framelessWindowConverter.setPosOfGreenTrafficLightOnMacOS(50, 10);
+    framelessWindowConverter.setPosOfRedTrafficLightOnMacOS(10, 10);
+    framelessWindowConverter.setPosOfYellowTrafficLightOnMacOS(30, 10);
+
+#ifdef __APPLE__
+    windowTitle->setAlignment(Qt::AlignRight | Qt::AlignTop);
+    windowButtons->hide();
+#else
+    macOSOption->setEnabled(false);
+#endif
+
     framelessWindowConverter.setBorderWidth(5);
 
     // Set the parameters

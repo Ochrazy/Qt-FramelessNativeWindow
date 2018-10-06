@@ -124,3 +124,30 @@ bool FramelessWindowConverter::isUsingTrafficLightsOnMacOS()
 {
     return bUseTrafficLights;
 }
+
+void FramelessWindowConverter::setPosOfGreenTrafficLightOnMacOS(int inXPos, int inYPos)
+{
+    xPosOfGreen = inXPos;
+    yPosOfGreen = inYPos;
+}
+
+void FramelessWindowConverter::setPosOfRedTrafficLightOnMacOS(int inXPos, int inYPos)
+{
+    xPosOfRed = inXPos;
+    yPosOfRed = inYPos;
+}
+
+void FramelessWindowConverter::setPosOfYellowTrafficLightOnMacOS(int inXPos, int inYPos)
+{
+    xPosOfYellow = inXPos;
+    yPosOfYellow = inYPos;
+}
+
+int FramelessWindowConverter::getXPosOfGreenTrafficLightOnMacOS() { return xPosOfGreen; }
+int FramelessWindowConverter::getYPosOfGreenTrafficLightOnMacOS() { return yPosOfGreen; }
+
+int FramelessWindowConverter::getXPosOfRedTrafficLightOnMacOS() { return xPosOfRed; }
+int FramelessWindowConverter::getYPosOfRedTrafficLightOnMacOS() { return yPosOfRed; }
+
+int FramelessWindowConverter::getXPosOfYellowTrafficLightOnMacOS() { return xPosOfYellow; }
+int FramelessWindowConverter::getYPosOfYellowTrafficLightOnMacOS() { return yPosOfYellow; }

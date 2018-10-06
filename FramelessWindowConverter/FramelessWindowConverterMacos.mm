@@ -10,6 +10,9 @@
 
 using namespace FWC;
 
+static id exitFullscreenObserver;
+static id resizeObserver;
+
 // TrafficLightsHelper objective-c class
 @interface TrafficLightsHelper : NSObject
                                  @property (assign, nonatomic) NSWindow* window;
@@ -107,9 +110,7 @@ void FramelessWindowConverterMacos::maximizeWindow()
         [minimizeButton removeFromSuperview];
         [window.contentView addSubview:minimizeButton];
 
-        [fullScreenButton setFrameOrigin:NSMakePoint(xPos, yPos+40)];
-        [closeButton setFrameOrigin:NSMakePoint(xPos, yPos+0)];
-        [minimizeButton setFrameOrigin:NSMakePoint(xPos, yPos+20)];
+        repositionTrafficLights();
     }
 
     isResizing = false;
@@ -141,12 +142,9 @@ void FramelessWindowConverterMacos::toggleFullscreen()
 
 void FramelessWindowConverterMacos::hideForTranslucency()
 {
-    if(q_ptr->isUsingTrafficLightsOnMacOS())
-    {
-        [fullScreenButton setHidden:YES];
-        [closeButton setHidden:YES];
-        [minimizeButton setHidden:YES];
-    }
+    [fullScreenButton setHidden:YES];
+    [closeButton setHidden:YES];
+    [minimizeButton setHidden:YES];
 }
 
 void FramelessWindowConverterMacos::showForTranslucency()
@@ -157,6 +155,16 @@ void FramelessWindowConverterMacos::showForTranslucency()
         [closeButton setHidden:NO];
         [minimizeButton setHidden:NO];
     }
+}
+
+void FramelessWindowConverterMacos::repositionTrafficLights()
+{
+    [fullScreenButton setFrameOrigin:NSMakePoint(q_ptr->getXPosOfGreenTrafficLightOnMacOS(),
+                                                 q_ptr->getYPosOfGreenTrafficLightOnMacOS())];
+    [closeButton setFrameOrigin:NSMakePoint(q_ptr->getXPosOfRedTrafficLightOnMacOS(),
+                                            q_ptr->getYPosOfRedTrafficLightOnMacOS())];
+    [minimizeButton setFrameOrigin:NSMakePoint(q_ptr->getXPosOfYellowTrafficLightOnMacOS(),
+                                               q_ptr->getYPosOfYellowTrafficLightOnMacOS())];
 }
 
 void FramelessWindowConverterMacos::convertToFrameless()
@@ -188,9 +196,6 @@ void FramelessWindowConverterMacos::convertToFrameless()
 
     if(q_ptr->isUsingTrafficLightsOnMacOS())
     {
-        xPos = 10;
-        yPos = 25;
-
         // Traffic lights
         [[window standardWindowButton:NSWindowCloseButton] setHidden:NO];
         [[window standardWindowButton:NSWindowMiniaturizeButton] setHidden:NO];
@@ -225,9 +230,7 @@ void FramelessWindowConverterMacos::convertToFrameless()
         [minimizeButton setTarget:tlHelper];
         [minimizeButton setAction:@selector(minimizeButtonAction:)];
 
-        [fullScreenButton setFrameOrigin:NSMakePoint(xPos, yPos+40)];
-        [closeButton setFrameOrigin:NSMakePoint(xPos, yPos+0)];
-        [minimizeButton setFrameOrigin:NSMakePoint(xPos, yPos+20)];
+        repositionTrafficLights();
 
         // Replace _mouseInGroup method in contentView to enable proper highlighting for traffic lights
         SEL swizzledSelector = @selector(_mouseInGroup:);
@@ -249,25 +252,60 @@ void FramelessWindowConverterMacos::convertToFrameless()
     }
 
     // Exiting fullscreen mode messes up everything, so fix it here
-    [[NSNotificationCenter defaultCenter]
+    exitFullscreenObserver = [[NSNotificationCenter defaultCenter]
             addObserverForName:NSWindowDidExitFullScreenNotification object:window queue:nil usingBlock:^(NSNotification *){
         convertToFrameless();
     }];
 
     // Exiting fullscreen mode messes up everything, so fix it here
-    [[NSNotificationCenter defaultCenter]
+    resizeObserver = [[NSNotificationCenter defaultCenter]
             addObserverForName:NSWindowDidResizeNotification object:window queue:nil usingBlock:^(NSNotification *){
         // Catch resizing events not caught by this class directly
         if(!isResizing)
         {
-            [fullScreenButton setFrameOrigin:NSMakePoint(xPos, yPos+40)];
-            [closeButton setFrameOrigin:NSMakePoint(xPos, yPos+0)];
-            [minimizeButton setFrameOrigin:NSMakePoint(xPos, yPos+20)];
+            repositionTrafficLights();
         }
     }];
 
     // Control Cursor shape ourselves
     [window disableCursorRects];
+    [window setHasShadow:NO];
+    [window setOpaque:NO];
+    [window setBackgroundColor:[NSColor clearColor]];
+}
+
+void FramelessWindowConverterMacos::convertToWindowWithFrame()
+{
+    // Title Bar invisible
+    window.titleVisibility = NSWindowTitleVisible;
+    window.titlebarAppearsTransparent = NO;
+    window.movable = YES;
+
+    // Reset Style Mask
+    window.styleMask &= ~NSWindowStyleMaskBorderless;
+    window.styleMask |= NSWindowStyleMaskTitled;
+    window.styleMask |= NSWindowStyleMaskClosable;
+    window.styleMask |= NSWindowStyleMaskMiniaturizable;
+    window.styleMask |= NSWindowStyleMaskResizable;
+
+    [window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
+    // Enable Layer backing
+    // Fixes issues with WA_TranslucentBackground and paintEvent.
+    // Repainting the window would not update the translucent pixels correctly.
+    // The Part of the window where the system buttons would be located are updating correctly for some reason
+    // The rest of the window would be more opaque with every repaint.
+    nativeWidgetView.wantsLayer = YES;
+
+    // Traffic lights
+    [[window standardWindowButton:NSWindowCloseButton] setHidden:NO];
+    [[window standardWindowButton:NSWindowMiniaturizeButton] setHidden:NO];
+    [[window standardWindowButton:NSWindowZoomButton] setHidden:NO];
+
+    [[NSNotificationCenter defaultCenter] removeObserver:exitFullscreenObserver];
+    [[NSNotificationCenter defaultCenter] removeObserver:resizeObserver];
+
+    // Control Cursor shape ourselves
+    [window enableCursorRects];
     [window setHasShadow:NO];
     [window setOpaque:NO];
     [window setBackgroundColor:[NSColor clearColor]];
@@ -496,15 +534,16 @@ bool FramelessWindowConverterMacos::filterNativeEvent(void *message, long *resul
             isResizing = !isResizing;
             showCursorByHitResult(FWCBorderHitTestResult::CLIENT);
 
-            // Every resize macos sets the position of the original buttons to the "preferred" state,
-            // so set the position manually here
-            [fullScreenButton setFrameOrigin:NSMakePoint(xPos, yPos+40)];
-            [closeButton setFrameOrigin:NSMakePoint(xPos, yPos+0)];
-            [minimizeButton setFrameOrigin:NSMakePoint(xPos, yPos+20)];
+            if(q_ptr->isUsingTrafficLightsOnMacOS())
+            {
+                // Every resize macos sets the position of the original buttons to the "preferred" state,
+                // so set the position manually here
+                repositionTrafficLights();
 
-            [closeButton setHidden:NO];
-            [minimizeButton setHidden:NO];
-            [fullScreenButton setHidden:NO];
+                [closeButton setHidden:NO];
+                [minimizeButton setHidden:NO];
+                [fullScreenButton setHidden:NO];
+            }
             return false;
         }
         else if(isMoving)

@@ -32,6 +32,7 @@ public:
     void closeWindow() override;
     void toggleFullscreen() override;
     void convertToFrameless() override;
+    void convertToWindowWithFrame() override;
 
     void hideForTranslucency() override;
     void showForTranslucency() override;
@@ -49,10 +50,7 @@ private:
     void showCursorByHitResult(FWCBorderHitTestResult inBorderHitResult);
     void showAppropriateCursor();
     void resizeWindow(FWCFloatingPoint mouseLocationInWindow);
-
-    // ToDo: FWC set positions individually
-    // Traffic ligth position
-    int xPos, yPos;
+    void repositionTrafficLights();
 };
 
 }
