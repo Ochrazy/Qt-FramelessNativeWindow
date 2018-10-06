@@ -15,6 +15,7 @@ public:
     FramelessWindowConverterWindows(FramelessWindowConverter* q);
     bool filterNativeEvent(void *message, long *result) override;
     void convertToFrameless() override;
+    void convertToWindowWithFrame() override;
     void minimizeWindow() override;
     void maximizeWindow() override;
     void restoreWindow() override;

@@ -18,6 +18,7 @@ public:
     void paintEvent(QPaintEvent* ev) override;
 
 private:
+    FWC::FWCPARAMS fwcParams;
     FWC::FramelessWindowConverter framelessWindowConverter;
     TranslucentBlurEffect translucencyBlurEffect;
 

@@ -70,6 +70,11 @@ void FramelessWindowConverterWindows::convertToFrameless()
     set_borderless(true);
 }
 
+void FramelessWindowConverterWindows::convertToWindowWithFrame()
+{
+    set_borderless(false);
+}
+
 void FramelessWindowConverterWindows::minimizeWindow()
 {
     SetWindowLongPtr(handle, GWL_STYLE, GetWindowLongPtrW(handle, GWL_STYLE) | WS_CAPTION);
@@ -128,7 +133,7 @@ bool FramelessWindowConverterWindows::filterNativeEvent(void *message, long *res
     {
     case WM_NCCALCSIZE:
     {
-        if (msg->wParam == TRUE && borderless)
+        if (msg->wParam == TRUE)
         {
             *result = 0;
             return true;
@@ -180,40 +185,40 @@ bool FramelessWindowConverterWindows::filterNativeEvent(void *message, long *res
         // WM_MOUSEMOVE is used to set appropriate cursor.
         // This is also more consistent with the implementation on other platforms (linux, mac).
         break;
-
-        //        switch(doBorderHitTest(getCurrentWindowRect(), getCurrentMousePos(msg->lParam), q_ptr->getBorderWidth()))
-        //        {
-        //        case FWCBorderHitTestResult::TOP_LEFT:
-        //            *result = HTTOPLEFT;
-        //            return true;
-        //        case FWCBorderHitTestResult::TOP:
-        //            *result = HTTOP;
-        //            return true;
-        //        case FWCBorderHitTestResult::TOP_RIGHT:
-        //            *result = HTTOPRIGHT;
-        //            return true;
-        //        case FWCBorderHitTestResult::RIGHT:
-        //            *result = HTRIGHT;
-        //            return true;
-        //        case FWCBorderHitTestResult::BOTTOM_RIGHT:
-        //            *result = HTBOTTOMRIGHT;
-        //            return true;
-        //        case FWCBorderHitTestResult::BOTTOM:
-        //            *result = HTBOTTOM;
-        //            return true;
-        //        case FWCBorderHitTestResult::BOTTOM_LEFT:
-        //            *result = HTBOTTOMLEFT;
-        //            return true;
-        //        case FWCBorderHitTestResult::LEFT:
-        //            *result = HTLEFT;
-        //            return true;
-        //        case FWCBorderHitTestResult::CLIENT:
-        //            *result = HTCAPTION;
-        //            return true;
-        //        case FWCBorderHitTestResult::NONE:
-        //            *result = 0;
-        //            return false;
-        //        }
+//                switch(doBorderHitTest(getCurrentWindowRect(), getCurrentMousePos(msg->lParam), q_ptr->getBorderWidth()))
+//                {
+//                case FWCBorderHitTestResult::TOP_LEFT:
+//                    *result = HTTOPLEFT;
+//                    return true;
+//                case FWCBorderHitTestResult::TOP:
+//                    *result = HTTOP;
+//                    return true;
+//                case FWCBorderHitTestResult::TOP_RIGHT:
+//                    *result = HTTOPRIGHT;
+//                    return true;
+//                case FWCBorderHitTestResult::RIGHT:
+//                    *result = HTRIGHT;
+//                    return true;
+//                case FWCBorderHitTestResult::BOTTOM_RIGHT:
+//                    *result = HTBOTTOMRIGHT;
+//                    return true;
+//                case FWCBorderHitTestResult::BOTTOM:
+//                    *result = HTBOTTOM;
+//                    return true;
+//                case FWCBorderHitTestResult::BOTTOM_LEFT:
+//                    *result = HTBOTTOMLEFT;
+//                    return true;
+//                case FWCBorderHitTestResult::LEFT:
+//                    *result = HTLEFT;
+//                    return true;
+//                case FWCBorderHitTestResult::CLIENT:
+//                    *result = HTCAPTION;
+//                    return true;
+//                case FWCBorderHitTestResult::NONE:
+//                    *result = 0;
+//                    return false;
+//                }
+//                break;
     }
     case WM_LBUTTONDBLCLK:
     {
@@ -372,8 +377,8 @@ bool FramelessWindowConverterWindows::filterNativeEvent(void *message, long *res
 
 // Not using WS_CAPTION in borderless, since it messes with translucent Qt-Windows.
 enum class Style : DWORD {
-    windowed         = WS_OVERLAPPEDWINDOW | WS_THICKFRAME | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WM_CLOSE,
-    aero_borderless  = WS_POPUP | WS_THICKFRAME /*| WS_CAPTION*/ | WS_SYSMENU | WS_MAXIMIZEBOX | WS_MINIMIZEBOX | WM_CLOSE
+    windowed         = WS_OVERLAPPEDWINDOW | WS_THICKFRAME | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX,
+    aero_borderless  = WS_POPUP | WS_THICKFRAME /*| WS_CAPTION*/ | WS_SYSMENU | WS_MAXIMIZEBOX | WS_MINIMIZEBOX
 };
 
 void FramelessWindowConverterWindows::set_borderless(bool enabled)

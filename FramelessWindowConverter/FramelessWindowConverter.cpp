@@ -16,10 +16,17 @@ FramelessWindowConverter::~FramelessWindowConverter()
 
 void FramelessWindowConverter::convertWindowToFrameless(unsigned long long inWindowHandle, std::function<void(void)> inReleaseMouseGrab, std::function<bool(int,int)> inShouldPerformWindowDrag)
 {
+    bIsFramless = true;
     windowHandle = inWindowHandle;
     setShouldPerformWindowDrag(inShouldPerformWindowDrag);
     setReleaseMouseGrab(inReleaseMouseGrab);
     d_ptr->convertToFrameless();
+}
+
+void FramelessWindowConverter::convertToWindowWithFrame()
+{
+    bIsFramless = false;
+    d_ptr->convertToWindowWithFrame();
 }
 
 void FramelessWindowConverter::convertWindowToFrameless(const FWCPARAMS& fwcParams)
@@ -30,7 +37,9 @@ void FramelessWindowConverter::convertWindowToFrameless(const FWCPARAMS& fwcPara
 
 bool FramelessWindowConverter::filterNativeEvents(void *message, long *result)
 {
-    return d_ptr->filterNativeEvent(message, result);
+    if(bIsFramless)
+        return d_ptr->filterNativeEvent(message, result);
+    else return false;
 }
 
 void FramelessWindowConverter::setShouldPerformWindowDrag(std::function<bool(int,int)> inShouldPerformWindowDrag)
@@ -106,7 +115,7 @@ void FramelessWindowConverter::useTrafficLightsOnMacOS(bool inUseTrafficLights)
     bUseTrafficLights = inUseTrafficLights;
 }
 
- bool FramelessWindowConverter::isUsingTrafficLightsOnMacOS()
- {
-     return bUseTrafficLights;
- }
+bool FramelessWindowConverter::isUsingTrafficLightsOnMacOS()
+{
+    return bUseTrafficLights;
+}

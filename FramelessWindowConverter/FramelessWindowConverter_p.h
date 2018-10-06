@@ -72,6 +72,7 @@ public:
     virtual bool filterNativeEvent(void *message, long *result) = 0;
 
     virtual void convertToFrameless() = 0;
+    virtual void convertToWindowWithFrame() = 0;
 
     virtual void hideForTranslucency() {}
     virtual void showForTranslucency() {}

@@ -191,11 +191,52 @@ void ExampleApplication::createRightSideWidgets()
     createTransparencyOptionWidget();
     framelessOption = new ToggleOption;
     framelessOption->setDescription("Convert window to a frameless native window");
+    connect(framelessOption->getButton(), &QAbstractButton::toggled, this, [this]() {
+        if(framelessOption->getButton()->isChecked())
+        {
+            framelessWindowConverter.convertToWindowWithFrame();
+            // Override window flags (do not set FramelessWindowHint)
+            setWindowFlags(Qt::Widget | Qt::WindowSystemMenuHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowMinMaxButtonsHint);
+#ifdef WIN32
+            // On Windows Qt::FramelessWindowHint needs to be set for translucency
+            setAttribute(Qt::WA_TranslucentBackground, false);
+            setAttribute(Qt::WA_NoSystemBackground, false);
+            // This effect would still work but there is no quick way to hide the window anymore
+            translucencyBlurEffect.deactivateEffect();
+            transparentOption->setEnabled(false);
+            translucentBlurOption->setEnabled(false);
+#endif
+            show();
+
+            // No need for custom window buttons and title
+            windowButtons->hide();
+            windowTitle->hide();
+        }
+        else
+        {
+            setWindowFlags(Qt::Widget | Qt::WindowSystemMenuHint | Qt::WindowTitleHint | Qt::FramelessWindowHint);
+#ifdef WIN32
+            setAttribute(Qt::WA_TranslucentBackground, true);
+            setAttribute(Qt::WA_NoSystemBackground, true);
+            translucencyBlurEffect.reactivateEffect();
+            transparentOption->setEnabled(true);
+            translucentBlurOption->setEnabled(false);
+#endif
+            show();
+
+            // Convert window
+            framelessWindowConverter.convertWindowToFrameless(fwcParams);
+show();
+            // Show custom window buttons and title
+            windowButtons->show();
+            windowTitle->show();
+        }
+    });
 
     macOSOption = new ToggleOption;
     macOSOption->setDescription("Use original traffic light buttons");
     connect(macOSOption->getButton(), &QAbstractButton::toggled, this, [this]() {
-            framelessWindowConverter.useTrafficLightsOnMacOS(!macOSOption->getButton()->isChecked());
+        framelessWindowConverter.useTrafficLightsOnMacOS(!macOSOption->getButton()->isChecked());
     });
 
     rightStackedLayout = new QStackedLayout;
@@ -231,7 +272,7 @@ void ExampleApplication::setupFramelessWindow()
     framelessWindowConverter.useTrafficLightsOnMacOS(true);
     framelessWindowConverter.setBorderWidth(5);
 
-    FWC::FWCPARAMS fwcParams;
+    // Set the parameters
     fwcParams.windowHandle = winId();
     fwcParams.releaseMouseGrab = [this]() { windowHandle()->setMouseGrabEnabled(false); };
     fwcParams.shouldPerformWindowDrag =  [this](int mousePosXInWindow, int mousePosYInWindow)
@@ -245,6 +286,7 @@ void ExampleApplication::setupFramelessWindow()
         else return false;
     };
 
+    // Convert window
     framelessWindowConverter.convertWindowToFrameless(fwcParams);
 
     // Connect custom System Buttons

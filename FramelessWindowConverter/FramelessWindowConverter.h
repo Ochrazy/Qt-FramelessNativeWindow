@@ -25,6 +25,7 @@ public:
             [](int, int) { return true; } );
 
     void convertWindowToFrameless(const FWCPARAMS& fwcParams);
+    void convertToWindowWithFrame();
 
     inline unsigned long long getWindowHandle() { return windowHandle; }
 
@@ -79,6 +80,7 @@ private:
     int maximumWindowWidth;
     int maximumWindowHeight; 
     bool bUseTrafficLights = false;
+    bool bIsFramless = false;
 };
 
 }

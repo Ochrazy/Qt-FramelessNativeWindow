@@ -41,6 +41,7 @@ void ToggleButton::paintEvent(QPaintEvent* event)
 
     if(!isEnabled())
         color = Qt::darkGray;
+
     int arcWidth = 2;
     int arcHalfWidth = 1;
     QPen pen(color, arcWidth);
@@ -65,28 +66,31 @@ void ToggleButton::paintEvent(QPaintEvent* event)
     path.closeSubpath();
 
     painter.drawPath(path);
-    if(!isChecked() || isDown()) painter.fillPath(path, color);
-
-    // Draw filled circle
-    color = QColor(Qt::white);
-    if(!mouseHover && isChecked())
+    if(isEnabled())
     {
-        color = QColor("#cccccc");
-    }
-    if(!isEnabled())
-        color = Qt::darkGray;
+        if(!isChecked() || isDown()) painter.fillPath(path, color);
 
-    painter.setPen(color);
-    painter.setBrush(color);
+        // Draw filled circle
+        color = QColor(Qt::white);
+        if(!mouseHover && isChecked())
+        {
+            color = QColor("#cccccc");
+        }
+        if(!isEnabled())
+            color = Qt::darkGray;
 
-    static constexpr float d = 23.f/100.f;
-    if(isChecked())
-    {
-        painter.drawEllipse(29 - static_cast<int>(d*percentAnimationPlayed), 6, 8, 8);
-    }
-    else
-    {
-        painter.drawEllipse(6 + static_cast<int>(d*percentAnimationPlayed), 6, 8, 8);
+        painter.setPen(color);
+        painter.setBrush(color);
+
+        static constexpr float d = 23.f/100.f;
+        if(isChecked())
+        {
+            painter.drawEllipse(29 - static_cast<int>(d*percentAnimationPlayed), 6, 8, 8);
+        }
+        else
+        {
+            painter.drawEllipse(6 + static_cast<int>(d*percentAnimationPlayed), 6, 8, 8);
+        }
     }
 }
 
@@ -141,6 +145,11 @@ bool ToggleButton::event(QEvent* event)
     {
         if(isEnabled())
         {
+            startAnimation();
+        }
+        else if(!isEnabled())
+        {
+            setChecked(true);
             startAnimation();
         }
     }
