@@ -143,15 +143,7 @@ bool ToggleButton::event(QEvent* event)
 {
     if(event->type() == QEvent::EnabledChange)
     {
-        if(isEnabled())
-        {
-            startAnimation();
-        }
-        else if(!isEnabled())
-        {
-            setChecked(true);
-            startAnimation();
-        }
+        startAnimation();
     }
     return QAbstractButton::event(event);
 }

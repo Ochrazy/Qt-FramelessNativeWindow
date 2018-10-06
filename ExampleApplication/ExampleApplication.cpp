@@ -149,7 +149,6 @@ void ExampleApplication::createTransparencyOptionWidget()
             if(!framelessOption->getButton()->isChecked())
             {
                 translucencyBlurEffect.deactivateEffect();
-                translucentBlurOption->getButton()->setChecked(true);
                 translucentBlurOption->setEnabled(false);
             }
             update();
@@ -160,8 +159,6 @@ void ExampleApplication::createTransparencyOptionWidget()
             setAttribute(Qt::WA_NoSystemBackground, true);
             if(!framelessOption->getButton()->isChecked())
             {
-                translucencyBlurEffect.reactivateEffect();
-                translucentBlurOption->getButton()->setChecked(false);
                 translucentBlurOption->setEnabled(true);
             }
             update();
@@ -209,12 +206,12 @@ void ExampleApplication::createRightSideWidgets()
             // Override window flags (do not set FramelessWindowHint)
             setWindowFlags(Qt::Widget | Qt::WindowSystemMenuHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowMinMaxButtonsHint
                            | Qt::WindowFullscreenButtonHint);
-#ifdef WIN32
+
             // On Windows Qt::FramelessWindowHint needs to be set for translucency
+            // Disable all transparency effects on all platforms when not frameless
             setAttribute(Qt::WA_TranslucentBackground, false);
             setAttribute(Qt::WA_NoSystemBackground, false);
             transparentOption->setEnabled(false);
-#endif
             // This effect would still work but there is no quick way to hide the window anymore
             translucencyBlurEffect.deactivateEffect();
             translucentBlurOption->setEnabled(false);
@@ -227,12 +224,13 @@ void ExampleApplication::createRightSideWidgets()
         else
         {
             setWindowFlags(Qt::Widget | Qt::WindowSystemMenuHint | Qt::WindowTitleHint | Qt::FramelessWindowHint);
-#ifdef WIN32
-            setAttribute(Qt::WA_TranslucentBackground, true);
-            setAttribute(Qt::WA_NoSystemBackground, true);
             transparentOption->setEnabled(true);
-#endif
-            translucentBlurOption->setEnabled(true);
+            if(!transparentOption->getButton()->isChecked())
+            {
+                setAttribute(Qt::WA_TranslucentBackground, true);
+                setAttribute(Qt::WA_NoSystemBackground, true);
+                translucentBlurOption->setEnabled(true);
+            }
             show();
 
             // Convert window

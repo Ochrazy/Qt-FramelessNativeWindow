@@ -67,12 +67,12 @@ FramelessWindowConverterWindows::FramelessWindowConverterWindows(FramelessWindow
 void FramelessWindowConverterWindows::convertToFrameless()
 {
     handle = reinterpret_cast<HWND>(q_ptr->getWindowHandle());
-    set_borderless(true);
+    setFrameless(true);
 }
 
 void FramelessWindowConverterWindows::convertToWindowWithFrame()
 {
-    set_borderless(false);
+    setFrameless(false);
 }
 
 void FramelessWindowConverterWindows::minimizeWindow()
@@ -375,21 +375,13 @@ bool FramelessWindowConverterWindows::filterNativeEvent(void *message, long *res
     return false;
 }
 
-// Not using WS_CAPTION in borderless, since it messes with translucent Qt-Windows.
-enum class Style : DWORD {
-    windowed         = WS_OVERLAPPEDWINDOW | WS_THICKFRAME | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX,
-    aero_borderless  = WS_POPUP | WS_THICKFRAME /*| WS_CAPTION*/ | WS_SYSMENU | WS_MAXIMIZEBOX | WS_MINIMIZEBOX
-};
-
-void FramelessWindowConverterWindows::set_borderless(bool enabled)
+void FramelessWindowConverterWindows::setFrameless(bool enabled)
 {
     Style new_style = (enabled) ? Style::aero_borderless : Style::windowed;
     Style old_style = static_cast<Style>(::GetWindowLongPtrW(handle, GWL_STYLE));
 
     if (new_style != old_style)
     {
-        borderless = enabled;
-
         SetWindowLongPtrW(handle, GWL_STYLE, static_cast<LONG>(new_style));
 
         // redraw frame

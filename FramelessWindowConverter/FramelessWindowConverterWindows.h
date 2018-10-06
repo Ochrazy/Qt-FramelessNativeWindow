@@ -26,9 +26,13 @@ private:
     FWCRect getCurrentWindowRect();
     FWCPoint getCurrentMousePos(LPARAM lParam);
     HWND handle;
-    void set_borderless(bool enabled);
-    bool borderless        = true; // is the window currently borderless
-    bool drag = false;
+
+    // Not using WS_CAPTION in borderless, since it messes with translucent Qt-Windows.
+    enum class Style : DWORD {
+        windowed         = WS_OVERLAPPEDWINDOW | WS_THICKFRAME | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX,
+        aero_borderless  = WS_POPUP | WS_THICKFRAME /*| WS_CAPTION*/ | WS_SYSMENU | WS_MAXIMIZEBOX | WS_MINIMIZEBOX
+    };
+    void setFrameless(bool enabled);
     class FramelessWindowConverterPrivate* d_ptr;
 };
 
