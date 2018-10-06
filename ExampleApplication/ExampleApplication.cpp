@@ -160,6 +160,8 @@ void ExampleApplication::createTransparencyOptionWidget()
             if(!framelessOption->getButton()->isChecked())
             {
                 translucentBlurOption->setEnabled(true);
+                if(!translucentBlurOption->getButton()->isChecked())
+                    translucencyBlurEffect.reactivateEffect();
             }
             update();
         }
@@ -230,6 +232,8 @@ void ExampleApplication::createRightSideWidgets()
                 setAttribute(Qt::WA_TranslucentBackground, true);
                 setAttribute(Qt::WA_NoSystemBackground, true);
                 translucentBlurOption->setEnabled(true);
+                if(!translucentBlurOption->getButton()->isChecked())
+                    translucencyBlurEffect.reactivateEffect();
             }
             show();
 
@@ -279,6 +283,8 @@ void ExampleApplication::setupFramelessWindow()
     setWindowFlags(Qt::Widget | Qt::WindowSystemMenuHint/* | Qt::WindowStaysOnTopHint*/ | Qt::WindowTitleHint | Qt::FramelessWindowHint);
     setAttribute(Qt::WA_TranslucentBackground, true);
     setAttribute(Qt::WA_NoSystemBackground, true);
+
+    setWindowTitle("Example Application");
 
     // Only necessary on macOS to hide Traffic Lights when they are used
     // Otherwise empty methods are called and hopefully optimized away
