@@ -9,15 +9,11 @@ class ToggleOption : public QWidget
 public:
     explicit ToggleOption(QWidget *parent = nullptr);
 
-    void setDescription(const QString& inDescription);
-
     class ToggleButton* getButton();
-    class QLabel* getDescriptionLabel();
-    QLabel* getOnOffLabel();
+    class QLabel* getOnOffLabel();
 
 private:
     class ToggleButton* toggleButton;
-    class QLabel* optionDescription;
     QLabel* onOffText;
 };
 

@@ -44,10 +44,14 @@ private:
     WindowButtons* windowButtons;
     MachineClicker* machineClicker;
     void createTransparencyOptionWidget();
-    class ToggleOption* translucentBlurOption;
-    ToggleOption* transparentOption;
-    ToggleOption* framelessOption;
-    ToggleOption* macOSOption;
+    class SettingWidget* translucentBlurOption;
+    class QSlider* windowOpacitySlider;
+    int windowOpacity = 40;
+    QSlider* translucentBlurStrengthSlider;
+    int translucentBlurStrength = 40;
+    class SettingWidget* transparentSetting;
+    SettingWidget* framelessOption;
+    SettingWidget* macOSOption;
     class QStackedLayout* rightStackedLayout;
 
     QString getOptionButtonStyleSheetString();

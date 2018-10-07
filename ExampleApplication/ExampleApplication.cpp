@@ -11,10 +11,12 @@
 #include <QTimer>
 #include <QScrollBar>
 #include <QStyle>
+#include <QSlider>
 #include "MinimalScrollBar.h"
 #include "ToggleButton.h"
 #include "QPropertyAnimation"
 #include "ToggleOption.h"
+#include "SettingWidget.h"
 
 ExampleApplication::ExampleApplication(QWidget *parent) : QWidget(parent),
     framelessWindowConverter(), translucencyBlurEffect(this, this)
@@ -138,15 +140,14 @@ void ExampleApplication::createLeftSideWidgets()
 
 void ExampleApplication::createTransparencyOptionWidget()
 {
-    transparentOption = new ToggleOption;
-    transparentOption->setDescription("Turn all transparency effects on/off");
-    connect(transparentOption->getButton(), &QAbstractButton::toggled, this, [this](bool checked) {
+    transparentSetting = new SettingWidget("Turn all transparency effects on/off", new ToggleOption);
+    connect(reinterpret_cast<ToggleOption*>(transparentSetting->getControl())->getButton(), &QAbstractButton::toggled, this, [this](bool checked) {
         if(checked)
         {
             setAttribute(Qt::WA_TranslucentBackground, false);
             setAttribute(Qt::WA_NoSystemBackground, false);
 
-            if(!framelessOption->getButton()->isChecked())
+            if(!reinterpret_cast<ToggleOption*>(framelessOption->getControl())->getButton()->isChecked())
             {
                 translucencyBlurEffect.deactivateEffect();
                 translucentBlurOption->setEnabled(false);
@@ -157,28 +158,45 @@ void ExampleApplication::createTransparencyOptionWidget()
         {
             setAttribute(Qt::WA_TranslucentBackground, true);
             setAttribute(Qt::WA_NoSystemBackground, true);
-            if(!framelessOption->getButton()->isChecked())
+            if(!reinterpret_cast<ToggleOption*>(framelessOption->getControl())->getButton()->isChecked())
             {
                 translucentBlurOption->setEnabled(true);
-                if(!translucentBlurOption->getButton()->isChecked())
+                if(!reinterpret_cast<ToggleOption*>(translucentBlurOption->getControl())->getButton()->isChecked())
                     translucencyBlurEffect.reactivateEffect();
             }
             update();
         }
     });
 
-    translucentBlurOption = new ToggleOption;
-    translucentBlurOption->setDescription("Turn the translucent blur effect on/off");
-    connect(translucentBlurOption->getButton(), &QAbstractButton::toggled, this, [this]() {
-        if(translucentBlurOption->getButton()->isChecked())
+    windowOpacitySlider = new QSlider(Qt::Horizontal);
+    windowOpacitySlider->setMinimum(0);
+    windowOpacitySlider->setMaximum(100);
+    connect(windowOpacitySlider, &QSlider::valueChanged, this, [this](int value) {
+        windowOpacity = value;
+        update();
+    });
+
+    translucentBlurOption = new SettingWidget("Turn the translucent blur effect on/off", new ToggleOption);
+    connect(reinterpret_cast<ToggleOption*>(translucentBlurOption->getControl())->getButton(), &QAbstractButton::toggled, this, [this]() {
+        if(reinterpret_cast<ToggleOption*>(translucentBlurOption->getControl())->getButton()->isChecked())
             translucencyBlurEffect.deactivateEffect();
         else translucencyBlurEffect.reactivateEffect();
     });
 
+    translucentBlurStrengthSlider = new QSlider(Qt::Horizontal);
+    translucentBlurStrengthSlider->setMinimum(0);
+    translucentBlurStrengthSlider->setMaximum(50);
+    connect(translucentBlurStrengthSlider, &QSlider::valueChanged, this, [this](int value) {
+        translucencyBlurEffect.setBlurStrength(value);
+        update();
+    });
+
     transparencyOptionWidget = new QWidget;
     QVBoxLayout* transparencyOptionLayout = new QVBoxLayout(transparencyOptionWidget);
-    transparencyOptionLayout->addWidget(transparentOption);
+    transparencyOptionLayout->addWidget(transparentSetting);
+    transparencyOptionLayout->addWidget(windowOpacitySlider);
     transparencyOptionLayout->addWidget(translucentBlurOption);
+    transparencyOptionLayout->addWidget(translucentBlurStrengthSlider);
     transparencyOptionLayout->addStretch(1);
 }
 
@@ -199,10 +217,10 @@ void ExampleApplication::createRightSideWidgets()
 
     machineClicker = new MachineClicker;
     createTransparencyOptionWidget();
-    framelessOption = new ToggleOption;
-    framelessOption->setDescription("Convert window to a frameless native window");
-    connect(framelessOption->getButton(), &QAbstractButton::toggled, this, [this]() {
-        if(framelessOption->getButton()->isChecked())
+    framelessOption = new SettingWidget("Convert window to a frameless native window", new ToggleOption);
+   // framelessOption->setDescription("Convert window to a frameless native window");
+    connect(reinterpret_cast<ToggleOption*>(framelessOption->getControl())->getButton(), &QAbstractButton::toggled, this, [this]() {
+        if(reinterpret_cast<ToggleOption*>(framelessOption->getControl())->getButton()->isChecked())
         {
             framelessWindowConverter.convertToWindowWithFrame();
             // Override window flags (do not set FramelessWindowHint)
@@ -213,7 +231,7 @@ void ExampleApplication::createRightSideWidgets()
             // Disable all transparency effects on all platforms when not frameless
             setAttribute(Qt::WA_TranslucentBackground, false);
             setAttribute(Qt::WA_NoSystemBackground, false);
-            transparentOption->setEnabled(false);
+            transparentSetting->setEnabled(false);
             // This effect would still work but there is no quick way to hide the window anymore
             translucencyBlurEffect.deactivateEffect();
             translucentBlurOption->setEnabled(false);
@@ -226,13 +244,13 @@ void ExampleApplication::createRightSideWidgets()
         else
         {
             setWindowFlags(Qt::Widget | Qt::WindowSystemMenuHint | Qt::WindowTitleHint | Qt::FramelessWindowHint);
-            transparentOption->setEnabled(true);
-            if(!transparentOption->getButton()->isChecked())
+            transparentSetting->setEnabled(true);
+           // if(!transparentSetting->getButton()->isChecked())
             {
                 setAttribute(Qt::WA_TranslucentBackground, true);
                 setAttribute(Qt::WA_NoSystemBackground, true);
                 translucentBlurOption->setEnabled(true);
-                if(!translucentBlurOption->getButton()->isChecked())
+                if(!reinterpret_cast<ToggleOption*>(translucentBlurOption->getControl())->getButton()->isChecked())
                     translucencyBlurEffect.reactivateEffect();
             }
             show();
@@ -246,10 +264,9 @@ void ExampleApplication::createRightSideWidgets()
         }
     });
 
-    macOSOption = new ToggleOption;
-    macOSOption->setDescription("Use original traffic light buttons");
-    connect(macOSOption->getButton(), &QAbstractButton::toggled, this, [this]() {
-        if(macOSOption->getButton()->isChecked())
+    macOSOption = new SettingWidget("Use original traffic light buttons", new ToggleOption);
+    connect(reinterpret_cast<ToggleOption*>(macOSOption->getControl())->getButton(), &QAbstractButton::toggled, this, [this]() {
+        if(reinterpret_cast<ToggleOption*>(macOSOption->getControl())->getButton()->isChecked())
         {
             framelessWindowConverter.useTrafficLightsOnMacOS(false);
             windowTitle->setAlignment(Qt::AlignLeft | Qt::AlignTop);
@@ -402,7 +419,7 @@ void ExampleApplication::paintEvent(QPaintEvent* ev)
     QColor color(0,0,0);
 #endif
     color.setAlpha(255);
-    painter.setOpacity(0.4);
+    painter.setOpacity(static_cast<double>(windowOpacity) / 100.0);
     painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
     painter.fillRect(ev->rect(),color);
 }
