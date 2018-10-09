@@ -30,6 +30,7 @@ MachineClicker::MachineClicker(QWidget *parent) : QWidget(parent)
     IntervalSpinBox->setValue(999);
 
     HotkeyEdit = new QKeySequenceEdit;
+    HotkeyEdit->setKeySequence(QKeySequence(Qt::Key_Space));
 
     HotkeyEditLabel = new QLabel;
     HotkeyEditLabel->setText("Start/Stop Hotkey: ");
@@ -42,7 +43,6 @@ MachineClicker::MachineClicker(QWidget *parent) : QWidget(parent)
     GridLayout->addWidget(HotkeyEditLabel, 2, 0);
     GridLayout->addWidget(HotkeyEdit, 2, 1);
     GridLayout->setSizeConstraint(QLayout::SetDefaultConstraint);
-
 
     connect(StartStopButton, SIGNAL (toggled(bool)), this, SLOT (handleStartStopButton(bool)));
     connect(IntervalSpinBox, SIGNAL (valueChanged(int)), this, SLOT (handleTimeSpinBoxChanged(int)));
@@ -59,26 +59,38 @@ MachineClicker::MachineClicker(QWidget *parent) : QWidget(parent)
     connect(this, &MachineClicker::signalStopClicking, clicker, &Clicker::stopClicking);
     connect(this, &MachineClicker::signalSetNewClickRate, clicker, &Clicker::setClickRate);
     timerThread->start();
+
+    qApp->installEventFilter(this);
 }
 
 MachineClicker::~MachineClicker()
 {
 }
 
-void MachineClicker::enterEvent(QEvent *)
+bool MachineClicker::eventFilter(QObject *object, QEvent *event)
 {
-    if(StartStopButton->isChecked())
-    {
-        emit signalStopClicking();
-    }
-}
+    // Only filter window events
+    if(object != window()) return false;
 
-void MachineClicker::leaveEvent(QEvent *)
-{
-    if(StartStopButton->isChecked())
+    switch(event->type())
     {
-        emit signalStartClicking();
+    case QEvent::Enter:
+        if(StartStopButton->isChecked())
+        {
+            emit signalStopClicking();
+        }
+        break;
+    case QEvent::Leave:
+        if(StartStopButton->isChecked())
+        {
+            emit signalStartClicking();
+        }
+        break;
+    default:
+        break;
     }
+
+    return false;
 }
 
 void MachineClicker::editFinished()
@@ -89,9 +101,10 @@ void MachineClicker::editFinished()
 
 void MachineClicker::handleStartStopButton(bool isActive)
 {
+    // Hotkey button switches the start stop button too
     if(isActive)
     {
-        if(frameGeometry().contains(QCursor::pos()) == false)
+        if(window()->frameGeometry().contains(QCursor::pos()) == false)
         {
             emit signalStartClicking();
         }
@@ -109,11 +122,3 @@ void MachineClicker::handleTimeSpinBoxChanged(int TimeInMs)
 {
     emit signalSetNewClickRate(TimeInMs);
 }
-
-void MachineClicker::doClicking()
-{
-    if(frameGeometry().contains(QCursor::pos()) == true) return;
-
-    InputSimulation::SimulateLeftClick();
-}
-

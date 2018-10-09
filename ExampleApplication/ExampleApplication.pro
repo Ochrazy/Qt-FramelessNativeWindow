@@ -20,8 +20,8 @@ SOURCES += main.cpp \
     MinimalScrollBar.cpp \
     ToggleButton.cpp \
     WindowButtons.cpp \
-    ToggleOption.cpp \
-    SettingWidget.cpp
+    SettingWidget.cpp \
+    ControlHLabel.cpp
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -33,5 +33,5 @@ HEADERS += \
     MinimalScrollBar.h \
     ToggleButton.h \
     WindowButtons.h \
-    ToggleOption.h \
-    SettingWidget.h
+    SettingWidget.h \
+    ControlHLabel.h

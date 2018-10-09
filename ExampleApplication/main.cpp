@@ -4,8 +4,9 @@
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-    ExampleApplication optionTab;
-    optionTab.show();
+    ExampleApplication exampleApplication;
+    exampleApplication.show();
+    exampleApplication.resize(exampleApplication.minimumWidth()+50, exampleApplication.minimumHeight()+100);
 
     return a.exec();
 }

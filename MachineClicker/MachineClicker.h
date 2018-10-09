@@ -10,10 +10,6 @@
 #include <QTimer>
 #include <QSpinBox>
 
-namespace Ui {
-class MachineClicker;
-}
-
 class MachineClicker : public QWidget
 {
     Q_OBJECT
@@ -22,8 +18,7 @@ public:
     explicit MachineClicker(QWidget *parent = nullptr);
     ~MachineClicker() override;
 
-    void enterEvent(QEvent *) override;
-    void leaveEvent(QEvent *) override;
+    bool eventFilter(QObject *object, QEvent *event) override;
 
 signals:
     void signalStartClicking();
@@ -32,7 +27,6 @@ signals:
 
 private slots:
     void handleStartStopButton(bool isActive);
-    void doClicking();
     void handleTimeSpinBoxChanged(int i);
     void editFinished();
 

@@ -33,7 +33,7 @@ private:
 
     // Left side widgets
     void createLeftSideWidgets();
-    class QPushButton* createOptionSelectionButton(const QString& inText, QWidget* inOptionWidget, QLayout* inLayout);
+    class QPushButton* createSettingSelectionButton(const QString& inText, QWidget* inOptionWidget, QLayout* inLayout);
     QLabel* windowTitle;
     QWidget* selectionIndicator;
     QWidget* transparencyOptionWidget;
@@ -44,14 +44,14 @@ private:
     WindowButtons* windowButtons;
     MachineClicker* machineClicker;
     void createTransparencyOptionWidget();
-    class SettingWidget* translucentBlurOption;
+    QLabel* opacitySliderLabel;
     class QSlider* windowOpacitySlider;
     int windowOpacity = 40;
     QSlider* translucentBlurStrengthSlider;
-    int translucentBlurStrength = 40;
-    class SettingWidget* transparentSetting;
-    SettingWidget* framelessOption;
-    SettingWidget* macOSOption;
+    class ToggleButton* translucentBlurSwitch;
+    ToggleButton* transparencySwitch;
+    ToggleButton* framelessSwitch;
+    ToggleButton* trafficLightSwitch;
     class QStackedLayout* rightStackedLayout;
 
     QString getOptionButtonStyleSheetString();
