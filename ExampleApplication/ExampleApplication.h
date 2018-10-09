@@ -40,6 +40,7 @@ private:
     class QScrollArea* leftScrollArea;
 
     // Right side widgets
+    class QSpacerItem* rightTitleBarSpacer;
     void createRightSideWidgets();
     WindowButtons* windowButtons;
     MachineClicker* machineClicker;

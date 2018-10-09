@@ -221,6 +221,8 @@ void ExampleApplication::createRightSideWidgets()
     QVBoxLayout* rightTitleBar = new QVBoxLayout(rightBackgroundWidget);
     rightTitleBar->setSpacing(0);
     rightTitleBar->addWidget(windowButtons);
+    rightTitleBarSpacer = new QSpacerItem(0, 0);
+    rightTitleBar->addSpacerItem(rightTitleBarSpacer);
     rightTitleBar->addSpacing(5);
 
     machineClicker = new MachineClicker;
@@ -249,6 +251,7 @@ void ExampleApplication::createRightSideWidgets()
 
             // No need for custom window buttons and title
             windowButtons->hide();
+            rightTitleBarSpacer->changeSize(0, titleBarHeight);
             windowTitle->hide();
         }
         else
@@ -272,7 +275,11 @@ void ExampleApplication::createRightSideWidgets()
             framelessWindowConverter.convertWindowToFrameless(fwcParams);
             show();
             // Show custom window buttons and title
-            windowButtons->show();
+            if(!framelessWindowConverter.isUsingTrafficLightsOnMacOS())
+            {
+                rightTitleBarSpacer->changeSize(0, 0);
+                windowButtons->show();
+            }
             windowTitle->show();
         }
     });
@@ -287,6 +294,7 @@ void ExampleApplication::createRightSideWidgets()
             windowTitle->setAlignment(Qt::AlignLeft | Qt::AlignTop);
             windowTitle->setContentsMargins(5,10,0,0);
             framelessWindowConverter.hideForTranslucency();
+            rightTitleBarSpacer->changeSize(0, 0);
             windowButtons->show();
         }
         else
@@ -295,6 +303,7 @@ void ExampleApplication::createRightSideWidgets()
             windowTitle->setAlignment(Qt::AlignRight | Qt::AlignTop);
             windowTitle->setContentsMargins(0,10,10,0);
             framelessWindowConverter.showForTranslucency();
+            rightTitleBarSpacer->changeSize(0, titleBarHeight);
             windowButtons->hide();
         }
     });
@@ -339,6 +348,7 @@ void ExampleApplication::setupFramelessWindow()
 #ifdef __APPLE__
     windowTitle->setAlignment(Qt::AlignRight | Qt::AlignTop);
     windowButtons->hide();
+    rightTitleBarSpacer->changeSize(0, titleBarHeight);
 #else
     trafficLightSwitch->setEnabled(false);
 #endif
