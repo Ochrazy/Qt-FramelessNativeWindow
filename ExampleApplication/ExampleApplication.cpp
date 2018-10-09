@@ -1,6 +1,5 @@
 #include "ExampleApplication.h"
 #include <QPushButton>
-#include <QLayout>
 #include <QLabel>
 #include <QApplication>
 #include <QResizeEvent>
@@ -8,9 +7,6 @@
 #include <QWindow>
 #include <QStackedLayout>
 #include <QScrollArea>
-#include <QTimer>
-#include <QScrollBar>
-#include <QStyle>
 #include <QSlider>
 #include "MinimalScrollBar.h"
 #include "ToggleButton.h"
@@ -42,12 +38,21 @@ ExampleApplication::ExampleApplication(QWidget *parent) : QWidget(parent),
 
 QPushButton* ExampleApplication::createSettingSelectionButton(const QString& inText, QWidget* inOptionWidget, QLayout* inLayout)
 {
-    QPushButton* newOptionSelectionButton = new QPushButton;
-    newOptionSelectionButton->setText(inText);
-    newOptionSelectionButton->setFixedHeight(50);
-    newOptionSelectionButton->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
-    newOptionSelectionButton->setStyleSheet(getOptionButtonStyleSheetString());
-    connect(newOptionSelectionButton, &QPushButton::clicked, [this, inOptionWidget, newOptionSelectionButton] () {
+    QPushButton* newSettingSelectionButton = new QPushButton;
+    newSettingSelectionButton->setText(inText);
+    newSettingSelectionButton->setFixedHeight(50);
+    newSettingSelectionButton->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
+    newSettingSelectionButton->setStyleSheet("QPushButton { background-color:none;"
+                                            "border:none;"
+                                            "padding:0px;"
+                                            "border-top-right-radius: 0px;"
+                                            "Text-align:left;"
+                                            "padding-left: 12px;"
+                                            "font-size: 15px;"
+                                            "color: white;}"
+                                            "QPushButton:hover{ background-color: lightgrey; border: none; }"
+                                            "QPushButton:pressed{ background-color: grey;}");
+    connect(newSettingSelectionButton, &QPushButton::clicked, [this, inOptionWidget, newSettingSelectionButton] () {
         rightStackedLayout->setCurrentWidget(inOptionWidget);
         // Set new window size limits
         // +16 and +6 for contents margins
@@ -68,7 +73,7 @@ QPushButton* ExampleApplication::createSettingSelectionButton(const QString& inT
                                                       maximumSize().width(), maximumSize().height());
         rightBackgroundWidget->setMinimumWidth(minimumWidth);
         rightBackgroundWidget->setMinimumHeight(minimumHeight);
-        selectionIndicator->setParent(newOptionSelectionButton);
+        selectionIndicator->setParent(newSettingSelectionButton);
         selectionIndicator->show();
         update();
 
@@ -80,8 +85,8 @@ QPushButton* ExampleApplication::createSettingSelectionButton(const QString& inT
         }
     });
 
-    inLayout->addWidget(newOptionSelectionButton);
-    return newOptionSelectionButton;
+    inLayout->addWidget(newSettingSelectionButton);
+    return newSettingSelectionButton;
 }
 
 void ExampleApplication::createLeftSideWidgets()
@@ -106,7 +111,7 @@ void ExampleApplication::createLeftSideWidgets()
     selectionIndicator->setStyleSheet("background-color: #0078d7;");
     selectionIndicator->move(0, 13);
 
-    leftScrollArea = new QScrollArea;
+    QScrollArea* leftScrollArea = new QScrollArea;
     leftScrollArea->setFrameShape(QFrame::NoFrame);
     leftScrollArea->viewport()->setStyleSheet("background-color: rgba(0,0,0,0);"
                                               "margin: 0px 4px 0px 0px;");
@@ -118,26 +123,29 @@ void ExampleApplication::createLeftSideWidgets()
     leftScrollArea->setWidget(containerWidget);
     leftScrollArea->setWidgetResizable(true);
 
-    QVBoxLayout* optionsLayout = new QVBoxLayout(containerWidget);
-    optionsLayout->addSpacing(5);
-    optionsLayout->setContentsMargins(0, 0, 0, 0);
-
-    // Create option buttons
-    selectionIndicator->setParent(createSettingSelectionButton("Machine Clicker", machineClicker, optionsLayout));
-    selectionIndicator->show();
-    createSettingSelectionButton("Transparency", transparencyOptionWidget, optionsLayout);
-    createSettingSelectionButton("Frameless window", framelessSwitch->parentWidget()->parentWidget(), optionsLayout);
-    createSettingSelectionButton("MacOS", trafficLightSwitch->parentWidget()->parentWidget(), optionsLayout);
-    optionsLayout->addStretch(1);
+    settingSelectionLayout = new QVBoxLayout(containerWidget);
+    settingSelectionLayout->addSpacing(5);
+    settingSelectionLayout->setContentsMargins(0, 0, 0, 0);
 
     QVBoxLayout* leftTitleBar = new QVBoxLayout(leftBackgroundWidget);
     leftTitleBar->setSpacing(0);
     leftTitleBar->addWidget(windowTitle);
     leftTitleBar->addWidget(leftScrollArea); // content
     leftTitleBar->setContentsMargins(0, 0, 0, 0);
+
+    // Create selection buttons
+    createSettingSelectionButton("Machine Clicker", machineClicker, settingSelectionLayout);
+    createSettingSelectionButton("Transparency", transparencySettingWidget, settingSelectionLayout);
+    createSettingSelectionButton("Frameless window", framelessSettingWidget, settingSelectionLayout);
+    createSettingSelectionButton("MacOS", macOSSettingWidget, settingSelectionLayout);
+    settingSelectionLayout->addStretch(1);
+
+    // Set selection to first
+    selectionIndicator->setParent(rightStackedLayout->currentWidget());
+    selectionIndicator->show();
 }
 
-void ExampleApplication::createTransparencyOptionWidget()
+QWidget* ExampleApplication::createTransparencySettingWidget()
 {
     transparencySwitch = new ToggleButton;
     ControlHLabel* transparencyControl = new ControlHLabel(transparencySwitch);
@@ -165,7 +173,7 @@ void ExampleApplication::createTransparencyOptionWidget()
         }
     });
 
-    windowOpacitySlider = new QSlider(Qt::Horizontal);
+    QSlider* windowOpacitySlider = new QSlider(Qt::Horizontal);
     windowOpacitySlider->setMinimum(0);
     windowOpacitySlider->setMaximum(100);
     windowOpacitySlider->setFixedWidth(220);
@@ -187,7 +195,7 @@ void ExampleApplication::createTransparencyOptionWidget()
         else translucencyBlurEffect.reactivateEffect();
     });
 
-    translucentBlurStrengthSlider = new QSlider(Qt::Horizontal);
+    QSlider* translucentBlurStrengthSlider = new QSlider(Qt::Horizontal);
     translucentBlurStrengthSlider->setMinimum(0);
     translucentBlurStrengthSlider->setMaximum(40);
     translucentBlurStrengthSlider->setFixedWidth(220);
@@ -200,13 +208,15 @@ void ExampleApplication::createTransparencyOptionWidget()
     translucentBlurStrengthSlider->setValue(translucencyBlurEffect.getBlurStrength());
     SettingWidget* blurSliderSetting = new SettingWidget("Translucent blur strength", blurSliderControl);
 
-    transparencyOptionWidget = new QWidget;
-    QVBoxLayout* transparencyOptionLayout = new QVBoxLayout(transparencyOptionWidget);
+    QWidget* transparencySettingWidget = new QWidget;
+    QVBoxLayout* transparencyOptionLayout = new QVBoxLayout(transparencySettingWidget);
     transparencyOptionLayout->addWidget(transparentSetting);
     transparencyOptionLayout->addWidget(opacitySetting);
     transparencyOptionLayout->addWidget(translucentBlurSetting);
     transparencyOptionLayout->addWidget(blurSliderSetting);
     transparencyOptionLayout->addStretch(1);
+
+    return transparencySettingWidget;
 }
 
 void ExampleApplication::createRightSideWidgets()
@@ -224,11 +234,11 @@ void ExampleApplication::createRightSideWidgets()
     rightTitleBar->addSpacing(5);
 
     machineClicker = new MachineClicker;
-    createTransparencyOptionWidget();
+    transparencySettingWidget = dynamic_cast<SettingWidget*>(createTransparencySettingWidget());
 
     framelessSwitch = new ToggleButton;
     ControlHLabel* framelessControl = new ControlHLabel(framelessSwitch);
-    SettingWidget* framelessSetting = new SettingWidget("Convert window to a frameless native window", framelessControl);
+    framelessSettingWidget = new SettingWidget("Convert window to a frameless native window", framelessControl);
     connect(framelessSwitch, &QAbstractButton::toggled, this, [this](bool checked) {
         if(checked)
         {
@@ -279,7 +289,7 @@ void ExampleApplication::createRightSideWidgets()
 
     trafficLightSwitch = new ToggleButton;
     ControlHLabel* trafficLightControl = new ControlHLabel(trafficLightSwitch);
-    SettingWidget* macOSSetting = new SettingWidget("Use original traffic light buttons", trafficLightControl);
+    macOSSettingWidget = new SettingWidget("Use original traffic light buttons", trafficLightControl);
     connect(trafficLightSwitch, &QAbstractButton::toggled, this, [this]() {
         if(trafficLightSwitch->isChecked())
         {
@@ -301,9 +311,9 @@ void ExampleApplication::createRightSideWidgets()
 
     rightStackedLayout = new QStackedLayout;
     rightStackedLayout->addWidget(machineClicker);
-    rightStackedLayout->addWidget(transparencyOptionWidget);
-    rightStackedLayout->addWidget(framelessSetting);
-    rightStackedLayout->addWidget(macOSSetting);
+    rightStackedLayout->addWidget(transparencySettingWidget);
+    rightStackedLayout->addWidget(framelessSettingWidget);
+    rightStackedLayout->addWidget(macOSSettingWidget);
 
     machineClicker->layout()->setContentsMargins(8, 5, 8, 8);
     rightTitleBar->addLayout(rightStackedLayout);
@@ -389,20 +399,6 @@ void ExampleApplication::setupFramelessWindow()
     });
 }
 
-QString ExampleApplication::getOptionButtonStyleSheetString()
-{
-    return QString("QPushButton { background-color:none;"
-                   "border:none;"
-                   "padding:0px;"
-                   "border-top-right-radius: 0px;"
-                   "Text-align:left;"
-                   "padding-left: 12px;"
-                   "font-size: 15px;"
-                   "color: white;}"
-                   "QPushButton:hover{ background-color: lightgrey; border: none; }"
-                   "QPushButton:pressed{ background-color: grey;}");
-}
-
 bool ExampleApplication::nativeEvent(const QByteArray& eventType, void* message, long* result)
 {
     Q_UNUSED(eventType)
@@ -411,6 +407,7 @@ bool ExampleApplication::nativeEvent(const QByteArray& eventType, void* message,
 
 void ExampleApplication::resizeEvent(QResizeEvent* ev)
 {
+    // Show/Hide left background widget if the window size is too small
     if(leftBackgroundWidget && ev->oldSize().width() != -1)
     {
         if(!leftBackgroundWidget->isHidden() && ev->size().width() <= (framelessWindowConverter.getMinimumWindowWidth() + widthOfLeftBackgroundWidget))
