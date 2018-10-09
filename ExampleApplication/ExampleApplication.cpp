@@ -340,12 +340,13 @@ void ExampleApplication::setupFramelessWindow()
                                                   maximumSize().width(), maximumSize().height());
     rightBackgroundWidget->setMinimumWidth(rightStackedLayout->currentWidget()->size().width() + 16);
     rightBackgroundWidget->setMinimumHeight(rightStackedLayout->currentWidget()->size().height() + titleBarHeight + 6);
-    framelessWindowConverter.useTrafficLightsOnMacOS(true);
+
     framelessWindowConverter.setPosOfGreenTrafficLightOnMacOS(50, 10);
     framelessWindowConverter.setPosOfRedTrafficLightOnMacOS(10, 10);
     framelessWindowConverter.setPosOfYellowTrafficLightOnMacOS(30, 10);
 
 #ifdef __APPLE__
+    framelessWindowConverter.useTrafficLightsOnMacOS(true);
     windowTitle->setAlignment(Qt::AlignRight | Qt::AlignTop);
     windowButtons->hide();
     rightTitleBarSpacer->changeSize(0, titleBarHeight);
