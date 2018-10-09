@@ -134,18 +134,18 @@ void ExampleApplication::createLeftSideWidgets()
     leftTitleBar->setContentsMargins(0, 0, 0, 0);
 
     // Create selection buttons
-    createSettingSelectionButton("Machine Clicker", machineClicker, settingSelectionLayout);
-    createSettingSelectionButton("Transparency", transparencySettingWidget, settingSelectionLayout);
+    QWidget* selectionButtonMC = createSettingSelectionButton("Machine Clicker", machineClicker, settingSelectionLayout);
+    createSettingSelectionButton("Transparency", transparencyWidget, settingSelectionLayout);
     createSettingSelectionButton("Frameless window", framelessSettingWidget, settingSelectionLayout);
     createSettingSelectionButton("MacOS", macOSSettingWidget, settingSelectionLayout);
     settingSelectionLayout->addStretch(1);
 
     // Set selection to first
-    selectionIndicator->setParent(rightStackedLayout->currentWidget());
+    selectionIndicator->setParent(selectionButtonMC);
     selectionIndicator->show();
 }
 
-QWidget* ExampleApplication::createTransparencySettingWidget()
+QWidget* ExampleApplication::createTransparencyWidget()
 {
     transparencySwitch = new ToggleButton;
     ControlHLabel* transparencyControl = new ControlHLabel(transparencySwitch);
@@ -208,15 +208,15 @@ QWidget* ExampleApplication::createTransparencySettingWidget()
     translucentBlurStrengthSlider->setValue(translucencyBlurEffect.getBlurStrength());
     SettingWidget* blurSliderSetting = new SettingWidget("Translucent blur strength", blurSliderControl);
 
-    QWidget* transparencySettingWidget = new QWidget;
-    QVBoxLayout* transparencyOptionLayout = new QVBoxLayout(transparencySettingWidget);
+    transparencyWidget = new QWidget;
+    QVBoxLayout* transparencyOptionLayout = new QVBoxLayout(transparencyWidget);
     transparencyOptionLayout->addWidget(transparentSetting);
     transparencyOptionLayout->addWidget(opacitySetting);
     transparencyOptionLayout->addWidget(translucentBlurSetting);
     transparencyOptionLayout->addWidget(blurSliderSetting);
     transparencyOptionLayout->addStretch(1);
 
-    return transparencySettingWidget;
+    return transparencyWidget;
 }
 
 void ExampleApplication::createRightSideWidgets()
@@ -236,9 +236,9 @@ void ExampleApplication::createRightSideWidgets()
     rightTitleBar->addSpacing(5);
 
     machineClicker = new MachineClicker;
-    transparencySettingWidget = dynamic_cast<SettingWidget*>(createTransparencySettingWidget());
+    transparencyWidget = createTransparencyWidget();
 
-    framelessSwitch = new ToggleButton;
+    ToggleButton* framelessSwitch = new ToggleButton;
     ControlHLabel* framelessControl = new ControlHLabel(framelessSwitch);
     framelessSettingWidget = new SettingWidget("Convert window to a frameless native window", framelessControl);
     connect(framelessSwitch, &QAbstractButton::toggled, this, [this](bool checked) {
@@ -273,7 +273,6 @@ void ExampleApplication::createRightSideWidgets()
             {
                 setAttribute(Qt::WA_TranslucentBackground, true);
                 setAttribute(Qt::WA_NoSystemBackground, true);
-
                 translucentBlurSwitch->setEnabled(true);
 
                 if(!translucentBlurSwitch->isChecked())
@@ -294,10 +293,10 @@ void ExampleApplication::createRightSideWidgets()
         }
     });
 
-    trafficLightSwitch = new ToggleButton;
+    ToggleButton* trafficLightSwitch = new ToggleButton;
     ControlHLabel* trafficLightControl = new ControlHLabel(trafficLightSwitch);
     macOSSettingWidget = new SettingWidget("Use original traffic light buttons", trafficLightControl);
-    connect(trafficLightSwitch, &QAbstractButton::toggled, this, [this]() {
+    connect(trafficLightSwitch, &QAbstractButton::toggled, this, [this, trafficLightSwitch]() {
         if(trafficLightSwitch->isChecked())
         {
             framelessWindowConverter.useTrafficLightsOnMacOS(false);
@@ -320,7 +319,7 @@ void ExampleApplication::createRightSideWidgets()
 
     rightStackedLayout = new QStackedLayout;
     rightStackedLayout->addWidget(machineClicker);
-    rightStackedLayout->addWidget(transparencySettingWidget);
+    rightStackedLayout->addWidget(transparencyWidget);
     rightStackedLayout->addWidget(framelessSettingWidget);
     rightStackedLayout->addWidget(macOSSettingWidget);
 
@@ -361,7 +360,7 @@ void ExampleApplication::setupFramelessWindow()
     windowButtons->hide();
     rightTitleBarSpacer->changeSize(0, titleBarHeight);
 #else
-    trafficLightSwitch->setEnabled(false);
+    macOSSettingWidget->setEnabled(false);
 #endif
 
     framelessWindowConverter.setBorderWidth(5);

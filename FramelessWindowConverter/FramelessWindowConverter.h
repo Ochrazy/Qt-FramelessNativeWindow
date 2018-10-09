@@ -26,7 +26,7 @@ public:
 
     void convertWindowToFrameless(const FWCPARAMS& fwcParams);
     void convertToWindowWithFrame();
-    bool isFrameless();
+    bool getIsFrameless();
 
     inline unsigned long long getWindowHandle() { return windowHandle; }
 

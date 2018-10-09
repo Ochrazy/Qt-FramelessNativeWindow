@@ -176,7 +176,6 @@ void FramelessWindowConverterMacos::convertToFrameless()
     window.titleVisibility = NSWindowTitleHidden;
     window.titlebarAppearsTransparent = YES;
     window.movable = NO; // Custom Move and Resize
-    //[wind setMovableByWindowBackground:YES];
 
     // Reset Style Mask
     window.styleMask &= ~NSWindowStyleMaskBorderless;
@@ -254,7 +253,8 @@ void FramelessWindowConverterMacos::convertToFrameless()
     // Exiting fullscreen mode messes up everything, so fix it here
     exitFullscreenObserver = [[NSNotificationCenter defaultCenter]
             addObserverForName:NSWindowDidExitFullScreenNotification object:window queue:nil usingBlock:^(NSNotification *){
-        convertToFrameless();
+        if(q_ptr->getIsFrameless())
+            convertToFrameless();
     }];
 
     // Exiting fullscreen mode messes up everything, so fix it here
@@ -262,9 +262,7 @@ void FramelessWindowConverterMacos::convertToFrameless()
             addObserverForName:NSWindowDidResizeNotification object:window queue:nil usingBlock:^(NSNotification *){
         // Catch resizing events not caught by this class directly
         if(!isResizing)
-        {
             repositionTrafficLights();
-        }
     }];
 
     // Control Cursor shape ourselves
@@ -473,6 +471,16 @@ bool FramelessWindowConverterMacos::filterNativeEvent(void *message, long *resul
         // Only this widget is used for dragging.
         bool shouldDrag = q_ptr->getShouldPerformWindowDrag()(mousePos.x, mousePos.y);
 
+        if(shouldDrag && q_ptr->isUsingTrafficLightsOnMacOS())
+        {
+            // Determine if Mouse Cursor is inside of traffic light area
+            bool isInside = NSPointInRect(localPos, NSMakeRect(closeButton.frame.origin.x, closeButton.frame.origin.y,
+                                                               (fullScreenButton.frame.origin.x + fullScreenButton.frame.size.width) - closeButton.frame.origin.x,
+                                                               (fullScreenButton.frame.origin.y + fullScreenButton.frame.size.height) - closeButton.frame.origin.y));
+             if(isInside)
+                shouldDrag = false;
+        }
+
         // Double Click
         if([event clickCount] == 2)
         {
@@ -481,9 +489,9 @@ bool FramelessWindowConverterMacos::filterNativeEvent(void *message, long *resul
             return false;
         }
 
-        NSPoint globalMousePos = [NSEvent mouseLocation];
-        NSRect currentFrame = [window frame];
         FWCRect rect(0, 0, static_cast<int>(window.frame.size.width), static_cast<int>(window.frame.size.height));
+        int frameWidth = rect.right() - rect.left();
+        int frameHeight = rect.bottom() - rect.top();
 
         if((currentBHTR = doBorderHitTest(rect, mousePos, q_ptr->getBorderWidth())) != FWCBorderHitTestResult::CLIENT) // Resize
         {
@@ -491,23 +499,23 @@ bool FramelessWindowConverterMacos::filterNativeEvent(void *message, long *resul
             if(currentBHTR == FWCBorderHitTestResult::LEFT || currentBHTR == FWCBorderHitTestResult::BOTTOM_LEFT ||
                     currentBHTR == FWCBorderHitTestResult::BOTTOM)
             {
-                startDiffCursorFrameLocs.x = globalMousePos.x - currentFrame.origin.x;
-                startDiffCursorFrameLocs.y = globalMousePos.y - currentFrame.origin.y;
+                startDiffCursorFrameLocs.x = mousePos.x;
+                startDiffCursorFrameLocs.y = frameHeight - mousePos.y;
             }
             else if(currentBHTR == FWCBorderHitTestResult::TOP_LEFT)
             {
-                startDiffCursorFrameLocs.x = globalMousePos.x - currentFrame.origin.x;
-                startDiffCursorFrameLocs.y = currentFrame.size.height - (globalMousePos.y - currentFrame.origin.y);
+                startDiffCursorFrameLocs.x = mousePos.x;
+                startDiffCursorFrameLocs.y = mousePos.y;
             }
             else if(currentBHTR == FWCBorderHitTestResult::RIGHT || currentBHTR == FWCBorderHitTestResult::BOTTOM_RIGHT)
             {
-                startDiffCursorFrameLocs.x = currentFrame.size.width - (globalMousePos.x - currentFrame.origin.x);
-                startDiffCursorFrameLocs.y = globalMousePos.y - currentFrame.origin.y;
+                startDiffCursorFrameLocs.x = frameWidth - mousePos.x;
+                startDiffCursorFrameLocs.y = frameHeight - mousePos.y;
             }
             else //if(currentBHTR == FWCBorderHitTestResult::TOP || currentBHTR == FWCBorderHitTestResult::TOP_RIGHT)
             {
-                startDiffCursorFrameLocs.x = currentFrame.size.width - (globalMousePos.x - currentFrame.origin.x);
-                startDiffCursorFrameLocs.y = currentFrame.size.height - (globalMousePos.y - currentFrame.origin.y);
+                startDiffCursorFrameLocs.x = frameWidth - mousePos.x;
+                startDiffCursorFrameLocs.y = mousePos.y;
             }
 
             isResizing = true;
@@ -520,8 +528,8 @@ bool FramelessWindowConverterMacos::filterNativeEvent(void *message, long *resul
         }
         else if(shouldDrag) // Move
         {
-            startDiffCursorFrameLocs.x = globalMousePos.x - currentFrame.origin.x;
-            startDiffCursorFrameLocs.y = globalMousePos.y - currentFrame.origin.y;
+            startDiffCursorFrameLocs.x = mousePos.x;
+            startDiffCursorFrameLocs.y = frameHeight - mousePos.y;
             isMoving = true;
             return false;
         }

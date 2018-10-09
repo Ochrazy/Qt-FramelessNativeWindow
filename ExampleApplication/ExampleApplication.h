@@ -43,16 +43,14 @@ private:
     void createRightSideWidgets();
     WindowButtons* windowButtons;
     MachineClicker* machineClicker;
-    QWidget* createTransparencySettingWidget();
+    QWidget* createTransparencyWidget();
     int windowOpacity = 40;
-    class SettingWidget* transparencySettingWidget;
-    SettingWidget* macOSSettingWidget;
+    QWidget* transparencyWidget;
+    class SettingWidget* macOSSettingWidget;
     SettingWidget* framelessSettingWidget;
 
     class ToggleButton* translucentBlurSwitch;
     ToggleButton* transparencySwitch;
-    ToggleButton* framelessSwitch;
-    ToggleButton* trafficLightSwitch;
     class QStackedLayout* rightStackedLayout;
 };
 

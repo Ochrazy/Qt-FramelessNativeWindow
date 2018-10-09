@@ -29,7 +29,7 @@ void FramelessWindowConverter::convertToWindowWithFrame()
     d_ptr->convertToWindowWithFrame();
 }
 
-bool FramelessWindowConverter::isFrameless()
+bool FramelessWindowConverter::getIsFrameless()
 {
     return bIsFramless;
 }
