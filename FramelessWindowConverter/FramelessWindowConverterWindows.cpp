@@ -187,40 +187,40 @@ bool FramelessWindowConverterWindows::filterNativeEvent(void *message, long *res
         // WM_MOUSEMOVE is used to set appropriate cursor.
         // This is also more consistent with the implementation on other platforms (linux, mac).
         break;
-//                switch(doBorderHitTest(getCurrentWindowRect(), getCurrentMousePos(msg->lParam), q_ptr->getBorderWidth()))
-//                {
-//                case FWCBorderHitTestResult::TOP_LEFT:
-//                    *result = HTTOPLEFT;
-//                    return true;
-//                case FWCBorderHitTestResult::TOP:
-//                    *result = HTTOP;
-//                    return true;
-//                case FWCBorderHitTestResult::TOP_RIGHT:
-//                    *result = HTTOPRIGHT;
-//                    return true;
-//                case FWCBorderHitTestResult::RIGHT:
-//                    *result = HTRIGHT;
-//                    return true;
-//                case FWCBorderHitTestResult::BOTTOM_RIGHT:
-//                    *result = HTBOTTOMRIGHT;
-//                    return true;
-//                case FWCBorderHitTestResult::BOTTOM:
-//                    *result = HTBOTTOM;
-//                    return true;
-//                case FWCBorderHitTestResult::BOTTOM_LEFT:
-//                    *result = HTBOTTOMLEFT;
-//                    return true;
-//                case FWCBorderHitTestResult::LEFT:
-//                    *result = HTLEFT;
-//                    return true;
-//                case FWCBorderHitTestResult::CLIENT:
-//                    *result = HTCAPTION;
-//                    return true;
-//                case FWCBorderHitTestResult::NONE:
-//                    *result = 0;
-//                    return false;
-//                }
-//                break;
+        //                switch(doBorderHitTest(getCurrentWindowRect(), getCurrentMousePos(msg->lParam), q_ptr->getBorderWidth()))
+        //                {
+        //                case FWCBorderHitTestResult::TOP_LEFT:
+        //                    *result = HTTOPLEFT;
+        //                    return true;
+        //                case FWCBorderHitTestResult::TOP:
+        //                    *result = HTTOP;
+        //                    return true;
+        //                case FWCBorderHitTestResult::TOP_RIGHT:
+        //                    *result = HTTOPRIGHT;
+        //                    return true;
+        //                case FWCBorderHitTestResult::RIGHT:
+        //                    *result = HTRIGHT;
+        //                    return true;
+        //                case FWCBorderHitTestResult::BOTTOM_RIGHT:
+        //                    *result = HTBOTTOMRIGHT;
+        //                    return true;
+        //                case FWCBorderHitTestResult::BOTTOM:
+        //                    *result = HTBOTTOM;
+        //                    return true;
+        //                case FWCBorderHitTestResult::BOTTOM_LEFT:
+        //                    *result = HTBOTTOMLEFT;
+        //                    return true;
+        //                case FWCBorderHitTestResult::LEFT:
+        //                    *result = HTLEFT;
+        //                    return true;
+        //                case FWCBorderHitTestResult::CLIENT:
+        //                    *result = HTCAPTION;
+        //                    return true;
+        //                case FWCBorderHitTestResult::NONE:
+        //                    *result = 0;
+        //                    return false;
+        //                }
+        //                break;
     }
     case WM_LBUTTONDBLCLK:
     {
@@ -386,9 +386,12 @@ void FramelessWindowConverterWindows::setFrameless(bool enabled)
     {
         SetWindowLongPtrW(handle, GWL_STYLE, static_cast<LONG>(new_style));
 
-        // Support for shadow
-        const MARGINS shadow = { 1, 1, 1, 1 };
-        DwmExtendFrameIntoClientArea(handle, &shadow);
+        if(q_ptr->getHasShadow())
+        {
+            // Support for shadow
+            const MARGINS shadow = { 1, 1, 1, 1 };
+            DwmExtendFrameIntoClientArea(handle, &shadow);
+        }
 
         // redraw frame
         SetWindowPos(handle, nullptr, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE);
