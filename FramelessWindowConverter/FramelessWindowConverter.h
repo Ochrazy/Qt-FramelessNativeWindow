@@ -66,6 +66,9 @@ public:
     void closeWindow();
     void toggleFullscreen();
 
+    void setEnableShadow(bool inEnableShadow);
+    bool getHasShadow();
+
     // macOS settings
     void useTrafficLightsOnMacOS(bool inUseTrafficLights);
     bool isUsingTrafficLightsOnMacOS();
@@ -96,6 +99,7 @@ private:
     int maximumWindowHeight; 
     bool bUseTrafficLights = false;
     bool bIsFramless = false;
+    bool bHasShadow = false;
 
     // Default is horizontal
     int xPosOfGreen = 48, yPosOfGreen = 3;

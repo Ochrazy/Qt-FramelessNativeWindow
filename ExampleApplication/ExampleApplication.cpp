@@ -266,7 +266,8 @@ void ExampleApplication::createRightSideWidgets()
         }
         else
         {
-            setWindowFlags(Qt::Widget | Qt::WindowSystemMenuHint | Qt::WindowTitleHint | Qt::FramelessWindowHint);
+            // NoDropShadowWindowHint is needed to get proper shadow...
+            setWindowFlags(Qt::Widget | Qt::WindowSystemMenuHint | Qt::WindowTitleHint | Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint);
             transparencySwitch->setEnabled(true);
 
             if(!transparencySwitch->isChecked())
@@ -330,7 +331,7 @@ void ExampleApplication::createRightSideWidgets()
 
 void ExampleApplication::setupFramelessWindow()
 {
-    setWindowFlags(Qt::Widget | Qt::WindowSystemMenuHint/* | Qt::WindowStaysOnTopHint*/ | Qt::WindowTitleHint | Qt::FramelessWindowHint);
+    setWindowFlags(Qt::Widget | Qt::WindowSystemMenuHint | Qt::WindowTitleHint | Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint);
     setAttribute(Qt::WA_TranslucentBackground, true);
     setAttribute(Qt::WA_NoSystemBackground, true);
 
@@ -340,6 +341,8 @@ void ExampleApplication::setupFramelessWindow()
     // Otherwise empty methods are called and hopefully optimized away
     connect(&translucencyBlurEffect, &TranslucentBlurEffect::hideNonQtWidgets, [this]() { framelessWindowConverter.hideForTranslucency(); });
     connect(&translucencyBlurEffect, &TranslucentBlurEffect::showNonQtWidgets, [this]() { framelessWindowConverter.showForTranslucency(); });
+
+    framelessWindowConverter.setEnableShadow(false);
 
     // Set some settings
     adjustSize(); // apply layout size (constraints) to window
@@ -357,6 +360,7 @@ void ExampleApplication::setupFramelessWindow()
 #ifdef __APPLE__
     framelessWindowConverter.useTrafficLightsOnMacOS(true);
     windowTitle->setAlignment(Qt::AlignRight | Qt::AlignTop);
+    windowTitle->setContentsMargins(0,10,10,0);
     windowButtons->hide();
     rightTitleBarSpacer->changeSize(0, titleBarHeight);
 #else

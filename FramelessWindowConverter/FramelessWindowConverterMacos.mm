@@ -22,6 +22,7 @@ static id resizeObserver;
 - (void) minimizeButtonAction:(id)sender;
 - (void) closeButtonAction:(id)sender;
 - (void) zoomButtonAction:(id)sender;
+- (void) fakeResizeAction:(id)sender;
 @end
 
 @implementation TrafficLightsHelper
@@ -72,13 +73,28 @@ static bool isMouseInGroup = false;
     }
 }
 
+- (void) fakeResizeAction:(id)sender
+{
+    (void)sender;
+    NSRect noFrame = self.window.frame;
+    noFrame.size.width += 1;
+    [self.window setFrame:noFrame display:YES];
+    noFrame.size.width -= 1;
+    [self.window setFrame:noFrame display:YES];
+}
+
 @end
+static TrafficLightsHelper* tlHelper;
 // END of TrafficLightsHelper objective-c class
 
 
 FramelessWindowConverterMacos::FramelessWindowConverterMacos(FramelessWindowConverter* q) : FramelessWindowConverterPrivate(q)
 {
-
+    nativeWidgetView = nil;
+    window = nil;
+    fullScreenButton = nil;
+    closeButton = nil;
+    minimizeButton = nil;
 }
 
 void FramelessWindowConverterMacos::minimizeWindow()
@@ -142,18 +158,18 @@ void FramelessWindowConverterMacos::toggleFullscreen()
 
 void FramelessWindowConverterMacos::hideForTranslucency()
 {
-    [fullScreenButton setHidden:YES];
-    [closeButton setHidden:YES];
-    [minimizeButton setHidden:YES];
+    if(fullScreenButton) [fullScreenButton setHidden:YES];
+    if(closeButton) [closeButton setHidden:YES];
+    if(minimizeButton) [minimizeButton setHidden:YES];
 }
 
 void FramelessWindowConverterMacos::showForTranslucency()
 {
     if(q_ptr->isUsingTrafficLightsOnMacOS())
     {
-        [fullScreenButton setHidden:NO];
-        [closeButton setHidden:NO];
-        [minimizeButton setHidden:NO];
+        if(fullScreenButton) [fullScreenButton setHidden:NO];
+        if(closeButton) [closeButton setHidden:NO];
+        if(minimizeButton) [minimizeButton setHidden:NO];
     }
 }
 
@@ -200,7 +216,7 @@ void FramelessWindowConverterMacos::convertToFrameless()
         [[window standardWindowButton:NSWindowMiniaturizeButton] setHidden:NO];
         [[window standardWindowButton:NSWindowZoomButton] setHidden:NO];
 
-        TrafficLightsHelper* tlHelper = [[TrafficLightsHelper alloc] initWithFWCMAndWindow:this :window];
+        tlHelper = [[TrafficLightsHelper alloc] initWithFWCMAndWindow:this :window];
 
         fullScreenButton = [window standardWindowButton:NSWindowZoomButton];
         [fullScreenButton.superview willRemoveSubview:fullScreenButton];
@@ -267,13 +283,25 @@ void FramelessWindowConverterMacos::convertToFrameless()
 
     // Control Cursor shape ourselves
     [window disableCursorRects];
-    [window setHasShadow:NO];
+    if(q_ptr->getHasShadow())
+        [window setHasShadow:YES];
+    else [window setHasShadow:NO];
     [window setOpaque:NO];
     [window setBackgroundColor:[NSColor clearColor]];
+
+    // Do a fake resize to update drop shadow of window
+    [NSTimer scheduledTimerWithTimeInterval:0.5
+        target:tlHelper
+        selector:@selector(fakeResizeAction:)
+        userInfo:nil
+        repeats:NO];
 }
 
 void FramelessWindowConverterMacos::convertToWindowWithFrame()
 {
+    nativeWidgetView = reinterpret_cast<NSView *>(q_ptr->getWindowHandle());
+    window = [nativeWidgetView window];
+
     // Title Bar invisible
     window.titleVisibility = NSWindowTitleVisible;
     window.titlebarAppearsTransparent = NO;
@@ -304,7 +332,9 @@ void FramelessWindowConverterMacos::convertToWindowWithFrame()
 
     // Control Cursor shape ourselves
     [window enableCursorRects];
-    [window setHasShadow:NO];
+    if(q_ptr->getHasShadow())
+        [window setHasShadow:YES];
+    else [window setHasShadow:NO];
     [window setOpaque:NO];
     [window setBackgroundColor:[NSColor clearColor]];
 }

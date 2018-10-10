@@ -94,6 +94,16 @@ void FramelessWindowConverter::showForTranslucency()
     d_ptr->showForTranslucency();
 }
 
+void FramelessWindowConverter::setEnableShadow(bool inEnableShadow)
+{
+    bHasShadow = inEnableShadow;
+}
+
+bool FramelessWindowConverter::getHasShadow()
+{
+    return bHasShadow;
+}
+
 void FramelessWindowConverter::setBorderWidth(int inBorderWidth) { borderWidth = inBorderWidth; }
 int FramelessWindowConverter::getBorderWidth() { return borderWidth; }
 
