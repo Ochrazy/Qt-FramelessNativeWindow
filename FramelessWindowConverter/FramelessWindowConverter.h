@@ -66,6 +66,7 @@ public:
     void closeWindow();
     void toggleFullscreen();
 
+    // Only works on macOS and Windows
     void setEnableShadow(bool inEnableShadow);
     bool getHasShadow();
 
