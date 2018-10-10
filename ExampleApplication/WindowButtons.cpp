@@ -29,7 +29,7 @@ WindowButtons::WindowButtons(int inTitleBarHeight, QWidget *parent) : QWidget(pa
     hBoxLayout->addWidget(MinimizeButton);
     hBoxLayout->addWidget(MaximizeButton);
     hBoxLayout->addWidget(CloseButton);
-    hBoxLayout->setContentsMargins(0,0,0,0);
+    hBoxLayout->setContentsMargins(1,1,1,1);
 
     qApp->installEventFilter(this);
 }

@@ -29,5 +29,3 @@ HEADERS += \
     $$PWD/SystemWideHotkey/SystemWideHotkey.h \
     $$PWD/Clicker.h \
     $$PWD/MachineClicker.h
-
-RESOURCES += $$PWD/../FramelessWindowImages.qrc

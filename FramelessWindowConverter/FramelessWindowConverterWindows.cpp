@@ -3,6 +3,8 @@
 #include "FramelessWindowConverterWindows.h"
 #include "FramelessWindowConverter.h"
 #include <windowsx.h>
+#include <dwmapi.h>
+#pragma comment(lib, "dwmapi.lib")
 
 #include <qdebug.h>
 
@@ -383,6 +385,10 @@ void FramelessWindowConverterWindows::setFrameless(bool enabled)
     if (new_style != old_style)
     {
         SetWindowLongPtrW(handle, GWL_STYLE, static_cast<LONG>(new_style));
+
+        // Support for shadow
+        const MARGINS shadow = { 1, 1, 1, 1 };
+        DwmExtendFrameIntoClientArea(handle, &shadow);
 
         // redraw frame
         SetWindowPos(handle, nullptr, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE);

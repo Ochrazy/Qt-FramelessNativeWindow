@@ -35,3 +35,5 @@ HEADERS += \
     WindowButtons.h \
     SettingWidget.h \
     ControlHLabel.h
+
+RESOURCES += $$PWD/../FramelessWindowImages.qrc
