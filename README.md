@@ -9,9 +9,10 @@ The native OS features supported are:
 - Resizable
 - Draggable
 - Minimize animation
-- Aero shake (Windows 10 only)
-- Aero snap (Windows 10 only)
-- Window snapping (Unix/Linux)
+- Aero shake (Windows only)
+- Aero snap (Windows only)
+- Window snapping (Unix/Linux only)
+- Window drop shadow (To work on Windows and Linux *WA_TranslucentBackground* has to be false)
 
 On macOS there is optional support for the original traffic light buttons. This is the only way i know to support split view on macOS. The traffic lights can also be individually positioned wherever you want. 
 
