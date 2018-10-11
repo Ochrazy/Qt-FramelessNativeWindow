@@ -43,15 +43,15 @@ QPushButton* ExampleApplication::createSettingSelectionButton(const QString& inT
     newSettingSelectionButton->setFixedHeight(50);
     newSettingSelectionButton->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
     newSettingSelectionButton->setStyleSheet("QPushButton { background-color:none;"
-                                            "border:none;"
-                                            "padding:0px;"
-                                            "border-top-right-radius: 0px;"
-                                            "Text-align:left;"
-                                            "padding-left: 12px;"
-                                            "font-size: 15px;"
-                                            "color: white;}"
-                                            "QPushButton:hover{ background-color: lightgrey; border: none; }"
-                                            "QPushButton:pressed{ background-color: grey;}");
+                                             "border:none;"
+                                             "padding:0px;"
+                                             "border-top-right-radius: 0px;"
+                                             "Text-align:left;"
+                                             "padding-left: 12px;"
+                                             "font-size: 15px;"
+                                             "color: white;}"
+                                             "QPushButton:hover{ background-color: lightgrey; border: none; }"
+                                             "QPushButton:pressed{ background-color: grey;}");
     connect(newSettingSelectionButton, &QPushButton::clicked, [this, inOptionWidget, newSettingSelectionButton] () {
         rightStackedLayout->setCurrentWidget(inOptionWidget);
         // Set new window size limits
@@ -137,6 +137,7 @@ void ExampleApplication::createLeftSideWidgets()
     QWidget* selectionButtonMC = createSettingSelectionButton("Machine Clicker", machineClicker, settingSelectionLayout);
     createSettingSelectionButton("Transparency", transparencyWidget, settingSelectionLayout);
     createSettingSelectionButton("Frameless window", framelessSettingWidget, settingSelectionLayout);
+    createSettingSelectionButton("Fullscreen", fullscreenSettingWidget, settingSelectionLayout);
     createSettingSelectionButton("MacOS", macOSSettingWidget, settingSelectionLayout);
     settingSelectionLayout->addStretch(1);
 
@@ -235,9 +236,11 @@ void ExampleApplication::createRightSideWidgets()
     rightTitleBar->addSpacerItem(rightTitleBarSpacer);
     rightTitleBar->addSpacing(5);
 
+    // Create MachineClicker widget
     machineClicker = new MachineClicker;
     transparencyWidget = createTransparencyWidget();
 
+    // Create frameless setting widget
     ToggleButton* framelessSwitch = new ToggleButton;
     ControlHLabel* framelessControl = new ControlHLabel(framelessSwitch);
     framelessSettingWidget = new SettingWidget("Convert window to a frameless native window", framelessControl);
@@ -263,6 +266,9 @@ void ExampleApplication::createRightSideWidgets()
             windowButtons->hide();
             rightTitleBarSpacer->changeSize(0, titleBarHeight);
             windowTitle->hide();
+
+            // This would just maximize the window -> disable it
+            fullscreenSwitch->setEnabled(false);
         }
         else
         {
@@ -291,9 +297,12 @@ void ExampleApplication::createRightSideWidgets()
                 windowButtons->show();
             }
             windowTitle->show();
+
+            fullscreenSwitch->setEnabled(true);
         }
     });
 
+    // Create macOS setting widget
     ToggleButton* trafficLightSwitch = new ToggleButton;
     ControlHLabel* trafficLightControl = new ControlHLabel(trafficLightSwitch);
     macOSSettingWidget = new SettingWidget("Use original traffic light buttons", trafficLightControl);
@@ -318,10 +327,19 @@ void ExampleApplication::createRightSideWidgets()
         }
     });
 
+    // Create fullscreen setting widget
+    fullscreenSwitch = new ToggleButton;
+    fullscreenSwitch->toggle();
+    fullscreenSettingWidget = new SettingWidget("Toggle frameless fullscreen window", new ControlHLabel(fullscreenSwitch));
+    connect(fullscreenSwitch, &QAbstractButton::toggled, this, [this]() {
+        framelessWindowConverter.toggleFullscreen();
+    });
+
     rightStackedLayout = new QStackedLayout;
     rightStackedLayout->addWidget(machineClicker);
     rightStackedLayout->addWidget(transparencyWidget);
     rightStackedLayout->addWidget(framelessSettingWidget);
+    rightStackedLayout->addWidget(fullscreenSettingWidget);
     rightStackedLayout->addWidget(macOSSettingWidget);
 
     machineClicker->layout()->setContentsMargins(8, 5, 8, 8);
@@ -406,12 +424,34 @@ void ExampleApplication::setupFramelessWindow()
 #endif
         {
             if(window()->isMaximized())
+            {
+                fullscreenSwitch->setChecked(true);
                 framelessWindowConverter.restoreWindow();
+            }
             else
                 framelessWindowConverter.maximizeWindow();
         }
     });
 }
+
+ bool ExampleApplication::event(QEvent* event)
+ {
+     switch(event->type())
+     {
+     case QEvent::WindowStateChange:
+     {
+         // When user drags title bar check fullscreen switch
+         QWindowStateChangeEvent* stateEvent = static_cast<QWindowStateChangeEvent*>(event);
+         if (!(windowState() & Qt::WindowMaximized) && (stateEvent->oldState() & Qt::WindowMaximized))
+             fullscreenSwitch->setChecked(true);
+         break;
+     }
+     default:
+         break;
+     }
+
+     return QWidget::event(event);
+ }
 
 bool ExampleApplication::nativeEvent(const QByteArray& eventType, void* message, long* result)
 {

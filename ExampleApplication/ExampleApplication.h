@@ -14,6 +14,7 @@ public:
     explicit ExampleApplication(QWidget *parent = nullptr);
 
     bool nativeEvent(const QByteArray& eventType, void* message, long* result) override;
+    bool event(QEvent* event) override;
     void resizeEvent(QResizeEvent* ev) override;
     void paintEvent(QPaintEvent* ev) override;
 
@@ -48,9 +49,11 @@ private:
     QWidget* transparencyWidget;
     class SettingWidget* macOSSettingWidget;
     SettingWidget* framelessSettingWidget;
+    SettingWidget* fullscreenSettingWidget;
 
     class ToggleButton* translucentBlurSwitch;
     ToggleButton* transparencySwitch;
+    ToggleButton* fullscreenSwitch;
     class QStackedLayout* rightStackedLayout;
 };
 

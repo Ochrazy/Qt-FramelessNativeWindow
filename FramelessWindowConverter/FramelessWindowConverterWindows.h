@@ -20,6 +20,7 @@ public:
     void maximizeWindow() override;
     void restoreWindow() override;
     void closeWindow() override;
+    void toggleFullscreen() override;
 
 private:
     FWCRect getCurrentClientRect();

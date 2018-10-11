@@ -203,7 +203,7 @@ bool TranslucentBlurEffect::eventFilter(QObject* object, QEvent* event)
                 if(!takingScreen)
                 {
                     takingScreen = true;
-                    QTimer::singleShot(100, this, [this](){
+                    QTimer::singleShot(200, this, [this](){
                         bTakeScreenshot = true;
                         noDrawBackground = false;
                         widgetToAddEffect->repaint();

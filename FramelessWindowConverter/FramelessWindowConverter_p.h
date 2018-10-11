@@ -80,11 +80,12 @@ public:
     virtual void maximizeWindow() = 0;
     virtual void closeWindow() = 0;
     virtual void restoreWindow() = 0;
-    virtual void toggleFullscreen() {} // currently not used in Windows and Linux
+    virtual void toggleFullscreen() = 0;
 
 protected:
     FramelessWindowConverter* q_ptr;
     virtual FWCBorderHitTestResult doBorderHitTest(FWCRect inWindowRect, FWCPoint inMousePosition, int inBorderWidth);
+    bool bFullscreen = false;
 };
 
 }

@@ -27,6 +27,7 @@ public:
     void maximizeWindow() override;
     void restoreWindow() override;
     void closeWindow() override;
+    void toggleFullscreen() override;
 
 private:
     xcb_connection_t *connection;

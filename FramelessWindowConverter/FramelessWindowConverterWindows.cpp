@@ -98,6 +98,19 @@ void FramelessWindowConverterWindows::closeWindow()
     SendMessage(handle, WM_CLOSE, 0, 0);
 }
 
+void FramelessWindowConverterWindows::toggleFullscreen()
+{
+    bFullscreen = !bFullscreen;
+    if(bFullscreen)
+    {
+        // When the window is already maximized restore it and go fullscreen immediatly after
+        // Otherwise it will not go fullscreen
+        ShowWindow(handle, SW_RESTORE);
+        ShowWindow(handle, SW_MAXIMIZE);
+    }
+    else ShowWindow(handle, SW_RESTORE);
+}
+
 FWCRect FramelessWindowConverterWindows::getCurrentClientRect()
 {
     RECT WINRect;
@@ -329,7 +342,7 @@ bool FramelessWindowConverterWindows::filterNativeEvent(void *message, long *res
         MINMAXINFO* minMaxInfo = reinterpret_cast<MINMAXINFO*>(msg->lParam);
 
         // Get Monitor Info
-        auto monitor = ::MonitorFromWindow(handle, MONITOR_DEFAULTTONULL);
+        auto monitor = ::MonitorFromWindow(handle, MONITOR_DEFAULTTONEAREST);
         MONITORINFO monitor_info{};
         monitor_info.cbSize = sizeof(monitor_info);
         GetMonitorInfoW(monitor, &monitor_info);
@@ -337,8 +350,17 @@ bool FramelessWindowConverterWindows::filterNativeEvent(void *message, long *res
         // Set position and size of maximized window
         minMaxInfo->ptMaxPosition.x = 0;
         minMaxInfo->ptMaxPosition.y = 0;
-        minMaxInfo->ptMaxSize.x = monitor_info.rcWork.right - monitor_info.rcWork.left;
-        minMaxInfo->ptMaxSize.y = monitor_info.rcWork.bottom - monitor_info.rcWork.top;
+
+        if(bFullscreen)
+        {
+            minMaxInfo->ptMaxSize.x = monitor_info.rcMonitor.right - monitor_info.rcMonitor.left;
+            minMaxInfo->ptMaxSize.y = monitor_info.rcMonitor.bottom - monitor_info.rcMonitor.top;
+        }
+        else
+        {
+            minMaxInfo->ptMaxSize.x = monitor_info.rcWork.right - monitor_info.rcWork.left;
+            minMaxInfo->ptMaxSize.y = monitor_info.rcWork.bottom - monitor_info.rcWork.top;
+        }
 
         // Set limits of the size of the window
         bool bMinMaxInfo = false;

@@ -128,6 +128,11 @@ void FramelessWindowConverterLinux::closeWindow()
     xcb_flush(connection);
 }
 
+void FramelessWindowConverterWindows::toggleFullscreen()
+{
+
+}
+
 bool isXIEvent(xcb_generic_event_t *event, int opCode)
 {
     xcb_ge_event_t *e = reinterpret_cast<xcb_ge_event_t*>(event);
