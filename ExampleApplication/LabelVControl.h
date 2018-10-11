@@ -3,11 +3,11 @@
 
 #include <QWidget>
 
-class SettingWidget : public QWidget
+class LabelVControl : public QWidget
 {
     Q_OBJECT
 public:
-    explicit SettingWidget(const QString& inDescription, QWidget* inControl, QWidget *parent = nullptr);
+    explicit LabelVControl(const QString& inDescription, QWidget* inControl, QWidget *parent = nullptr);
 
     QWidget* getControl();
     void setDescription(const QString& inDescription);

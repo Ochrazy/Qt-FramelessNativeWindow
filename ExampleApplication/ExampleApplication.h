@@ -47,9 +47,11 @@ private:
     QWidget* createTransparencyWidget();
     int windowOpacity = 40;
     QWidget* transparencyWidget;
-    class SettingWidget* macOSSettingWidget;
-    SettingWidget* framelessSettingWidget;
-    SettingWidget* fullscreenSettingWidget;
+    QWidget* createMacOSWidget();
+    QWidget* macOSWidget;
+    QWidget* createFramelessWidget();
+    QWidget* framelessWidget;
+    class LabelVControl* fullscreenWidget;
 
     class ToggleButton* translucentBlurSwitch;
     ToggleButton* transparencySwitch;

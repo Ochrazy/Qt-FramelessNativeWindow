@@ -1,8 +1,8 @@
-#include "SettingWidget.h"
+#include "LabelVControl.h"
 #include <QLabel>
 #include <QVBoxLayout>
 
-SettingWidget::SettingWidget(const QString& inDescription, QWidget* inControl, QWidget *parent) : QWidget(parent), control(inControl)
+LabelVControl::LabelVControl(const QString& inDescription, QWidget* inControl, QWidget *parent) : QWidget(parent), control(inControl)
 {
     description = new QLabel;
     description->setStyleSheet("QLabel { background-color : none; color : white; font-size: 15px; }");
@@ -15,17 +15,17 @@ SettingWidget::SettingWidget(const QString& inDescription, QWidget* inControl, Q
     mainLayout->addStretch();
 }
 
-QWidget* SettingWidget::getControl()
+QWidget* LabelVControl::getControl()
 {
     return control;
 }
 
-void SettingWidget::setDescription(const QString& inDescription)
+void LabelVControl::setDescription(const QString& inDescription)
 {
     description->setText(inDescription);
 }
 
-QLabel* SettingWidget::getDescription()
+QLabel* LabelVControl::getDescription()
 {
     return description;
 }

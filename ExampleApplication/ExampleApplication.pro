@@ -20,8 +20,8 @@ SOURCES += main.cpp \
     MinimalScrollBar.cpp \
     ToggleButton.cpp \
     WindowButtons.cpp \
-    SettingWidget.cpp \
-    ControlHLabel.cpp
+    ControlHLabel.cpp \
+    LabelVControl.cpp
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -33,7 +33,7 @@ HEADERS += \
     MinimalScrollBar.h \
     ToggleButton.h \
     WindowButtons.h \
-    SettingWidget.h \
-    ControlHLabel.h
+    ControlHLabel.h \
+    LabelVControl.h
 
 RESOURCES += $$PWD/../FramelessWindowImages.qrc

@@ -8,11 +8,12 @@
 #include <QStackedLayout>
 #include <QScrollArea>
 #include <QSlider>
+#include <QFormLayout>
 #include "MinimalScrollBar.h"
 #include "ToggleButton.h"
 #include "QPropertyAnimation"
 #include "ControlHLabel.h"
-#include "SettingWidget.h"
+#include "LabelVControl.h"
 
 ExampleApplication::ExampleApplication(QWidget *parent) : QWidget(parent),
     framelessWindowConverter(), translucencyBlurEffect(this, this)
@@ -104,7 +105,7 @@ void ExampleApplication::createLeftSideWidgets()
     windowTitle->setStyleSheet("QLabel { background-color : none; color : white; }");
     windowTitle->setFixedHeight(titleBarHeight);
     windowTitle->setAlignment(Qt::AlignLeft | Qt::AlignTop);
-    windowTitle->setContentsMargins(5,5,5,5);
+    windowTitle->setContentsMargins(5, 5, 5, 5);
 
     selectionIndicator = new QWidget;
     selectionIndicator->setFixedSize(10, 24);
@@ -113,8 +114,7 @@ void ExampleApplication::createLeftSideWidgets()
 
     QScrollArea* leftScrollArea = new QScrollArea;
     leftScrollArea->setFrameShape(QFrame::NoFrame);
-    leftScrollArea->viewport()->setStyleSheet("background-color: rgba(0,0,0,0);"
-                                              "margin: 0px 4px 0px 0px;");
+    leftScrollArea->viewport()->setStyleSheet("background-color: rgba(0,0,0,0); margin: 0px 4px 0px 0px;");
     leftScrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     MinimalScrollBar* minimalScrollBar = new MinimalScrollBar;
     leftScrollArea->setVerticalScrollBar(minimalScrollBar);
@@ -124,21 +124,21 @@ void ExampleApplication::createLeftSideWidgets()
     leftScrollArea->setWidgetResizable(true);
 
     settingSelectionLayout = new QVBoxLayout(containerWidget);
-    settingSelectionLayout->addSpacing(5);
     settingSelectionLayout->setContentsMargins(0, 0, 0, 0);
 
     QVBoxLayout* leftTitleBar = new QVBoxLayout(leftBackgroundWidget);
     leftTitleBar->setSpacing(0);
     leftTitleBar->addWidget(windowTitle);
+    leftTitleBar->addSpacing(15);
     leftTitleBar->addWidget(leftScrollArea); // content
     leftTitleBar->setContentsMargins(0, 0, 0, 0);
 
     // Create selection buttons
     QWidget* selectionButtonMC = createSettingSelectionButton("Machine Clicker", machineClicker, settingSelectionLayout);
     createSettingSelectionButton("Transparency", transparencyWidget, settingSelectionLayout);
-    createSettingSelectionButton("Frameless window", framelessSettingWidget, settingSelectionLayout);
-    createSettingSelectionButton("Fullscreen", fullscreenSettingWidget, settingSelectionLayout);
-    createSettingSelectionButton("MacOS", macOSSettingWidget, settingSelectionLayout);
+    createSettingSelectionButton("Frameless window", framelessWidget, settingSelectionLayout);
+    createSettingSelectionButton("Fullscreen", fullscreenWidget, settingSelectionLayout);
+    createSettingSelectionButton("MacOS", macOSWidget, settingSelectionLayout);
     settingSelectionLayout->addStretch(1);
 
     // Set selection to first
@@ -150,7 +150,7 @@ QWidget* ExampleApplication::createTransparencyWidget()
 {
     transparencySwitch = new ToggleButton;
     ControlHLabel* transparencyControl = new ControlHLabel(transparencySwitch);
-    SettingWidget* transparentSetting = new SettingWidget("Turn all transparency effects on/off", transparencyControl);
+    LabelVControl* transparentSetting = new LabelVControl("Turn all transparency effects on/off", transparencyControl);
     connect(transparencySwitch, &QAbstractButton::toggled, this, [this](bool checked) {
         if(checked)
         {
@@ -185,11 +185,11 @@ QWidget* ExampleApplication::createTransparencyWidget()
         update();
     });
     windowOpacitySlider->setValue(windowOpacity);
-    SettingWidget* opacitySetting = new SettingWidget("Window opacity", opacityControl);
+    LabelVControl* opacitySetting = new LabelVControl("Window opacity", opacityControl);
 
     translucentBlurSwitch = new ToggleButton;
     ControlHLabel* translucentControl = new ControlHLabel(translucentBlurSwitch);
-    SettingWidget* translucentBlurSetting = new SettingWidget("Turn the translucent blur effect on/off", translucentControl);
+    LabelVControl* translucentBlurSetting = new LabelVControl("Turn the translucent blur effect on/off", translucentControl);
     connect(translucentBlurSwitch, &QAbstractButton::toggled, this, [this]() {
         if(translucentBlurSwitch->isChecked())
             translucencyBlurEffect.deactivateEffect();
@@ -207,7 +207,7 @@ QWidget* ExampleApplication::createTransparencyWidget()
         update();
     });
     translucentBlurStrengthSlider->setValue(translucencyBlurEffect.getBlurStrength());
-    SettingWidget* blurSliderSetting = new SettingWidget("Translucent blur strength", blurSliderControl);
+    LabelVControl* blurSliderSetting = new LabelVControl("Translucent blur strength", blurSliderControl);
 
     transparencyWidget = new QWidget;
     QVBoxLayout* transparencyOptionLayout = new QVBoxLayout(transparencyWidget);
@@ -220,30 +220,11 @@ QWidget* ExampleApplication::createTransparencyWidget()
     return transparencyWidget;
 }
 
-void ExampleApplication::createRightSideWidgets()
+QWidget* ExampleApplication::createFramelessWidget()
 {
-    windowButtons = new WindowButtons(titleBarHeight);
-
-    // Right Background Widget
-    rightBackgroundWidget = new QWidget;
-    rightBackgroundWidget->setObjectName("rightBackgroundWidget");
-    rightBackgroundWidget->setStyleSheet("#rightBackgroundWidget { background-color:black; }");
-
-    QVBoxLayout* rightTitleBar = new QVBoxLayout(rightBackgroundWidget);
-    rightTitleBar->setSpacing(0);
-    rightTitleBar->addWidget(windowButtons);
-    rightTitleBarSpacer = new QSpacerItem(0, 0);
-    rightTitleBar->addSpacerItem(rightTitleBarSpacer);
-    rightTitleBar->addSpacing(5);
-
-    // Create MachineClicker widget
-    machineClicker = new MachineClicker;
-    transparencyWidget = createTransparencyWidget();
-
-    // Create frameless setting widget
     ToggleButton* framelessSwitch = new ToggleButton;
     ControlHLabel* framelessControl = new ControlHLabel(framelessSwitch);
-    framelessSettingWidget = new SettingWidget("Convert window to a frameless native window", framelessControl);
+    LabelVControl* framelessSettingWidget = new LabelVControl("Convert window to a frameless native window", framelessControl);
     connect(framelessSwitch, &QAbstractButton::toggled, this, [this](bool checked) {
         if(checked)
         {
@@ -302,10 +283,14 @@ void ExampleApplication::createRightSideWidgets()
         }
     });
 
-    // Create macOS setting widget
+    return framelessSettingWidget;
+}
+
+QWidget* ExampleApplication::createMacOSWidget()
+{
     ToggleButton* trafficLightSwitch = new ToggleButton;
     ControlHLabel* trafficLightControl = new ControlHLabel(trafficLightSwitch);
-    macOSSettingWidget = new SettingWidget("Use original traffic light buttons", trafficLightControl);
+    LabelVControl* trafficLightSettingWidget = new LabelVControl("Use original traffic light buttons", trafficLightControl);
     connect(trafficLightSwitch, &QAbstractButton::toggled, this, [this, trafficLightSwitch]() {
         if(trafficLightSwitch->isChecked())
         {
@@ -327,10 +312,106 @@ void ExampleApplication::createRightSideWidgets()
         }
     });
 
+    // Hidden buttons
+    ToggleButton* greenHiddenSwitch = new ToggleButton;
+    ControlHLabel* greenHiddenControl = new ControlHLabel(greenHiddenSwitch, false, "Green");
+    connect(greenHiddenSwitch, &QAbstractButton::toggled, this, [this](bool inChecked) {
+        framelessWindowConverter.setHiddenGreenTrafficLightOnMacOS(inChecked);
+    });
+
+    ToggleButton* redHiddenSwitch = new ToggleButton;
+    ControlHLabel* redHiddenControl = new ControlHLabel(redHiddenSwitch, false, "Red");
+    connect(redHiddenSwitch, &QAbstractButton::toggled, this, [this](bool inChecked) {
+        framelessWindowConverter.setHiddenRedTrafficLightOnMacOS(inChecked);
+    });
+
+    ToggleButton* yellowHiddenSwitch = new ToggleButton;
+    ControlHLabel* yellowHiddenControl = new ControlHLabel(yellowHiddenSwitch, false, "Yellow");
+    connect(yellowHiddenSwitch, &QAbstractButton::toggled, this, [this](bool inChecked) {
+        framelessWindowConverter.setHiddenYellowTrafficLightOnMacOS(inChecked);
+    });
+
+    QHBoxLayout* hiddenControlsLayout = new QHBoxLayout;
+    hiddenControlsLayout->addWidget(redHiddenControl);
+    hiddenControlsLayout->addWidget(yellowHiddenControl);
+    hiddenControlsLayout->addWidget(greenHiddenControl);
+    hiddenControlsLayout->addStretch(1);
+    hiddenControlsLayout->setContentsMargins(0, 0, 0, 0);
+    QWidget* hiddenControlsWidget = new QWidget;
+    hiddenControlsWidget->setLayout(hiddenControlsLayout);
+    LabelVControl* hiddenSettingWidget = new LabelVControl("Show/Hide traffic lights", hiddenControlsWidget);
+
+
+    // Enable buttons
+    ToggleButton* greenEnabledSwitch = new ToggleButton;
+    ControlHLabel* greenEnabledControl = new ControlHLabel(greenEnabledSwitch, false, "Green");
+    connect(greenEnabledSwitch, &QAbstractButton::toggled, this, [this](bool inChecked) {
+        framelessWindowConverter.setEnabledGreenTrafficLightOnMacOS(!inChecked);
+    });
+
+    ToggleButton* redEnabledSwitch = new ToggleButton;
+    ControlHLabel* redEnabledControl = new ControlHLabel(redEnabledSwitch, false, "Red");
+    connect(redEnabledSwitch, &QAbstractButton::toggled, this, [this](bool inChecked) {
+        framelessWindowConverter.setEnabledRedTrafficLightOnMacOS(!inChecked);
+    });
+
+    ToggleButton* yellowEnabledSwitch = new ToggleButton;
+    ControlHLabel* yellowEnabledControl = new ControlHLabel(yellowEnabledSwitch, false, "Yellow");
+    connect(yellowEnabledSwitch, &QAbstractButton::toggled, this, [this](bool inChecked) {
+        framelessWindowConverter.setEnabledYellowTrafficLightOnMacOS(!inChecked);
+    });
+
+    QHBoxLayout* enabledControlsLayout = new QHBoxLayout;
+    enabledControlsLayout->addWidget(redEnabledControl);
+    enabledControlsLayout->addWidget(yellowEnabledControl);
+    enabledControlsLayout->addWidget(greenEnabledControl);
+    enabledControlsLayout->addStretch(1);
+    enabledControlsLayout->setContentsMargins(0, 0, 0, 0);
+    QWidget* enabledControlsWidget = new QWidget;
+    enabledControlsWidget->setLayout(enabledControlsLayout);
+    LabelVControl* enabledSettingWidget = new LabelVControl("Enable/Disable traffic lights", enabledControlsWidget);
+
+    macOSWidget = new QWidget;
+    QVBoxLayout* macOSWidgetLayout = new QVBoxLayout(macOSWidget);
+    macOSWidgetLayout->addWidget(trafficLightSettingWidget);
+    macOSWidgetLayout->addWidget(hiddenSettingWidget);
+    macOSWidgetLayout->addWidget(enabledSettingWidget);
+    macOSWidgetLayout->addStretch(1);
+    macOSWidgetLayout->setContentsMargins(0, 0, 0, 0);
+
+    return macOSWidget;
+}
+
+void ExampleApplication::createRightSideWidgets()
+{
+    windowButtons = new WindowButtons(titleBarHeight);
+
+    // Right Background Widget
+    rightBackgroundWidget = new QWidget;
+    rightBackgroundWidget->setObjectName("rightBackgroundWidget");
+    rightBackgroundWidget->setStyleSheet("#rightBackgroundWidget { background-color:black; }");
+
+    QVBoxLayout* rightTitleBar = new QVBoxLayout(rightBackgroundWidget);
+    rightTitleBar->setSpacing(0);
+    rightTitleBar->addWidget(windowButtons);
+    rightTitleBarSpacer = new QSpacerItem(0, 0);
+    rightTitleBar->addSpacerItem(rightTitleBarSpacer);
+    rightTitleBar->addSpacing(5);
+
+    // Create MachineClicker widget
+    machineClicker = new MachineClicker;
+    transparencyWidget = createTransparencyWidget();
+
+    // Create frameless setting widget
+    framelessWidget = createFramelessWidget();
+
+    // Create macOS setting widget
+    macOSWidget = createMacOSWidget();
+
     // Create fullscreen setting widget
     fullscreenSwitch = new ToggleButton;
     fullscreenSwitch->toggle();
-    fullscreenSettingWidget = new SettingWidget("Toggle frameless fullscreen window", new ControlHLabel(fullscreenSwitch));
+    fullscreenWidget = new LabelVControl("Toggle frameless fullscreen window", new ControlHLabel(fullscreenSwitch));
     connect(fullscreenSwitch, &QAbstractButton::toggled, this, [this]() {
         framelessWindowConverter.toggleFullscreen();
     });
@@ -338,9 +419,9 @@ void ExampleApplication::createRightSideWidgets()
     rightStackedLayout = new QStackedLayout;
     rightStackedLayout->addWidget(machineClicker);
     rightStackedLayout->addWidget(transparencyWidget);
-    rightStackedLayout->addWidget(framelessSettingWidget);
-    rightStackedLayout->addWidget(fullscreenSettingWidget);
-    rightStackedLayout->addWidget(macOSSettingWidget);
+    rightStackedLayout->addWidget(framelessWidget);
+    rightStackedLayout->addWidget(fullscreenWidget);
+    rightStackedLayout->addWidget(macOSWidget);
 
     machineClicker->layout()->setContentsMargins(8, 5, 8, 8);
     rightTitleBar->addLayout(rightStackedLayout);
@@ -382,7 +463,7 @@ void ExampleApplication::setupFramelessWindow()
     windowButtons->hide();
     rightTitleBarSpacer->changeSize(0, titleBarHeight);
 #else
-    macOSSettingWidget->setEnabled(false);
+    macOSWidget->setEnabled(false);
 #endif
 
     framelessWindowConverter.setBorderWidth(5);
@@ -400,8 +481,6 @@ void ExampleApplication::setupFramelessWindow()
             return true;
         else return false;
     };
-
-    framelessWindowConverter.setEnabledYellowTrafficLightOnMacOS(false);
 
     // Convert window
     framelessWindowConverter.convertWindowToFrameless(fwcParams);
@@ -436,24 +515,24 @@ void ExampleApplication::setupFramelessWindow()
     });
 }
 
- bool ExampleApplication::event(QEvent* event)
- {
-     switch(event->type())
-     {
-     case QEvent::WindowStateChange:
-     {
-         // When user drags title bar check fullscreen switch
-         QWindowStateChangeEvent* stateEvent = static_cast<QWindowStateChangeEvent*>(event);
-         if (!(windowState() & Qt::WindowMaximized) && (stateEvent->oldState() & Qt::WindowMaximized))
-             fullscreenSwitch->setChecked(true);
-         break;
-     }
-     default:
-         break;
-     }
+bool ExampleApplication::event(QEvent* event)
+{
+    switch(event->type())
+    {
+    case QEvent::WindowStateChange:
+    {
+        // When user drags title bar check fullscreen switch
+        QWindowStateChangeEvent* stateEvent = static_cast<QWindowStateChangeEvent*>(event);
+        if (!(windowState() & Qt::WindowMaximized) && (stateEvent->oldState() & Qt::WindowMaximized))
+            fullscreenSwitch->setChecked(true);
+        break;
+    }
+    default:
+        break;
+    }
 
-     return QWidget::event(event);
- }
+    return QWidget::event(event);
+}
 
 bool ExampleApplication::nativeEvent(const QByteArray& eventType, void* message, long* result)
 {
