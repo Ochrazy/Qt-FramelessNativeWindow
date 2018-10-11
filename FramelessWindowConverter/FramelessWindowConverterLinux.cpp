@@ -128,9 +128,26 @@ void FramelessWindowConverterLinux::closeWindow()
     xcb_flush(connection);
 }
 
-void FramelessWindowConverterWindows::toggleFullscreen()
+void FramelessWindowConverterLinux::toggleFullscreen()
 {
+    bFullscreen = !bFullscreen;
 
+    xcb_client_message_event_t event;
+    event.response_type = XCB_CLIENT_MESSAGE;
+    event.format = 32;
+    event.sequence = 0;
+    event.window = windowHandle;
+    event.type = getAtom("_NET_WM_STATE");
+    event.data.data32[0] = 2; //_NET_WM_STATE_TOGGLE
+    event.data.data32[1] = getAtom("_NET_WM_STATE_FULLSCREEN");
+    event.data.data32[2] = 0;
+    event.data.data32[3] = 0;
+    event.data.data32[4] = 0;
+
+    xcb_send_event(connection, 0, rootWindow,
+                   XCB_EVENT_MASK_STRUCTURE_NOTIFY | XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT,
+                   reinterpret_cast<char*>(&event));
+    xcb_flush(connection);
 }
 
 bool isXIEvent(xcb_generic_event_t *event, int opCode)
