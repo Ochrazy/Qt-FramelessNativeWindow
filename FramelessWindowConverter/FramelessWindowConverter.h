@@ -74,6 +74,21 @@ public:
     void useTrafficLightsOnMacOS(bool inUseTrafficLights);
     bool isUsingTrafficLightsOnMacOS();
 
+    // Hide/Show or Enable/Disable individual traffic lights on macOS
+    void setHiddenGreenTrafficLightOnMacOS(bool inHidden);
+    void setHiddenRedTrafficLightOnMacOS(bool inHidden);
+    void setHiddenYellowTrafficLightOnMacOS(bool inHidden);
+    bool getHiddenGreenTrafficLightOnMacOS();
+    bool getHiddenRedTrafficLightOnMacOS();
+    bool getHiddenYellowTrafficLightOnMacOS();
+
+    void setEnabledGreenTrafficLightOnMacOS(bool inEnabled);
+    void setEnabledRedTrafficLightOnMacOS(bool inEnabled);
+    void setEnabledYellowTrafficLightOnMacOS(bool inEnabled);
+    bool getEnabledGreenTrafficLightOnMacOS();
+    bool getEnabledRedTrafficLightOnMacOS();
+    bool getEnabledYellowTrafficLightOnMacOS();
+
     // Positions are relative to upper left window corner
     void setPosOfGreenTrafficLightOnMacOS(int inXPos, int inYPos);
     void setPosOfRedTrafficLightOnMacOS(int inXPos, int inYPos);
@@ -102,6 +117,14 @@ private:
     bool bIsFramless = false;
     bool bHasShadow = false;
 
+    // macOS Settings
+    bool bHiddenGreen = false;
+    bool bHiddenRed = false;
+    bool bHiddenYellow = false;
+
+    bool bEnabledGreen = true;
+    bool bEnabledRed = true;
+    bool bEnabledYellow = true;
     // Default is horizontal
     int xPosOfGreen = 48, yPosOfGreen = 3;
     int xPosOfRed = 7, yPosOfRed = 3;

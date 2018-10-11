@@ -82,6 +82,15 @@ public:
     virtual void restoreWindow() = 0;
     virtual void toggleFullscreen() = 0;
 
+    // MacOS
+    virtual void setHiddenGreenTrafficLightOnMacOS(bool inHidden) { (void)inHidden; }
+    virtual void setHiddenRedTrafficLightOnMacOS(bool inHidden)  { (void)inHidden; }
+    virtual void setHiddenYellowTrafficLightOnMacOS(bool inHidden)  { (void)inHidden; }
+
+    virtual void setEnabledGreenTrafficLightOnMacOS(bool inEnabled)  { (void)inEnabled; }
+    virtual void setEnabledRedTrafficLightOnMacOS(bool inEnabled)  { (void)inEnabled; }
+    virtual void setEnabledYellowTrafficLightOnMacOS(bool inEnabled) { (void)inEnabled; }
+
 protected:
     FramelessWindowConverter* q_ptr;
     virtual FWCBorderHitTestResult doBorderHitTest(FWCRect inWindowRect, FWCPoint inMousePosition, int inBorderWidth);

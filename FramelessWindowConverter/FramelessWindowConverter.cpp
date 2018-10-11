@@ -135,6 +135,22 @@ bool FramelessWindowConverter::isUsingTrafficLightsOnMacOS()
     return bUseTrafficLights;
 }
 
+void FramelessWindowConverter::setHiddenGreenTrafficLightOnMacOS(bool inHidden) { bHiddenGreen = inHidden; d_ptr->setHiddenGreenTrafficLightOnMacOS(inHidden); }
+void FramelessWindowConverter::setHiddenRedTrafficLightOnMacOS(bool inHidden) { bHiddenRed = inHidden; d_ptr->setHiddenRedTrafficLightOnMacOS(inHidden); }
+void FramelessWindowConverter::setHiddenYellowTrafficLightOnMacOS(bool inHidden) { bHiddenYellow = inHidden; d_ptr->setHiddenYellowTrafficLightOnMacOS(inHidden); }
+
+bool FramelessWindowConverter::getHiddenGreenTrafficLightOnMacOS() { return bHiddenGreen; }
+bool FramelessWindowConverter::getHiddenRedTrafficLightOnMacOS() { return bHiddenRed; }
+bool FramelessWindowConverter::getHiddenYellowTrafficLightOnMacOS() { return bHiddenYellow; }
+
+void FramelessWindowConverter::setEnabledGreenTrafficLightOnMacOS(bool inEnabled) { bEnabledGreen = inEnabled; d_ptr->setEnabledGreenTrafficLightOnMacOS(inEnabled); }
+void FramelessWindowConverter::setEnabledRedTrafficLightOnMacOS(bool inEnabled) { bEnabledRed = inEnabled; d_ptr->setEnabledRedTrafficLightOnMacOS(inEnabled);}
+void FramelessWindowConverter::setEnabledYellowTrafficLightOnMacOS(bool inEnabled) { bEnabledYellow = inEnabled; d_ptr->setEnabledYellowTrafficLightOnMacOS(inEnabled);}
+
+bool FramelessWindowConverter::getEnabledGreenTrafficLightOnMacOS() { return bEnabledGreen; }
+bool FramelessWindowConverter::getEnabledRedTrafficLightOnMacOS() { return bEnabledRed; }
+bool FramelessWindowConverter::getEnabledYellowTrafficLightOnMacOS() { return bEnabledYellow; }
+
 void FramelessWindowConverter::setPosOfGreenTrafficLightOnMacOS(int inXPos, int inYPos)
 {
     xPosOfGreen = inXPos;

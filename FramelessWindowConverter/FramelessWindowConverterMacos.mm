@@ -156,8 +156,17 @@ void FramelessWindowConverterMacos::toggleFullscreen()
     isResizing = false;
 }
 
+void FramelessWindowConverterMacos::showTrafficLights()
+{
+    if(fullScreenButton && !q_ptr->getHiddenGreenTrafficLightOnMacOS()) [fullScreenButton setHidden:NO];
+    if(closeButton && !q_ptr->getHiddenRedTrafficLightOnMacOS()) [closeButton setHidden:NO];
+    if(minimizeButton && !q_ptr->getHiddenYellowTrafficLightOnMacOS()) [minimizeButton setHidden:NO];
+}
+
 void FramelessWindowConverterMacos::hideForTranslucency()
 {
+    // Even if user wants buttons to be shown (!q_ptr->getHiddenGreenTrafficLightOnMacOS())
+    // hide the buttons for translucency
     if(fullScreenButton) [fullScreenButton setHidden:YES];
     if(closeButton) [closeButton setHidden:YES];
     if(minimizeButton) [minimizeButton setHidden:YES];
@@ -167,10 +176,44 @@ void FramelessWindowConverterMacos::showForTranslucency()
 {
     if(q_ptr->isUsingTrafficLightsOnMacOS())
     {
-        if(fullScreenButton) [fullScreenButton setHidden:NO];
-        if(closeButton) [closeButton setHidden:NO];
-        if(minimizeButton) [minimizeButton setHidden:NO];
+       showTrafficLights();
     }
+}
+
+void FramelessWindowConverterMacos::setHiddenGreenTrafficLightOnMacOS(bool inHidden)
+{
+    if(inHidden) [fullScreenButton setHidden:YES];
+    else [fullScreenButton setHidden:NO];
+}
+
+void FramelessWindowConverterMacos::setHiddenRedTrafficLightOnMacOS(bool inHidden)
+{
+    if(inHidden) [closeButton setHidden:YES];
+    else [closeButton setHidden:NO];
+}
+
+void FramelessWindowConverterMacos::setHiddenYellowTrafficLightOnMacOS(bool inHidden)
+{
+    if(inHidden) [minimizeButton setHidden:YES];
+    else [minimizeButton setHidden:NO];
+}
+
+void FramelessWindowConverterMacos::setEnabledGreenTrafficLightOnMacOS(bool inEnabled)
+{
+    if(inEnabled) [fullScreenButton setEnabled:YES];
+    else [fullScreenButton setEnabled:NO];
+}
+
+void FramelessWindowConverterMacos::setEnabledRedTrafficLightOnMacOS(bool inEnabled)
+{
+    if(inEnabled) [closeButton setEnabled:YES];
+    else [closeButton setEnabled:NO];
+}
+
+void FramelessWindowConverterMacos::setEnabledYellowTrafficLightOnMacOS(bool inEnabled)
+{
+    if(inEnabled) [minimizeButton setEnabled:YES];
+    else [minimizeButton setEnabled:NO];
 }
 
 void FramelessWindowConverterMacos::repositionTrafficLights()
@@ -212,10 +255,6 @@ void FramelessWindowConverterMacos::convertToFrameless()
     if(q_ptr->isUsingTrafficLightsOnMacOS())
     {
         // Traffic lights
-        [[window standardWindowButton:NSWindowCloseButton] setHidden:NO];
-        [[window standardWindowButton:NSWindowMiniaturizeButton] setHidden:NO];
-        [[window standardWindowButton:NSWindowZoomButton] setHidden:NO];
-
         tlHelper = [[TrafficLightsHelper alloc] initWithFWCMAndWindow:this :window];
 
         fullScreenButton = [window standardWindowButton:NSWindowZoomButton];
@@ -254,6 +293,15 @@ void FramelessWindowConverterMacos::convertToFrameless()
                 swizzledSelector,
                 method_getImplementation(swizzledMethod),
                 method_getTypeEncoding(swizzledMethod));
+
+        [closeButton setHidden:YES];
+        [minimizeButton setHidden:YES];
+        [fullScreenButton setHidden:YES];
+        showTrafficLights();
+
+        if(!q_ptr->getEnabledGreenTrafficLightOnMacOS()) [fullScreenButton setEnabled:NO];
+        if(!q_ptr->getEnabledRedTrafficLightOnMacOS()) [closeButton setEnabled:NO];
+        if(!q_ptr->getEnabledYellowTrafficLightOnMacOS()) [minimizeButton setEnabled:NO];
     }
     else
     {
@@ -323,9 +371,9 @@ void FramelessWindowConverterMacos::convertToWindowWithFrame()
     nativeWidgetView.wantsLayer = YES;
 
     // Traffic lights
-    [[window standardWindowButton:NSWindowCloseButton] setHidden:NO];
-    [[window standardWindowButton:NSWindowMiniaturizeButton] setHidden:NO];
-    [[window standardWindowButton:NSWindowZoomButton] setHidden:NO];
+    if(!q_ptr->getHiddenGreenTrafficLightOnMacOS()) [[window standardWindowButton:NSWindowCloseButton] setHidden:NO];
+    if(!q_ptr->getHiddenGreenTrafficLightOnMacOS()) [[window standardWindowButton:NSWindowMiniaturizeButton] setHidden:NO];
+    if(!q_ptr->getHiddenGreenTrafficLightOnMacOS()) [[window standardWindowButton:NSWindowZoomButton] setHidden:NO];
 
     [[NSNotificationCenter defaultCenter] removeObserver:exitFullscreenObserver];
     [[NSNotificationCenter defaultCenter] removeObserver:resizeObserver];
@@ -578,9 +626,7 @@ bool FramelessWindowConverterMacos::filterNativeEvent(void *message, long *resul
                 // so set the position manually here
                 repositionTrafficLights();
 
-                [closeButton setHidden:NO];
-                [minimizeButton setHidden:NO];
-                [fullScreenButton setHidden:NO];
+                showTrafficLights();
             }
             return false;
         }

@@ -401,6 +401,8 @@ void ExampleApplication::setupFramelessWindow()
         else return false;
     };
 
+    framelessWindowConverter.setEnabledYellowTrafficLightOnMacOS(false);
+
     // Convert window
     framelessWindowConverter.convertWindowToFrameless(fwcParams);
 

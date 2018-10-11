@@ -37,6 +37,14 @@ public:
     void hideForTranslucency() override;
     void showForTranslucency() override;
 
+    void setHiddenGreenTrafficLightOnMacOS(bool inHidden) override;
+    void setHiddenRedTrafficLightOnMacOS(bool inHidden) override;
+    void setHiddenYellowTrafficLightOnMacOS(bool inHidden) override;
+
+    void setEnabledGreenTrafficLightOnMacOS(bool inEnabled) override;
+    void setEnabledRedTrafficLightOnMacOS(bool inEnabled) override;
+    void setEnabledYellowTrafficLightOnMacOS(bool inEnabled) override;
+
 private:
     NSView* nativeWidgetView;
     NSWindow* window;
@@ -51,6 +59,7 @@ private:
     void showAppropriateCursor();
     void resizeWindow(FWCFloatingPoint mouseLocationInWindow);
     void repositionTrafficLights();
+    void showTrafficLights();
 };
 
 }
