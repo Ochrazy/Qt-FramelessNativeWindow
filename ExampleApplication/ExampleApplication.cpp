@@ -456,10 +456,8 @@ QWidget* ExampleApplication::createFramelessWidget()
                 else return false;
             };
             framelessWindowConverter.setShouldPerformWindowDrag(fwcParams.shouldPerformWindowDrag);
-            windowButtons->getCloseButton()->setFixedHeight(value);
-            windowButtons->getMinimizeButton()->setFixedHeight(value);
-            windowButtons->getMaximizeButton()->setFixedHeight(value);
-            rightTitleBarSpacer->changeSize(0, value);
+
+            rightTitleBarSpacer->changeSize(0, value - windowButtons->getCloseButton()->minimumHeight());
             rightStackedLayout->update();
             int minimumHeight = 0;
             if(rightStackedLayout->currentWidget()->layout())
