@@ -292,7 +292,6 @@ QWidget* ExampleApplication::createTransparencyWidget()
         {
             setAttribute(Qt::WA_TranslucentBackground, false);
             setAttribute(Qt::WA_NoSystemBackground, false);
-
             translucencyBlurEffect.deactivateEffect();
             translucentBlurSwitch->setEnabled(false);
             update();
@@ -301,7 +300,6 @@ QWidget* ExampleApplication::createTransparencyWidget()
         {
             setAttribute(Qt::WA_TranslucentBackground, true);
             setAttribute(Qt::WA_NoSystemBackground, true);
-
             translucentBlurSwitch->setEnabled(true);
             if(!translucentBlurSwitch->isChecked())
                 translucencyBlurEffect.reactivateEffect();
@@ -435,18 +433,19 @@ QWidget* ExampleApplication::createFramelessWidget()
     QFormLayout* borderWidthLayout = new QFormLayout(borderWidthWidget);
     borderWidthLayout->addRow("Border width:", borderWidthSpinBox);
     LabelVControl* borderWidthSetting = new LabelVControl("Change window border width where resizing is allowed", borderWidthWidget);
+    borderWidthLayout->setFormAlignment(Qt::AlignLeft);
 
     // Title bar height
     QSpinBox* titleBarHeightSpinBox = new QSpinBox;
     titleBarHeightSpinBox->setMinimum(0);
-    titleBarHeightSpinBox->setMaximum(100);
-    titleBarHeightSpinBox->setValue(framelessWindowConverter.getBorderWidth());
+    titleBarHeightSpinBox->setMaximum(1000);
+    titleBarHeightSpinBox->setValue(titleBarHeight);
     titleBarHeightSpinBox->setMinimumSize(35, 25);
     titleBarHeightSpinBox->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     connect(titleBarHeightSpinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, [this, titleBarHeightSpinBox](int value) {
         if(titleBarHeightSpinBox->isEnabled())
         {
-            fwcParams.shouldPerformWindowDrag =  [this, value](int mousePosXInWindow, int mousePosYInWindow)
+            fwcParams.shouldPerformWindowDrag = [this, value](int mousePosXInWindow, int mousePosYInWindow)
             {
                 QWidget* widgetUnderCursor = childAt(mousePosXInWindow, mousePosYInWindow);
                 // Set all background widgets draggable
@@ -456,6 +455,25 @@ QWidget* ExampleApplication::createFramelessWidget()
                     return true;
                 else return false;
             };
+            framelessWindowConverter.setShouldPerformWindowDrag(fwcParams.shouldPerformWindowDrag);
+            windowButtons->getCloseButton()->setFixedHeight(value);
+            windowButtons->getMinimizeButton()->setFixedHeight(value);
+            windowButtons->getMaximizeButton()->setFixedHeight(value);
+            rightTitleBarSpacer->changeSize(0, value);
+            rightStackedLayout->update();
+            int minimumHeight = 0;
+            if(rightStackedLayout->currentWidget()->layout())
+                minimumHeight = rightStackedLayout->currentWidget()->layout()->minimumSize().height() + value + 6;
+            else minimumHeight = rightStackedLayout->currentWidget()->minimumHeight() + value + 6;
+            titleBarHeight = value;
+
+            framelessWindowConverter.setMinimumWindowHeight(minimumHeight);
+            rightBackgroundWidget->setMinimumHeight(minimumHeight);
+            if(minimumHeight >= windowHandle()->size().height())
+            {
+                resize(windowHandle()->size().width(), minimumHeight);
+            }
+
         }
     });
     QWidget* titleBarHeightWidget = new QWidget;
@@ -463,6 +481,7 @@ QWidget* ExampleApplication::createFramelessWidget()
     QFormLayout* titleBarHeightLayout = new QFormLayout(titleBarHeightWidget);
     titleBarHeightLayout->addRow("Title bar height:", titleBarHeightSpinBox);
     titleBarHeightLayout->setContentsMargins(0, 0, 0, 0);
+    titleBarHeightLayout->setFormAlignment(Qt::AlignLeft);
 
     // Movable background switch
     ToggleButton* backgroundMoveSwitch = new ToggleButton;
@@ -687,7 +706,7 @@ void ExampleApplication::createRightSideWidgets()
     rightBackgroundWidget->setObjectName("rightBackgroundWidget");
     rightBackgroundWidget->setStyleSheet("#rightBackgroundWidget { background-color:black; }");
 
-    QVBoxLayout* rightTitleBar = new QVBoxLayout(rightBackgroundWidget);
+    rightTitleBar = new QVBoxLayout(rightBackgroundWidget);
     rightTitleBar->setSpacing(0);
     rightTitleBar->addWidget(windowButtons);
     rightTitleBarSpacer = new QSpacerItem(0, 0);

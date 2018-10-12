@@ -40,6 +40,7 @@ private:
     QWidget* selectionIndicator;
 
     // Right side widgets
+    QVBoxLayout* rightTitleBar;
     class QSpacerItem* rightTitleBarSpacer;
     void createRightSideWidgets();
     WindowButtons* windowButtons;
