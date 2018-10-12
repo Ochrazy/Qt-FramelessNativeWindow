@@ -13,8 +13,7 @@ The native OS features supported are:
 - Aero snap (Windows only)
 - Window snapping (Unix/Linux only)
 - Window drop shadow (To work on Windows and Linux *WA_TranslucentBackground* has to be false)
-
-On macOS there is optional support for the original traffic light buttons. This is the only way i know to support split view on macOS. The traffic lights can also be individually positioned wherever you want. 
+- Optional support for original traffic lights on macOS (can be positioned freely and aligned horizontally or vertically)
 
 On top of that a custom **TranslucentBlurEffect** is implemented. This works by taking screenshots and setting a blurred version of the image as the background of the Qt-Widget. For it to work properly the Qt-Window needs to be hidden before taking the screenshot. This is done everytime the Window gets activated. The drawbacks of this method are that the window disappears for a short amount of time when activated and that only static images are captured. So when a video is playing behind the Qt-Window a screenshot is taken once and shown as a blurred image until the window gets activated again. 
 
