@@ -137,14 +137,11 @@ quint32 SystemWideHotkey::nativeKeycode(Qt::Key key)
         return VK_VOLUME_MUTE;
 
     default:
-        // Try to get virtual key from current keyboard layout or US.
+        // Try to get virtual key from current keyboard layout
         const HKL layout = GetKeyboardLayout(0);
         SHORT vk = VkKeyScanExW(static_cast<WCHAR>(key), layout);
-        if (vk == -1) {
-            const HKL layoutUs = GetKeyboardLayout(0x409);
-            vk = VkKeyScanExW(static_cast<WCHAR>(key), layoutUs);
-        }
-        return vk == -1 ? 0 : static_cast<quint32>(vk);
+        BYTE vkLobyte = (static_cast<BYTE>(static_cast<DWORD_PTR>(vk))) & 0xff;
+        return vk == -1 ? 0 : static_cast<quint32>(vkLobyte);
     }
 }
 

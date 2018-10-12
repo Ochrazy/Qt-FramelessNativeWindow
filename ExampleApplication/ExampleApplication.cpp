@@ -10,6 +10,7 @@
 #include <QSlider>
 #include <QFormLayout>
 #include <QCheckBox>
+#include <QLineEdit>
 #include "MinimalScrollBar.h"
 #include "ToggleButton.h"
 #include "QPropertyAnimation"
@@ -20,6 +21,8 @@ ExampleApplication::ExampleApplication(QWidget *parent) : QWidget(parent),
     framelessWindowConverter(), translucencyBlurEffect(this, this)
 {
     qApp->installEventFilter(this);
+
+    setStyleSheet("QSpinBox { background-color: transparent; color: white; font-size: 16px; }");
 
     // First create widgets on the right side
     // Then create selection widget on the left side
@@ -35,7 +38,139 @@ ExampleApplication::ExampleApplication(QWidget *parent) : QWidget(parent),
 
     setupFramelessWindow();
 
-    qApp->installEventFilter(this);
+    // Convert window
+    framelessWindowConverter.convertWindowToFrameless(fwcParams);
+}
+
+void ExampleApplication::setupFramelessWindow()
+{
+    setWindowFlags(Qt::Widget | Qt::WindowSystemMenuHint | Qt::WindowTitleHint | Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint);
+    setAttribute(Qt::WA_TranslucentBackground, true);
+    setAttribute(Qt::WA_NoSystemBackground, true);
+
+    setWindowTitle("Example Application");
+
+    // Only necessary on macOS to hide Traffic Lights when they are used
+    // Otherwise empty methods are called and hopefully optimized away
+    connect(&translucencyBlurEffect, &TranslucentBlurEffect::hideNonQtWidgets, [this]() { framelessWindowConverter.hideForTranslucency(); });
+    connect(&translucencyBlurEffect, &TranslucentBlurEffect::showNonQtWidgets, [this]() { framelessWindowConverter.showForTranslucency(); });
+
+    framelessWindowConverter.setEnableShadow(false);
+
+    // Set some settings
+    adjustSize(); // apply layout size (constraints) to window
+    rightStackedLayout->currentWidget()->adjustSize();
+    framelessWindowConverter.setMinMaxWindowSizes(rightStackedLayout->currentWidget()->size().width() + 16,
+                                                  rightStackedLayout->currentWidget()->size().height() + titleBarHeight + 6,
+                                                  maximumSize().width(), maximumSize().height());
+    rightBackgroundWidget->setMinimumWidth(rightStackedLayout->currentWidget()->size().width() + 16);
+    rightBackgroundWidget->setMinimumHeight(rightStackedLayout->currentWidget()->size().height() + titleBarHeight + 6);
+
+#ifdef __APPLE__
+    framelessWindowConverter.useTrafficLightsOnMacOS(true);
+    windowTitle->setAlignment(Qt::AlignRight | Qt::AlignTop);
+    windowTitle->setContentsMargins(0,10,10,0);
+    windowButtons->hide();
+    rightTitleBarSpacer->changeSize(0, titleBarHeight);
+#else
+    macOSWidget->setEnabled(false);
+#endif
+
+    // Set the parameters
+    fwcParams.windowHandle = winId();
+    fwcParams.releaseMouseGrab = [this]() { windowHandle()->setMouseGrabEnabled(false); };
+    fwcParams.shouldPerformWindowDrag =  [this](int mousePosXInWindow, int mousePosYInWindow)
+    {
+        QWidget* widgetUnderCursor = childAt(mousePosXInWindow, mousePosYInWindow);
+        // Set all background widgets draggable
+        if((widgetUnderCursor == nullptr ||  widgetUnderCursor == rightBackgroundWidget ||  widgetUnderCursor == leftBackgroundWidget
+            || widgetUnderCursor == machineClicker || widgetUnderCursor == windowTitle || widgetUnderCursor == windowButtons) &&
+                (mousePosYInWindow < titleBarHeight))
+            return true;
+        else return false;
+    };
+
+    // Connect custom System Buttons
+    connect(windowButtons->getCloseButton(), &QAbstractButton::clicked, this, [this]()
+    {
+        framelessWindowConverter.closeWindow();
+    });
+    connect(windowButtons->getMinimizeButton(), &QAbstractButton::clicked, this, [this]()
+    {
+        framelessWindowConverter.minimizeWindow();
+    });
+    connect(windowButtons->getMaximizeButton(), &QAbstractButton::clicked, this, [this]()
+    {
+#ifdef __APPLE__
+        if(!(qApp->keyboardModifiers() & Qt::AltModifier) || window()->isFullScreen())
+        {
+            framelessWindowConverter.toggleFullscreen();
+        }
+        else
+#endif
+        {
+            if(window()->isMaximized())
+            {
+                fullscreenSwitch->setChecked(true);
+                framelessWindowConverter.restoreWindow();
+            }
+            else
+                framelessWindowConverter.maximizeWindow();
+        }
+    });
+}
+
+bool ExampleApplication::nativeEvent(const QByteArray& eventType, void* message, long* result)
+{
+    Q_UNUSED(eventType)
+    return framelessWindowConverter.filterNativeEvents(message, result);
+}
+
+bool ExampleApplication::event(QEvent* event)
+{
+    switch(event->type())
+    {
+    case QEvent::WindowStateChange:
+    {
+        // When user drags title bar check fullscreen switch
+        QWindowStateChangeEvent* stateEvent = static_cast<QWindowStateChangeEvent*>(event);
+        if (!(windowState() & Qt::WindowMaximized) && (stateEvent->oldState() & Qt::WindowMaximized))
+            fullscreenSwitch->setChecked(true);
+        break;
+    }
+    default:
+        break;
+    }
+
+    return QWidget::event(event);
+}
+
+void ExampleApplication::resizeEvent(QResizeEvent* ev)
+{
+    // Show/Hide left background widget if the window size is too small
+    if(leftBackgroundWidget && ev->oldSize().width() != -1)
+    {
+        if(!leftBackgroundWidget->isHidden() && ev->size().width() <= (framelessWindowConverter.getMinimumWindowWidth() + widthOfLeftBackgroundWidget))
+        {
+            leftBackgroundWidget->hide();
+        }
+        else if(leftBackgroundWidget->isHidden() && ev->size().width() > (framelessWindowConverter.getMinimumWindowWidth() + widthOfLeftBackgroundWidget))
+        {
+            leftBackgroundWidget->show();
+        }
+    }
+}
+
+void ExampleApplication::paintEvent(QPaintEvent* ev)
+{
+    // Color the blurred background
+    QPainter painter(this);
+    QColor color(0,0,0);
+
+    color.setAlpha(255);
+    painter.setOpacity(static_cast<double>(windowOpacity) / 100.0);
+    painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
+    painter.fillRect(ev->rect(),color);
 }
 
 QPushButton* ExampleApplication::createSettingSelectionButton(const QString& inText, QWidget* inOptionWidget, QLayout* inLayout)
@@ -83,7 +218,7 @@ QPushButton* ExampleApplication::createSettingSelectionButton(const QString& inT
         int minimumWindowWidth = minimumWidth + widthOfLeftBackgroundWidget;
         if(minimumWindowWidth >= windowHandle()->size().width())
         {
-            resize(minimumWindowWidth+1, windowHandle()->size().height());
+            resize(minimumWindowWidth+1, minimumHeight);
         }
     });
 
@@ -223,6 +358,7 @@ QWidget* ExampleApplication::createTransparencyWidget()
 
 QWidget* ExampleApplication::createFramelessWidget()
 {
+    // Frameless switch
     ToggleButton* framelessSwitch = new ToggleButton;
     ControlHLabel* framelessControl = new ControlHLabel(framelessSwitch);
     LabelVControl* framelessSettingWidget = new LabelVControl("Convert window to a frameless native window", framelessControl);
@@ -284,7 +420,115 @@ QWidget* ExampleApplication::createFramelessWidget()
         }
     });
 
-    return framelessSettingWidget;
+    // Resizing border width
+    QSpinBox* borderWidthSpinBox = new QSpinBox;
+    borderWidthSpinBox->setMinimum(0);
+    borderWidthSpinBox->setMaximum(100);
+    borderWidthSpinBox->setValue(framelessWindowConverter.getBorderWidth());
+    borderWidthSpinBox->setMinimumSize(35, 25);
+    borderWidthSpinBox->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    connect(borderWidthSpinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, [this](int value) {
+        framelessWindowConverter.setBorderWidth(value);
+    });
+    QWidget* borderWidthWidget = new QWidget;
+    borderWidthWidget->setStyleSheet("QLabel { margin-top: 1px; background-color : none; color : white; font-size: 15px; }");
+    QFormLayout* borderWidthLayout = new QFormLayout(borderWidthWidget);
+    borderWidthLayout->addRow("Border width:", borderWidthSpinBox);
+    LabelVControl* borderWidthSetting = new LabelVControl("Change window border width where resizing is allowed", borderWidthWidget);
+
+    // Title bar height
+    QSpinBox* titleBarHeightSpinBox = new QSpinBox;
+    titleBarHeightSpinBox->setMinimum(0);
+    titleBarHeightSpinBox->setMaximum(100);
+    titleBarHeightSpinBox->setValue(framelessWindowConverter.getBorderWidth());
+    titleBarHeightSpinBox->setMinimumSize(35, 25);
+    titleBarHeightSpinBox->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    connect(titleBarHeightSpinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, [this, titleBarHeightSpinBox](int value) {
+        if(titleBarHeightSpinBox->isEnabled())
+        {
+            fwcParams.shouldPerformWindowDrag =  [this, value](int mousePosXInWindow, int mousePosYInWindow)
+            {
+                QWidget* widgetUnderCursor = childAt(mousePosXInWindow, mousePosYInWindow);
+                // Set all background widgets draggable
+                if((widgetUnderCursor == nullptr ||  widgetUnderCursor == rightBackgroundWidget ||  widgetUnderCursor == leftBackgroundWidget
+                    || widgetUnderCursor == machineClicker || widgetUnderCursor == windowTitle || widgetUnderCursor == windowButtons) &&
+                        (mousePosYInWindow < value))
+                    return true;
+                else return false;
+            };
+        }
+    });
+    QWidget* titleBarHeightWidget = new QWidget;
+    titleBarHeightWidget->setStyleSheet("QLabel { margin-top: 1px; background-color : none; color : white; font-size: 15px; }");
+    QFormLayout* titleBarHeightLayout = new QFormLayout(titleBarHeightWidget);
+    titleBarHeightLayout->addRow("Title bar height:", titleBarHeightSpinBox);
+    titleBarHeightLayout->setContentsMargins(0, 0, 0, 0);
+
+    // Movable background switch
+    ToggleButton* backgroundMoveSwitch = new ToggleButton;
+    ControlHLabel* backgroundMoveControl = new ControlHLabel(backgroundMoveSwitch);
+    backgroundMoveSwitch->setChecked(true);
+    QLabel* backgroundMoveLabel = new QLabel("Movable by entire Background:");
+    backgroundMoveLabel->setStyleSheet("QLabel { margin-top: 1px; background-color : none; color : white; font-size: 15px; }");
+
+    QHBoxLayout* backgroundMoveLayout = new QHBoxLayout;
+    backgroundMoveLayout->addWidget(backgroundMoveLabel);
+    backgroundMoveLayout->addWidget(backgroundMoveControl);
+    backgroundMoveLayout->addStretch(1);
+    backgroundMoveLayout->setContentsMargins(0, 0, 0, 0);
+    connect(backgroundMoveSwitch, &QCheckBox::toggled, this, [this, titleBarHeightSpinBox](bool inChecked) {
+        if(!inChecked)
+        {
+            fwcParams.shouldPerformWindowDrag =  [this](int mousePosXInWindow, int mousePosYInWindow)
+            {
+                QWidget* widgetUnderCursor = childAt(mousePosXInWindow, mousePosYInWindow);
+                // Set all background widgets draggable
+                if(widgetUnderCursor == windowButtons->getCloseButton() || widgetUnderCursor == windowButtons->getMinimizeButton() || widgetUnderCursor == windowButtons->getMaximizeButton()
+                        || qobject_cast<ToggleButton*>(widgetUnderCursor) != nullptr || qobject_cast<QPushButton*>(widgetUnderCursor) != nullptr
+                        || qobject_cast<QSpinBox*>(widgetUnderCursor) != nullptr || qobject_cast<QSlider*>(widgetUnderCursor) != nullptr
+                        || qobject_cast<QCheckBox*>(widgetUnderCursor) != nullptr || qobject_cast<QLineEdit*>(widgetUnderCursor) != nullptr)
+                {
+                    return false;
+                }
+                else return true;
+            };
+            framelessWindowConverter.setShouldPerformWindowDrag(fwcParams.shouldPerformWindowDrag);
+            titleBarHeightSpinBox->setEnabled(false);
+        }
+        else
+        {
+            fwcParams.shouldPerformWindowDrag =  [this](int mousePosXInWindow, int mousePosYInWindow)
+            {
+                QWidget* widgetUnderCursor = childAt(mousePosXInWindow, mousePosYInWindow);
+                // Set all background widgets draggable
+                if((widgetUnderCursor == nullptr ||  widgetUnderCursor == rightBackgroundWidget ||  widgetUnderCursor == leftBackgroundWidget
+                    || widgetUnderCursor == machineClicker || widgetUnderCursor == windowTitle || widgetUnderCursor == windowButtons) &&
+                        (mousePosYInWindow < titleBarHeight))
+                    return true;
+                else return false;
+            };
+            titleBarHeightSpinBox->setEnabled(true);
+        }
+    });
+
+    // Move drag area widget
+    QWidget* moveDragAreaWidget = new QWidget;
+    QVBoxLayout* moveDragAreaLayout = new QVBoxLayout(moveDragAreaWidget);
+    moveDragAreaLayout->addLayout(backgroundMoveLayout);
+    moveDragAreaLayout->addSpacing(5);
+    moveDragAreaLayout->addWidget(titleBarHeightWidget);
+    moveDragAreaLayout->addStretch(1);
+    LabelVControl* moveDragAreaSetting = new LabelVControl("Move drag area settings", moveDragAreaWidget);
+
+    // Create frameless widget
+    QWidget* framelessWidget = new QWidget;
+    QVBoxLayout* framelessWidgetLayout = new QVBoxLayout(framelessWidget);
+    framelessWidgetLayout->addWidget(framelessSettingWidget);
+    framelessWidgetLayout->addWidget(borderWidthSetting);
+    framelessWidgetLayout->addWidget(moveDragAreaSetting);
+    framelessWidgetLayout->addStretch(1);
+
+    return framelessWidget;
 }
 
 QWidget* ExampleApplication::createMacOSWidget()
@@ -341,7 +585,6 @@ QWidget* ExampleApplication::createMacOSWidget()
     QWidget* hiddenControlsWidget = new QWidget;
     hiddenControlsWidget->setLayout(hiddenControlsLayout);
     LabelVControl* hiddenSettingWidget = new LabelVControl("Show/Hide traffic lights", hiddenControlsWidget);
-
 
     // Enable buttons
     ToggleButton* greenEnabledSwitch = new ToggleButton;
@@ -401,7 +644,7 @@ QWidget* ExampleApplication::createMacOSWidget()
     xSpinBox->setMinimum(0);
     xSpinBox->setMaximum(10000);
     xSpinBox->setValue(framelessWindowConverter.getUpperLeftXPositionOfTrafficLightsOnMacOS());
-    xSpinBox->setMinimumSize(35, 35);
+    xSpinBox->setMinimumSize(35, 25);
     connect(xSpinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, [this](int value) {
         framelessWindowConverter.setUpperLeftXPositionOfTrafficLightsOnMacOS(value);
     });
@@ -413,7 +656,7 @@ QWidget* ExampleApplication::createMacOSWidget()
     ySpinBox->setMinimum(0);
     ySpinBox->setMaximum(10000);
     ySpinBox->setValue(framelessWindowConverter.getUpperLeftYPositionOfTrafficLightsOnMacOS());
-    ySpinBox->setMinimumSize(35, 35);
+    ySpinBox->setMinimumSize(35, 25);
     connect(ySpinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, [this](int value) {
         framelessWindowConverter.setUpperLeftYPositionOfTrafficLightsOnMacOS(value);
     });
@@ -479,140 +722,4 @@ void ExampleApplication::createRightSideWidgets()
     machineClicker->layout()->setContentsMargins(8, 5, 8, 8);
     rightTitleBar->addLayout(rightStackedLayout);
     rightTitleBar->setContentsMargins(0, 0, 0, 0);
-}
-
-void ExampleApplication::setupFramelessWindow()
-{
-    setWindowFlags(Qt::Widget | Qt::WindowSystemMenuHint | Qt::WindowTitleHint | Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint);
-    setAttribute(Qt::WA_TranslucentBackground, true);
-    setAttribute(Qt::WA_NoSystemBackground, true);
-
-    setWindowTitle("Example Application");
-
-    // Only necessary on macOS to hide Traffic Lights when they are used
-    // Otherwise empty methods are called and hopefully optimized away
-    connect(&translucencyBlurEffect, &TranslucentBlurEffect::hideNonQtWidgets, [this]() { framelessWindowConverter.hideForTranslucency(); });
-    connect(&translucencyBlurEffect, &TranslucentBlurEffect::showNonQtWidgets, [this]() { framelessWindowConverter.showForTranslucency(); });
-
-    framelessWindowConverter.setEnableShadow(false);
-
-    // Set some settings
-    adjustSize(); // apply layout size (constraints) to window
-    rightStackedLayout->currentWidget()->adjustSize();
-    framelessWindowConverter.setMinMaxWindowSizes(rightStackedLayout->currentWidget()->size().width() + 16,
-                                                  rightStackedLayout->currentWidget()->size().height() + titleBarHeight + 6,
-                                                  maximumSize().width(), maximumSize().height());
-    rightBackgroundWidget->setMinimumWidth(rightStackedLayout->currentWidget()->size().width() + 16);
-    rightBackgroundWidget->setMinimumHeight(rightStackedLayout->currentWidget()->size().height() + titleBarHeight + 6);
-
-#ifdef __APPLE__
-    framelessWindowConverter.useTrafficLightsOnMacOS(true);
-    windowTitle->setAlignment(Qt::AlignRight | Qt::AlignTop);
-    windowTitle->setContentsMargins(0,10,10,0);
-    windowButtons->hide();
-    rightTitleBarSpacer->changeSize(0, titleBarHeight);
-#else
-    macOSWidget->setEnabled(false);
-#endif
-
-    framelessWindowConverter.setBorderWidth(5);
-
-    // Set the parameters
-    fwcParams.windowHandle = winId();
-    fwcParams.releaseMouseGrab = [this]() { windowHandle()->setMouseGrabEnabled(false); };
-    fwcParams.shouldPerformWindowDrag =  [this](int mousePosXInWindow, int mousePosYInWindow)
-    {
-        QWidget* widgetUnderCursor = childAt(mousePosXInWindow, mousePosYInWindow);
-        // Set all background widgets draggable
-        if((widgetUnderCursor == nullptr ||  widgetUnderCursor == rightBackgroundWidget ||  widgetUnderCursor == leftBackgroundWidget
-            || widgetUnderCursor == machineClicker || widgetUnderCursor == windowTitle || widgetUnderCursor == windowButtons) &&
-                (mousePosYInWindow < titleBarHeight))
-            return true;
-        else return false;
-    };
-
-    // Convert window
-    framelessWindowConverter.convertWindowToFrameless(fwcParams);
-
-    // Connect custom System Buttons
-    connect(windowButtons->getCloseButton(), &QAbstractButton::clicked, this, [this]()
-    {
-        framelessWindowConverter.closeWindow();
-    });
-    connect(windowButtons->getMinimizeButton(), &QAbstractButton::clicked, this, [this]()
-    {
-        framelessWindowConverter.minimizeWindow();
-    });
-    connect(windowButtons->getMaximizeButton(), &QAbstractButton::clicked, this, [this]()
-    {
-#ifdef __APPLE__
-        if(!(qApp->keyboardModifiers() & Qt::AltModifier) || window()->isFullScreen())
-        {
-            framelessWindowConverter.toggleFullscreen();
-        }
-        else
-#endif
-        {
-            if(window()->isMaximized())
-            {
-                fullscreenSwitch->setChecked(true);
-                framelessWindowConverter.restoreWindow();
-            }
-            else
-                framelessWindowConverter.maximizeWindow();
-        }
-    });
-}
-
-bool ExampleApplication::event(QEvent* event)
-{
-    switch(event->type())
-    {
-    case QEvent::WindowStateChange:
-    {
-        // When user drags title bar check fullscreen switch
-        QWindowStateChangeEvent* stateEvent = static_cast<QWindowStateChangeEvent*>(event);
-        if (!(windowState() & Qt::WindowMaximized) && (stateEvent->oldState() & Qt::WindowMaximized))
-            fullscreenSwitch->setChecked(true);
-        break;
-    }
-    default:
-        break;
-    }
-
-    return QWidget::event(event);
-}
-
-bool ExampleApplication::nativeEvent(const QByteArray& eventType, void* message, long* result)
-{
-    Q_UNUSED(eventType)
-    return framelessWindowConverter.filterNativeEvents(message, result);
-}
-
-void ExampleApplication::resizeEvent(QResizeEvent* ev)
-{
-    // Show/Hide left background widget if the window size is too small
-    if(leftBackgroundWidget && ev->oldSize().width() != -1)
-    {
-        if(!leftBackgroundWidget->isHidden() && ev->size().width() <= (framelessWindowConverter.getMinimumWindowWidth() + widthOfLeftBackgroundWidget))
-        {
-            leftBackgroundWidget->hide();
-        }
-        else if(leftBackgroundWidget->isHidden() && ev->size().width() > (framelessWindowConverter.getMinimumWindowWidth() + widthOfLeftBackgroundWidget))
-        {
-            leftBackgroundWidget->show();
-        }
-    }
-}
-
-void ExampleApplication::paintEvent(QPaintEvent* ev)
-{
-    // Color the blurred background
-    QPainter painter(this);
-    QColor color(0,0,0);
-
-    color.setAlpha(255);
-    painter.setOpacity(static_cast<double>(windowOpacity) / 100.0);
-    painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
-    painter.fillRect(ev->rect(),color);
 }

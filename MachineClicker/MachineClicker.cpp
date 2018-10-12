@@ -97,6 +97,7 @@ void MachineClicker::editFinished()
 {
     int keycode = HotkeyEdit->keySequence()[0];
     startStopHotkey.registerNewHotkey(Qt::Key(keycode));
+    HotkeyEdit->clearFocus();
 }
 
 void MachineClicker::handleStartStopButton(bool isActive)

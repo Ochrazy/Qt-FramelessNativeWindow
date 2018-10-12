@@ -5,7 +5,7 @@
 LabelVControl::LabelVControl(const QString& inDescription, QWidget* inControl, QWidget *parent) : QWidget(parent), control(inControl)
 {
     description = new QLabel;
-    description->setStyleSheet("QLabel { background-color : none; color : white; font-size: 15px; }");
+    description->setStyleSheet("QLabel { background-color : none; color : white; font-size: 17px; }");
     setDescription(inDescription);
 
     QVBoxLayout* mainLayout = new QVBoxLayout(this);
