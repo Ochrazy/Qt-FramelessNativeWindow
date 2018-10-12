@@ -437,7 +437,7 @@ QWidget* ExampleApplication::createFramelessWidget()
 
     // Title bar height
     QSpinBox* titleBarHeightSpinBox = new QSpinBox;
-    titleBarHeightSpinBox->setMinimum(0);
+    titleBarHeightSpinBox->setMinimum(windowButtons->getCloseButton()->minimumHeight());
     titleBarHeightSpinBox->setMaximum(1000);
     titleBarHeightSpinBox->setValue(titleBarHeight);
     titleBarHeightSpinBox->setMinimumSize(35, 25);
