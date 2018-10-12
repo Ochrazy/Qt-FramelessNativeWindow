@@ -176,7 +176,7 @@ void FramelessWindowConverterMacos::showForTranslucency()
 {
     if(q_ptr->isUsingTrafficLightsOnMacOS())
     {
-       showTrafficLights();
+        showTrafficLights();
     }
 }
 
@@ -216,14 +216,41 @@ void FramelessWindowConverterMacos::setEnabledYellowTrafficLightOnMacOS(bool inE
     else [minimizeButton setEnabled:NO];
 }
 
+void FramelessWindowConverterMacos::setHorizontalAlignmentOfTrafficLightsOnMacOS()
+{
+    repositionTrafficLights();
+}
+
+void FramelessWindowConverterMacos::setUpperLeftXPositionOfTrafficLightsOnMacOS()
+{
+    repositionTrafficLights();
+}
+
+void FramelessWindowConverterMacos::setUpperLeftYPositionOfTrafficLightsOnMacOS()
+{
+    repositionTrafficLights();
+}
+
 void FramelessWindowConverterMacos::repositionTrafficLights()
 {
-    [fullScreenButton setFrameOrigin:NSMakePoint(q_ptr->getXPosOfGreenTrafficLightOnMacOS(),
-                                                 q_ptr->getYPosOfGreenTrafficLightOnMacOS())];
-    [closeButton setFrameOrigin:NSMakePoint(q_ptr->getXPosOfRedTrafficLightOnMacOS(),
-                                            q_ptr->getYPosOfRedTrafficLightOnMacOS())];
-    [minimizeButton setFrameOrigin:NSMakePoint(q_ptr->getXPosOfYellowTrafficLightOnMacOS(),
-                                               q_ptr->getYPosOfYellowTrafficLightOnMacOS())];
+    // Default macOS positions
+    // int xPosOfGreen = 48, PosOfGreen = 3;
+    // int xPosOfRed = 7, yPosOfRed = 3;
+    // int xPosOfYellow = 28, yPosOfYellow = 3;
+    int xPos = q_ptr->getUpperLeftXPositionOfTrafficLightsOnMacOS();
+    int yPos = q_ptr->getUpperLeftYPositionOfTrafficLightsOnMacOS();
+    if(q_ptr->getHorizontalAlignmentOfTrafficLightsOnMacOS())
+    {
+        [fullScreenButton setFrameOrigin:NSMakePoint(xPos + 41, yPos)];
+        [closeButton setFrameOrigin:NSMakePoint(xPos + 0, yPos)];
+        [minimizeButton setFrameOrigin:NSMakePoint(xPos + 21, yPos)];
+    }
+    else
+    {
+        [fullScreenButton setFrameOrigin:NSMakePoint(xPos, yPos + 41)];
+        [closeButton setFrameOrigin:NSMakePoint(xPos, yPos + 0)];
+        [minimizeButton setFrameOrigin:NSMakePoint(xPos, yPos + 21)];
+    }
 }
 
 void FramelessWindowConverterMacos::convertToFrameless()
@@ -341,8 +368,8 @@ void FramelessWindowConverterMacos::convertToFrameless()
     [NSTimer scheduledTimerWithTimeInterval:0.5
         target:tlHelper
         selector:@selector(fakeResizeAction:)
-        userInfo:nil
-        repeats:NO];
+      userInfo:nil
+      repeats:NO];
 }
 
 void FramelessWindowConverterMacos::convertToWindowWithFrame()
@@ -555,7 +582,7 @@ bool FramelessWindowConverterMacos::filterNativeEvent(void *message, long *resul
             bool isInside = NSPointInRect(localPos, NSMakeRect(closeButton.frame.origin.x, closeButton.frame.origin.y,
                                                                (fullScreenButton.frame.origin.x + fullScreenButton.frame.size.width) - closeButton.frame.origin.x,
                                                                (fullScreenButton.frame.origin.y + fullScreenButton.frame.size.height) - closeButton.frame.origin.y));
-             if(isInside)
+            if(isInside)
                 shouldDrag = false;
         }
 

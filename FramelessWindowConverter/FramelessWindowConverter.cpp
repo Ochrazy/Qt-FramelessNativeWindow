@@ -151,29 +151,10 @@ bool FramelessWindowConverter::getEnabledGreenTrafficLightOnMacOS() { return bEn
 bool FramelessWindowConverter::getEnabledRedTrafficLightOnMacOS() { return bEnabledRed; }
 bool FramelessWindowConverter::getEnabledYellowTrafficLightOnMacOS() { return bEnabledYellow; }
 
-void FramelessWindowConverter::setPosOfGreenTrafficLightOnMacOS(int inXPos, int inYPos)
-{
-    xPosOfGreen = inXPos;
-    yPosOfGreen = inYPos;
-}
+void FramelessWindowConverter::setHorizontalAlignmentOfTrafficLightsOnMacOS(bool inHorizontal) { bTrafficLightsAlignmentHorizontal = inHorizontal; d_ptr->setHorizontalAlignmentOfTrafficLightsOnMacOS(); }
+bool FramelessWindowConverter::getHorizontalAlignmentOfTrafficLightsOnMacOS() { return bTrafficLightsAlignmentHorizontal; }
 
-void FramelessWindowConverter::setPosOfRedTrafficLightOnMacOS(int inXPos, int inYPos)
-{
-    xPosOfRed = inXPos;
-    yPosOfRed = inYPos;
-}
-
-void FramelessWindowConverter::setPosOfYellowTrafficLightOnMacOS(int inXPos, int inYPos)
-{
-    xPosOfYellow = inXPos;
-    yPosOfYellow = inYPos;
-}
-
-int FramelessWindowConverter::getXPosOfGreenTrafficLightOnMacOS() { return xPosOfGreen; }
-int FramelessWindowConverter::getYPosOfGreenTrafficLightOnMacOS() { return yPosOfGreen; }
-
-int FramelessWindowConverter::getXPosOfRedTrafficLightOnMacOS() { return xPosOfRed; }
-int FramelessWindowConverter::getYPosOfRedTrafficLightOnMacOS() { return yPosOfRed; }
-
-int FramelessWindowConverter::getXPosOfYellowTrafficLightOnMacOS() { return xPosOfYellow; }
-int FramelessWindowConverter::getYPosOfYellowTrafficLightOnMacOS() { return yPosOfYellow; }
+void FramelessWindowConverter::setUpperLeftXPositionOfTrafficLightsOnMacOS(int inXPos) { xPosOfTrafficLights = inXPos; d_ptr->setUpperLeftXPositionOfTrafficLightsOnMacOS(); }
+void FramelessWindowConverter::setUpperLeftYPositionOfTrafficLightsOnMacOS(int inYPos) { yPosOfTrafficLights = inYPos; d_ptr->setUpperLeftYPositionOfTrafficLightsOnMacOS(); }
+int FramelessWindowConverter::getUpperLeftXPositionOfTrafficLightsOnMacOS() { return xPosOfTrafficLights; }
+int FramelessWindowConverter::getUpperLeftYPositionOfTrafficLightsOnMacOS() { return yPosOfTrafficLights; }

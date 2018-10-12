@@ -9,6 +9,7 @@
 #include <QScrollArea>
 #include <QSlider>
 #include <QFormLayout>
+#include <QCheckBox>
 #include "MinimalScrollBar.h"
 #include "ToggleButton.h"
 #include "QPropertyAnimation"
@@ -371,11 +372,63 @@ QWidget* ExampleApplication::createMacOSWidget()
     enabledControlsWidget->setLayout(enabledControlsLayout);
     LabelVControl* enabledSettingWidget = new LabelVControl("Enable/Disable traffic lights", enabledControlsWidget);
 
+    // Position and alignment of traffic lights
+    QWidget* positionWidget = new QWidget;
+    positionWidget->setStyleSheet("QLabel { margin-top: 1px; background-color : none; color : white; font-size: 15px; }");
+    positionWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    QHBoxLayout* positionMainLayout = new QHBoxLayout;
+    positionMainLayout->setContentsMargins(0, 0, 5, 0);
+    QVBoxLayout* posAlignmentLayout = new QVBoxLayout(positionWidget);
+    posAlignmentLayout->setContentsMargins(5, 0, 0, 0);
+
+    QCheckBox* horizontalAlignmentCheck = new QCheckBox;
+    horizontalAlignmentCheck->setCheckState(Qt::CheckState::Checked);
+    QLabel* horizontalAlignmentLabel = new QLabel("Horizontal alignment");
+    QHBoxLayout* horizontalAlignmentLayout = new QHBoxLayout;
+    horizontalAlignmentLayout->addWidget(horizontalAlignmentCheck);
+    horizontalAlignmentLayout->addWidget(horizontalAlignmentLabel);
+    horizontalAlignmentLayout->addStretch(1);
+    horizontalAlignmentLayout->setContentsMargins(7, 0, 0, 0);
+    connect(horizontalAlignmentCheck, &QCheckBox::stateChanged, this, [this](int state) {
+        if(state == Qt::CheckState::Checked)
+            framelessWindowConverter.setHorizontalAlignmentOfTrafficLightsOnMacOS(true);
+        else framelessWindowConverter.setHorizontalAlignmentOfTrafficLightsOnMacOS(false);
+    });
+    posAlignmentLayout->addLayout(horizontalAlignmentLayout);
+    posAlignmentLayout->addLayout(positionMainLayout);
+
+    QSpinBox* xSpinBox = new QSpinBox;
+    xSpinBox->setMinimum(0);
+    xSpinBox->setMaximum(10000);
+    xSpinBox->setValue(framelessWindowConverter.getUpperLeftXPositionOfTrafficLightsOnMacOS());
+    xSpinBox->setMinimumSize(35, 35);
+    connect(xSpinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, [this](int value) {
+        framelessWindowConverter.setUpperLeftXPositionOfTrafficLightsOnMacOS(value);
+    });
+    QFormLayout* xLayout = new QFormLayout;
+    xLayout->addRow("X:", xSpinBox);
+    positionMainLayout->addLayout(xLayout);
+
+    QSpinBox* ySpinBox = new QSpinBox;
+    ySpinBox->setMinimum(0);
+    ySpinBox->setMaximum(10000);
+    ySpinBox->setValue(framelessWindowConverter.getUpperLeftYPositionOfTrafficLightsOnMacOS());
+    ySpinBox->setMinimumSize(35, 35);
+    connect(ySpinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, [this](int value) {
+        framelessWindowConverter.setUpperLeftYPositionOfTrafficLightsOnMacOS(value);
+    });
+    QFormLayout* yLayout = new QFormLayout;
+    yLayout->addRow("Y:", ySpinBox);
+    positionMainLayout->addLayout(yLayout);
+    LabelVControl* positionSettingWidget = new LabelVControl("Upper left position of the traffic lights and alignment", positionWidget);
+
+    // Create the macOS widget
     macOSWidget = new QWidget;
     QVBoxLayout* macOSWidgetLayout = new QVBoxLayout(macOSWidget);
     macOSWidgetLayout->addWidget(trafficLightSettingWidget);
     macOSWidgetLayout->addWidget(hiddenSettingWidget);
     macOSWidgetLayout->addWidget(enabledSettingWidget);
+    macOSWidgetLayout->addWidget(positionSettingWidget);
     macOSWidgetLayout->addStretch(1);
     macOSWidgetLayout->setContentsMargins(0, 0, 0, 0);
 
@@ -451,10 +504,6 @@ void ExampleApplication::setupFramelessWindow()
                                                   maximumSize().width(), maximumSize().height());
     rightBackgroundWidget->setMinimumWidth(rightStackedLayout->currentWidget()->size().width() + 16);
     rightBackgroundWidget->setMinimumHeight(rightStackedLayout->currentWidget()->size().height() + titleBarHeight + 6);
-
-    framelessWindowConverter.setPosOfGreenTrafficLightOnMacOS(50, 10);
-    framelessWindowConverter.setPosOfRedTrafficLightOnMacOS(10, 10);
-    framelessWindowConverter.setPosOfYellowTrafficLightOnMacOS(30, 10);
 
 #ifdef __APPLE__
     framelessWindowConverter.useTrafficLightsOnMacOS(true);

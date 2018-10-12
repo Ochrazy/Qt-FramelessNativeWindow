@@ -90,18 +90,12 @@ public:
     bool getEnabledYellowTrafficLightOnMacOS();
 
     // Positions are relative to upper left window corner
-    void setPosOfGreenTrafficLightOnMacOS(int inXPos, int inYPos);
-    void setPosOfRedTrafficLightOnMacOS(int inXPos, int inYPos);
-    void setPosOfYellowTrafficLightOnMacOS(int inXPos, int inYPos);
-
-    int getXPosOfGreenTrafficLightOnMacOS();
-    int getYPosOfGreenTrafficLightOnMacOS();
-
-    int getXPosOfRedTrafficLightOnMacOS();
-    int getYPosOfRedTrafficLightOnMacOS();
-
-    int getXPosOfYellowTrafficLightOnMacOS();
-    int getYPosOfYellowTrafficLightOnMacOS();
+    void setHorizontalAlignmentOfTrafficLightsOnMacOS(bool inHorizontal);
+    bool getHorizontalAlignmentOfTrafficLightsOnMacOS();
+    void setUpperLeftXPositionOfTrafficLightsOnMacOS(int inXPos);
+    void setUpperLeftYPositionOfTrafficLightsOnMacOS(int inYPos);
+    int getUpperLeftXPositionOfTrafficLightsOnMacOS();
+    int getUpperLeftYPositionOfTrafficLightsOnMacOS();
 
 private:
     class FramelessWindowConverterPrivate* d_ptr;
@@ -125,10 +119,10 @@ private:
     bool bEnabledGreen = true;
     bool bEnabledRed = true;
     bool bEnabledYellow = true;
+
     // Default is horizontal
-    int xPosOfGreen = 48, yPosOfGreen = 3;
-    int xPosOfRed = 7, yPosOfRed = 3;
-    int xPosOfYellow = 28, yPosOfYellow = 3;
+    bool bTrafficLightsAlignmentHorizontal = true;
+    int xPosOfTrafficLights = 7, yPosOfTrafficLights = 3;
 };
 
 }

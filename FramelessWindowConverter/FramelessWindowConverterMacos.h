@@ -45,6 +45,10 @@ public:
     void setEnabledRedTrafficLightOnMacOS(bool inEnabled) override;
     void setEnabledYellowTrafficLightOnMacOS(bool inEnabled) override;
 
+    void setHorizontalAlignmentOfTrafficLightsOnMacOS() override;
+    void setUpperLeftXPositionOfTrafficLightsOnMacOS() override;
+    void setUpperLeftYPositionOfTrafficLightsOnMacOS() override;
+
 private:
     NSView* nativeWidgetView;
     NSWindow* window;

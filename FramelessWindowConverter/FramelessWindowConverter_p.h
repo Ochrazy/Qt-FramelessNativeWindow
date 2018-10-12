@@ -91,6 +91,10 @@ public:
     virtual void setEnabledRedTrafficLightOnMacOS(bool inEnabled)  { (void)inEnabled; }
     virtual void setEnabledYellowTrafficLightOnMacOS(bool inEnabled) { (void)inEnabled; }
 
+    virtual void setHorizontalAlignmentOfTrafficLightsOnMacOS() {}
+    virtual void setUpperLeftXPositionOfTrafficLightsOnMacOS() {}
+    virtual void setUpperLeftYPositionOfTrafficLightsOnMacOS() {}
+
 protected:
     FramelessWindowConverter* q_ptr;
     virtual FWCBorderHitTestResult doBorderHitTest(FWCRect inWindowRect, FWCPoint inMousePosition, int inBorderWidth);
