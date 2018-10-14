@@ -24,23 +24,29 @@ private:
     TranslucentBlurEffect translucencyBlurEffect;
 
     // Frameless Window
-    void setupFramelessWindow();
+    void setupFramelessWindow(bool hasWindowDropShadow = false);
     int titleBarHeight = 25;
 
     // Main Widgets
     QWidget* rightBackgroundWidget;
     QWidget* leftBackgroundWidget;
     int widthOfLeftBackgroundWidget = 400;
+    // Based on current shown widgets and title bar height
+    void setMinMaxWindowSizesAndResizeIfNeeded();
 
     // Left side widgets
     void createLeftSideWidgets();
+    void dynamicallyShowHidetLeftWidgetBasedOnSize(int windowWidth);
     class QVBoxLayout* settingSelectionLayout;
     class QPushButton* createSettingSelectionButton(const QString& inText, QWidget* inOptionWidget, QLayout* inLayout);
     QLabel* windowTitle;
+    QPushButton* settingsButton;
+    bool bAlwaysShowSettings = false;
+    bool bNeverShowSettings = false;
     QWidget* selectionIndicator;
 
     // Right side widgets
-    QVBoxLayout* rightTitleBar;
+    QVBoxLayout* rightWidgetLayout;
     class QSpacerItem* rightTitleBarSpacer;
     void createRightSideWidgets();
     WindowButtons* windowButtons;
@@ -58,8 +64,6 @@ private:
     ToggleButton* transparencySwitch;
     ToggleButton* fullscreenSwitch;
     class QStackedLayout* rightStackedLayout;
-
-    bool hasShadow = false;
 };
 
 #endif // OPTIONTAB_H

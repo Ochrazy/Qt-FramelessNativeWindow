@@ -15,12 +15,12 @@ public:
     QPushButton* getMinimizeButton();
     QPushButton* getMaximizeButton();
 
+    static QString getStyleSheetString(QString iconName, QString hoverBackgroundColor, QString pressedBackgroundColor);
+
 private:
     QPushButton* CloseButton;
     QPushButton* MinimizeButton;
     QPushButton* MaximizeButton;
-
-    QString getStyleSheetString(QString iconName, QString hoverBackgroundColor);
 };
 
 #endif // WINDOWBUTTONS_H

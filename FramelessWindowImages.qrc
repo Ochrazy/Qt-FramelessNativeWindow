@@ -6,5 +6,9 @@
         <file>images/icon_window_restore.png</file>
         <file>images/icon_window_macOS_fullscreen.png</file>
         <file>images/icon_window_macOS_maximize.png</file>
+        <file>images/icon_settings_light.png</file>
+        <file>images/icon_settings_enabled_light.png</file>
+        <file>images/icon_settings.png</file>
+        <file>images/icon_settings_enabled.png</file>
     </qresource>
 </RCC>

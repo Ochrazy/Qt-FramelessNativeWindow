@@ -38,18 +38,19 @@ ExampleApplication::ExampleApplication(QWidget *parent) : QWidget(parent),
     TopLevelLayout->setContentsMargins(0,0,0,0);
 
     // Enable/Disable window drop shadow (enabling it disables all transparency effects)
-    hasShadow = false;
+    bool hasWindowDropShadow = false;
 
-    setupFramelessWindow();
+    // Setup frameless window
+    setupFramelessWindow(hasWindowDropShadow);
 
     // Convert window
     framelessWindowConverter.convertWindowToFrameless(fwcParams);
 }
 
-void ExampleApplication::setupFramelessWindow()
+void ExampleApplication::setupFramelessWindow(bool hasWindowDropShadow)
 {
     setWindowFlags(Qt::Widget | Qt::WindowSystemMenuHint | Qt::WindowTitleHint | Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint);
-    if(!hasShadow)
+    if(!hasWindowDropShadow)
     {
         setAttribute(Qt::WA_TranslucentBackground, true);
         setAttribute(Qt::WA_NoSystemBackground, true);
@@ -163,20 +164,26 @@ bool ExampleApplication::event(QEvent* event)
     return QWidget::event(event);
 }
 
-void ExampleApplication::resizeEvent(QResizeEvent* ev)
+void ExampleApplication::dynamicallyShowHidetLeftWidgetBasedOnSize(int windowWidth)
 {
     // Show/Hide left background widget if the window size is too small
-    if(leftBackgroundWidget && ev->oldSize().width() != -1)
+    if(!bAlwaysShowSettings && !bNeverShowSettings)
     {
-        if(!leftBackgroundWidget->isHidden() && ev->size().width() <= (framelessWindowConverter.getMinimumWindowWidth() + widthOfLeftBackgroundWidget))
+        if(!leftBackgroundWidget->isHidden() && windowWidth < (framelessWindowConverter.getMinimumWindowWidth() + widthOfLeftBackgroundWidget))
         {
             leftBackgroundWidget->hide();
         }
-        else if(leftBackgroundWidget->isHidden() && ev->size().width() > (framelessWindowConverter.getMinimumWindowWidth() + widthOfLeftBackgroundWidget))
+        else if(leftBackgroundWidget->isHidden() && windowWidth >= (framelessWindowConverter.getMinimumWindowWidth() + widthOfLeftBackgroundWidget))
         {
             leftBackgroundWidget->show();
         }
     }
+}
+
+void ExampleApplication::resizeEvent(QResizeEvent* ev)
+{
+    if(ev->oldSize().width() != -1)
+        dynamicallyShowHidetLeftWidgetBasedOnSize(ev->size().width());
 }
 
 void ExampleApplication::paintEvent(QPaintEvent* ev)
@@ -189,6 +196,36 @@ void ExampleApplication::paintEvent(QPaintEvent* ev)
     painter.setOpacity(static_cast<double>(windowOpacity) / 100.0);
     painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
     painter.fillRect(ev->rect(),color);
+}
+
+void ExampleApplication::setMinMaxWindowSizesAndResizeIfNeeded()
+{
+    // Set new window size limits
+    // +16 and +6 for contents margins
+    int minimumWidth = 0, minimumHeight = 0;
+    QWidget* currentRightWidget = rightStackedLayout->currentWidget();
+    if(currentRightWidget->layout())
+    {
+        minimumWidth = currentRightWidget->layout()->minimumSize().width() + 16;
+        minimumHeight = currentRightWidget->layout()->minimumSize().height() + titleBarHeight + 6;
+    }
+    else
+    {
+        minimumWidth = currentRightWidget->minimumWidth() + 16;
+        minimumHeight = currentRightWidget->minimumHeight() + titleBarHeight + 6;
+    }
+
+    int minimumWindowWidth = minimumWidth;
+    if(bAlwaysShowSettings && !bNeverShowSettings)
+    {
+        // minimumWidth += widthOfLeftBackgroundWidget;
+        minimumWindowWidth += widthOfLeftBackgroundWidget;
+    }
+
+    framelessWindowConverter.setMinMaxWindowSizes(minimumWindowWidth, minimumHeight, maximumSize().width(), maximumSize().height());
+    rightBackgroundWidget->setMinimumWidth(minimumWidth);
+    rightBackgroundWidget->setMinimumHeight(minimumHeight);
+    update();
 }
 
 QPushButton* ExampleApplication::createSettingSelectionButton(const QString& inText, QWidget* inOptionWidget, QLayout* inLayout)
@@ -209,35 +246,9 @@ QPushButton* ExampleApplication::createSettingSelectionButton(const QString& inT
                                              "QPushButton:pressed{ background-color: grey;}");
     connect(newSettingSelectionButton, &QPushButton::clicked, [this, inOptionWidget, newSettingSelectionButton] () {
         rightStackedLayout->setCurrentWidget(inOptionWidget);
-        // Set new window size limits
-        // +16 and +6 for contents margins
-        int minimumWidth = 0;
-        int minimumHeight = 0;
-        if(inOptionWidget->layout())
-        {
-            minimumWidth = inOptionWidget->layout()->minimumSize().width() + 16;
-            minimumHeight = inOptionWidget->layout()->minimumSize().height() + titleBarHeight + 6;
-        }
-        else
-        {
-            minimumWidth = inOptionWidget->minimumWidth() + 16;
-            minimumHeight = inOptionWidget->minimumHeight() + titleBarHeight + 6;
-        }
-        framelessWindowConverter.setMinMaxWindowSizes(minimumWidth,
-                                                      minimumHeight,
-                                                      maximumSize().width(), maximumSize().height());
-        rightBackgroundWidget->setMinimumWidth(minimumWidth);
-        rightBackgroundWidget->setMinimumHeight(minimumHeight);
         selectionIndicator->setParent(newSettingSelectionButton);
         selectionIndicator->show();
-        update();
-
-        // Resize widget to always show option selection widget after clicking an option
-        int minimumWindowWidth = minimumWidth + widthOfLeftBackgroundWidget;
-        if(minimumWindowWidth >= windowHandle()->size().width())
-        {
-            resize(minimumWindowWidth+1, minimumHeight);
-        }
+        setMinMaxWindowSizesAndResizeIfNeeded();
     });
 
     inLayout->addWidget(newSettingSelectionButton);
@@ -477,19 +488,8 @@ QWidget* ExampleApplication::createFramelessWidget()
 
             rightTitleBarSpacer->changeSize(0, value - windowButtons->getCloseButton()->minimumHeight());
             rightStackedLayout->update();
-            int minimumHeight = 0;
-            if(rightStackedLayout->currentWidget()->layout())
-                minimumHeight = rightStackedLayout->currentWidget()->layout()->minimumSize().height() + value + 6;
-            else minimumHeight = rightStackedLayout->currentWidget()->minimumHeight() + value + 6;
             titleBarHeight = value;
-
-            framelessWindowConverter.setMinimumWindowHeight(minimumHeight);
-            rightBackgroundWidget->setMinimumHeight(minimumHeight);
-            if(minimumHeight >= windowHandle()->size().height())
-            {
-                resize(windowHandle()->size().width(), minimumHeight);
-            }
-
+            setMinMaxWindowSizesAndResizeIfNeeded();
         }
     });
     QWidget* titleBarHeightWidget = new QWidget;
@@ -717,17 +717,57 @@ void ExampleApplication::createRightSideWidgets()
 {
     windowButtons = new WindowButtons(titleBarHeight);
 
+    settingsButton = new QPushButton;
+    settingsButton->setFixedSize(static_cast<int>(titleBarHeight / 1.0f), titleBarHeight);
+    settingsButton->setCheckable(true);
+    settingsButton->setStyleSheet(WindowButtons::getStyleSheetString(":/images/icon_settings_light.png", "grey", "#0078d7") +
+                                  "QPushButton { padding: 2px; }"
+                                  "QPushButton:checked{"
+                                  "image:url(:/images/icon_settings_enabled_light.png);"
+                                  "}");
+    connect(settingsButton, &QPushButton::toggled, this, [this](bool inChecked){
+        bAlwaysShowSettings = inChecked;
+        if(bAlwaysShowSettings) leftBackgroundWidget->show();
+        setMinMaxWindowSizesAndResizeIfNeeded();
+    });
+    QCheckBox* settingsEnabledCheck = new QCheckBox;
+    settingsEnabledCheck->setCheckState(Qt::CheckState::Checked);
+    connect(settingsEnabledCheck, &QCheckBox::stateChanged, this, [this](int inNewState){
+        if(inNewState == Qt::CheckState::Unchecked)
+        {
+            bNeverShowSettings = true;
+            leftBackgroundWidget->hide();
+            setMinMaxWindowSizesAndResizeIfNeeded();
+            settingsButton->setChecked(false);
+            settingsButton->setEnabled(false);
+        }
+        else
+        {
+            bNeverShowSettings = false;
+            dynamicallyShowHidetLeftWidgetBasedOnSize(window()->width());
+            setMinMaxWindowSizesAndResizeIfNeeded();
+            settingsButton->setEnabled(true);
+        }
+    });
+
+    QHBoxLayout* titleBarLayout = new QHBoxLayout;
+    titleBarLayout->addSpacing(5);
+    titleBarLayout->addWidget(settingsButton);
+    titleBarLayout->addWidget(settingsEnabledCheck);
+    titleBarLayout->addStretch(1);
+    titleBarLayout->addWidget(windowButtons);
+
     // Right Background Widget
     rightBackgroundWidget = new QWidget;
     rightBackgroundWidget->setObjectName("rightBackgroundWidget");
     rightBackgroundWidget->setStyleSheet("#rightBackgroundWidget { background-color:black; }");
 
-    rightTitleBar = new QVBoxLayout(rightBackgroundWidget);
-    rightTitleBar->setSpacing(0);
-    rightTitleBar->addWidget(windowButtons);
+    rightWidgetLayout = new QVBoxLayout(rightBackgroundWidget);
+    rightWidgetLayout->setSpacing(0);
+    rightWidgetLayout->addLayout(titleBarLayout);
     rightTitleBarSpacer = new QSpacerItem(0, 0);
-    rightTitleBar->addSpacerItem(rightTitleBarSpacer);
-    rightTitleBar->addSpacing(5);
+    rightWidgetLayout->addSpacerItem(rightTitleBarSpacer);
+    rightWidgetLayout->addSpacing(5);
 
     // Create MachineClicker widget
     machineClicker = new MachineClicker;
@@ -742,7 +782,7 @@ void ExampleApplication::createRightSideWidgets()
     // Create fullscreen setting widget
     fullscreenSwitch = new ToggleButton;
     fullscreenSwitch->toggle();
-    fullscreenWidget = new LabelVControl("Toggle frameless fullscreen window", new ControlHLabel(fullscreenSwitch));
+    fullscreenWidget = new LabelVControl("Toggle frameless/borderless fullscreen window", new ControlHLabel(fullscreenSwitch));
     connect(fullscreenSwitch, &QAbstractButton::toggled, this, [this]() {
         framelessWindowConverter.toggleFullscreen();
     });
@@ -755,6 +795,6 @@ void ExampleApplication::createRightSideWidgets()
     rightStackedLayout->addWidget(macOSWidget);
 
     machineClicker->layout()->setContentsMargins(8, 5, 8, 8);
-    rightTitleBar->addLayout(rightStackedLayout);
-    rightTitleBar->setContentsMargins(0, 0, 0, 0);
+    rightWidgetLayout->addLayout(rightStackedLayout);
+    rightWidgetLayout->setContentsMargins(0, 0, 0, 0);
 }

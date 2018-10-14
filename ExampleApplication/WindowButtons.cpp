@@ -9,18 +9,18 @@ WindowButtons::WindowButtons(int inTitleBarHeight, QWidget *parent) : QWidget(pa
 {
     CloseButton = new QPushButton;
     CloseButton->setFixedSize(35, inTitleBarHeight);
-    CloseButton->setStyleSheet(getStyleSheetString("image:url(:/images/icon_window_close.png)", "red"));
+    CloseButton->setStyleSheet(getStyleSheetString(":/images/icon_window_close.png", "red" , "lightcoral"));
 
     MinimizeButton = new QPushButton;
     MinimizeButton->setFixedSize(35, inTitleBarHeight);
-    MinimizeButton->setStyleSheet(getStyleSheetString("image:url(:/images/icon_window_minimize.png)", "grey"));
+    MinimizeButton->setStyleSheet(getStyleSheetString(":/images/icon_window_minimize.png", "grey", "lightgrey"));
 
     MaximizeButton = new QPushButton;
     MaximizeButton->setFixedSize(35, inTitleBarHeight);
 #ifdef __APPLE__
-    MaximizeButton->setStyleSheet(getStyleSheetString("image:url(:/images/icon_window_macOS_fullscreen.png)", "grey"));
+    MaximizeButton->setStyleSheet(getStyleSheetString(":/images/icon_window_macOS_fullscreen.png", "grey", "lightgrey"));
 #else
-    MaximizeButton->setStyleSheet(getStyleSheetString("image:url(:/images/icon_window_maximize.png)", "grey"));
+    MaximizeButton->setStyleSheet(getStyleSheetString(":/images/icon_window_maximize.png", "grey", "lightgrey"));
 #endif
 
     QHBoxLayout* hBoxLayout = new QHBoxLayout(this);
@@ -49,15 +49,16 @@ QPushButton* WindowButtons::getMaximizeButton()
     return MaximizeButton;
 }
 
-QString WindowButtons::getStyleSheetString(QString iconName, QString hoverBackgroundColor)
+QString WindowButtons::getStyleSheetString(QString iconName, QString hoverBackgroundColor, QString pressedBackgroundColor)
 {
-    return  QString("QPushButton { "
-                    + iconName + ";"
+    return  QString("QPushButton { image:url("
+                    + iconName + ");"
                                  "background-color:none;"
                                  "border:none;"
                                  "padding:0px;"
                                  "border-top-right-radius: 0px;}"
-                                 "QPushButton:hover{ background-color:" + hoverBackgroundColor + "; }");
+                                 "QPushButton:hover{ background-color:" + hoverBackgroundColor + "; }"
+                                 "QPushButton:pressed{ background-color:" + pressedBackgroundColor + "; }");
 }
 
 bool WindowButtons::eventFilter(QObject* obj, QEvent* event)
@@ -76,7 +77,7 @@ bool WindowButtons::eventFilter(QObject* obj, QEvent* event)
 #ifdef __APPLE__
             // Do nothing -> show fullscreen icon
 #else
-            MaximizeButton->setStyleSheet(getStyleSheetString("image:url(:/images/icon_window_maximize.png)", "grey"));
+            MaximizeButton->setStyleSheet(getStyleSheetString(":/images/icon_window_maximize.png", "grey", "lightgrey"));
 #endif
         }
         else if (windowWidget->windowState() & Qt::WindowMaximized && !(stateEvent->oldState() & Qt::WindowMaximized))
@@ -84,7 +85,7 @@ bool WindowButtons::eventFilter(QObject* obj, QEvent* event)
 #ifdef __APPLE__
             // Do nothing -> show fullscreen icon
 #else
-            MaximizeButton->setStyleSheet(getStyleSheetString("image:url(:/images/icon_window_restore.png)", "grey"));
+            MaximizeButton->setStyleSheet(getStyleSheetString(":/images/icon_window_restore.png", "grey", "lightgrey"));
 #endif
         }
         break;
@@ -95,7 +96,7 @@ bool WindowButtons::eventFilter(QObject* obj, QEvent* event)
         if(keyEvent->modifiers() & Qt::AltModifier)
         {
 #ifdef __APPLE__
-            MaximizeButton->setStyleSheet(getStyleSheetString("image:url(:/images/icon_window_macOS_maximize.png)", "grey"));
+            MaximizeButton->setStyleSheet(getStyleSheetString(":/images/icon_window_macOS_maximize.png", "grey"));
 #endif
         }
         break;
@@ -106,7 +107,7 @@ bool WindowButtons::eventFilter(QObject* obj, QEvent* event)
         if(!(keyEvent->modifiers() & Qt::AltModifier))
         {
 #ifdef __APPLE__
-            MaximizeButton->setStyleSheet(getStyleSheetString("image:url(:/images/icon_window_macOS_fullscreen.png)", "grey"));
+            MaximizeButton->setStyleSheet(getStyleSheetString(":/images/icon_window_macOS_fullscreen.png", "grey"));
 #endif
         }
         break;
