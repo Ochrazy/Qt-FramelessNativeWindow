@@ -102,7 +102,7 @@ private:
     unsigned long long windowHandle;
     std::function<bool(int,int)> shouldPerformWindowDrag;
     std::function<void(void)> releaseMouseGrab;
-    int borderWidth = 5;
+    int borderWidth = 8;
     int minimumWindowWidth;
     int minimumWindowHeight;
     int maximumWindowWidth;

@@ -169,11 +169,13 @@ void ExampleApplication::dynamicallyShowHidetLeftWidgetBasedOnSize(int windowWid
     // Show/Hide left background widget if the window size is too small
     if(!bAlwaysShowSettings && !bNeverShowSettings)
     {
-        if(!leftBackgroundWidget->isHidden() && windowWidth < (framelessWindowConverter.getMinimumWindowWidth() + widthOfLeftBackgroundWidget))
+        // Hide left widget if current window width is at most one pixel bigger than the minimum window width
+        if(!leftBackgroundWidget->isHidden() && windowWidth+1 <= (framelessWindowConverter.getMinimumWindowWidth() + widthOfLeftBackgroundWidget))
         {
             leftBackgroundWidget->hide();
         }
-        else if(leftBackgroundWidget->isHidden() && windowWidth >= (framelessWindowConverter.getMinimumWindowWidth() + widthOfLeftBackgroundWidget))
+        // Show left widget if current window width is at least one pixel bigger than the minimum window width
+        else if(leftBackgroundWidget->isHidden() && windowWidth+1 > (framelessWindowConverter.getMinimumWindowWidth() + widthOfLeftBackgroundWidget))
         {
             leftBackgroundWidget->show();
         }
@@ -217,10 +219,7 @@ void ExampleApplication::setMinMaxWindowSizesAndResizeIfNeeded()
 
     int minimumWindowWidth = minimumWidth;
     if(bAlwaysShowSettings && !bNeverShowSettings)
-    {
-        // minimumWidth += widthOfLeftBackgroundWidget;
         minimumWindowWidth += widthOfLeftBackgroundWidget;
-    }
 
     framelessWindowConverter.setMinMaxWindowSizes(minimumWindowWidth, minimumHeight, maximumSize().width(), maximumSize().height());
     rightBackgroundWidget->setMinimumWidth(minimumWidth);
