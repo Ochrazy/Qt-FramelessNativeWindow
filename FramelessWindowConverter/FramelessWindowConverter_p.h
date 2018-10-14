@@ -81,6 +81,7 @@ public:
     virtual void closeWindow() = 0;
     virtual void restoreWindow() = 0;
     virtual void toggleFullscreen() = 0;
+    virtual void setEnableShadow() {}
 
     // MacOS
     virtual void setHiddenGreenTrafficLightOnMacOS(bool inHidden) { (void)inHidden; }

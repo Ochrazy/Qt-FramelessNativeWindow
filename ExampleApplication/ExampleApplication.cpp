@@ -22,7 +22,8 @@ ExampleApplication::ExampleApplication(QWidget *parent) : QWidget(parent),
 {
     qApp->installEventFilter(this);
 
-    setStyleSheet("QSpinBox { background-color: transparent; color: white; font-size: 16px; }");
+    setStyleSheet("QSpinBox { background: black; color: white; font-size: 16px; }"
+                  "QLineEdit { background: black; color: white; }");
 
     // First create widgets on the right side
     // Then create selection widget on the left side
@@ -36,6 +37,9 @@ ExampleApplication::ExampleApplication(QWidget *parent) : QWidget(parent),
     TopLevelLayout->addWidget(rightBackgroundWidget);
     TopLevelLayout->setContentsMargins(0,0,0,0);
 
+    // Enable/Disable window drop shadow (enabling it disables all transparency effects)
+    hasShadow = false;
+
     setupFramelessWindow();
 
     // Convert window
@@ -45,8 +49,24 @@ ExampleApplication::ExampleApplication(QWidget *parent) : QWidget(parent),
 void ExampleApplication::setupFramelessWindow()
 {
     setWindowFlags(Qt::Widget | Qt::WindowSystemMenuHint | Qt::WindowTitleHint | Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint);
-    setAttribute(Qt::WA_TranslucentBackground, true);
-    setAttribute(Qt::WA_NoSystemBackground, true);
+    if(!hasShadow)
+    {
+        setAttribute(Qt::WA_TranslucentBackground, true);
+        setAttribute(Qt::WA_NoSystemBackground, true);
+        framelessWindowConverter.setEnableShadow(false);
+    }
+    else
+    {
+        setAttribute(Qt::WA_TranslucentBackground, false);
+        setAttribute(Qt::WA_NoSystemBackground, false);
+        framelessWindowConverter.setEnableShadow(true);
+        // Disable all transparency effects
+        translucencyBlurEffect.deactivateEffect();
+        translucentBlurSwitch->setChecked(true);
+        transparencySwitch->setChecked(true);
+        transparencyWidget->setEnabled(false);
+        update();
+    }
 
     setWindowTitle("Example Application");
 
@@ -54,8 +74,6 @@ void ExampleApplication::setupFramelessWindow()
     // Otherwise empty methods are called and hopefully optimized away
     connect(&translucencyBlurEffect, &TranslucentBlurEffect::hideNonQtWidgets, [this]() { framelessWindowConverter.hideForTranslucency(); });
     connect(&translucencyBlurEffect, &TranslucentBlurEffect::showNonQtWidgets, [this]() { framelessWindowConverter.showForTranslucency(); });
-
-    framelessWindowConverter.setEnableShadow(false);
 
     // Set some settings
     adjustSize(); // apply layout size (constraints) to window

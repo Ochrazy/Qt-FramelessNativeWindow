@@ -21,6 +21,7 @@ public:
     void restoreWindow() override;
     void closeWindow() override;
     void toggleFullscreen() override;
+    void setEnableShadow() override;
 
 private:
     FWCRect getCurrentClientRect();

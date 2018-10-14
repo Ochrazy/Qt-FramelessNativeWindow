@@ -97,6 +97,7 @@ void FramelessWindowConverter::showForTranslucency()
 void FramelessWindowConverter::setEnableShadow(bool inEnableShadow)
 {
     bHasShadow = inEnableShadow;
+    d_ptr->setEnableShadow();
 }
 
 bool FramelessWindowConverter::getHasShadow()

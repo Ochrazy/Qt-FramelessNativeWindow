@@ -111,6 +111,26 @@ void FramelessWindowConverterWindows::toggleFullscreen()
     else ShowWindow(handle, SW_RESTORE);
 }
 
+void FramelessWindowConverterWindows::setEnableShadow()
+{
+    if(q_ptr->getHasShadow())
+    {
+        const MARGINS shadow = { 1, 1, 1, 1 };
+        DwmExtendFrameIntoClientArea(handle, &shadow);
+        // redraw frame
+        SetWindowPos(handle, nullptr, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE);
+        ShowWindow(handle, SW_SHOW);
+    }
+    else
+    {
+        const MARGINS shadow = { 0, 0, 0, 0 };
+        DwmExtendFrameIntoClientArea(handle, &shadow);
+        // redraw frame
+        SetWindowPos(handle, nullptr, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE);
+        ShowWindow(handle, SW_SHOW);
+    }
+}
+
 FWCRect FramelessWindowConverterWindows::getCurrentClientRect()
 {
     RECT WINRect;
@@ -408,12 +428,8 @@ void FramelessWindowConverterWindows::setFrameless(bool enabled)
     {
         SetWindowLongPtrW(handle, GWL_STYLE, static_cast<LONG>(new_style));
 
-        if(q_ptr->getHasShadow())
-        {
-            // Support for shadow
-            const MARGINS shadow = { 1, 1, 1, 1 };
-            DwmExtendFrameIntoClientArea(handle, &shadow);
-        }
+        // Support for shadow
+        setEnableShadow();
 
         // redraw frame
         SetWindowPos(handle, nullptr, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE);

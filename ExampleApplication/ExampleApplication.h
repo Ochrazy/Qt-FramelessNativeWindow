@@ -58,6 +58,8 @@ private:
     ToggleButton* transparencySwitch;
     ToggleButton* fullscreenSwitch;
     class QStackedLayout* rightStackedLayout;
+
+    bool hasShadow = false;
 };
 
 #endif // OPTIONTAB_H
