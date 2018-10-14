@@ -319,7 +319,6 @@ bool FramelessWindowConverterWindows::filterNativeEvent(void *message, long *res
             }
             break;
         }
-
         break;
     }
     case WM_MOUSEMOVE:
@@ -414,7 +413,7 @@ bool FramelessWindowConverterWindows::filterNativeEvent(void *message, long *res
         }
         else break;
     }
-    }
+    } // end switch
     return false;
 }
 
