@@ -122,7 +122,7 @@ private:
 
     // Default is horizontal
     bool bTrafficLightsAlignmentHorizontal = true;
-    int xPosOfTrafficLights = 10, yPosOfTrafficLights = 10;
+    int xPosOfTrafficLights = 7, yPosOfTrafficLights = 3;
 };
 
 }

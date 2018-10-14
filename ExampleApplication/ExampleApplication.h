@@ -64,6 +64,10 @@ private:
     ToggleButton* transparencySwitch;
     ToggleButton* fullscreenSwitch;
     class QStackedLayout* rightStackedLayout;
+
+    // macOS
+    int xUpperLeftOfTrafficLights = 50;
+    int yUpperLeftOfTrafficLights = 9;
 };
 
 #endif // OPTIONTAB_H

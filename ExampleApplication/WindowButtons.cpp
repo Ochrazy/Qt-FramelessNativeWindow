@@ -96,7 +96,7 @@ bool WindowButtons::eventFilter(QObject* obj, QEvent* event)
         if(keyEvent->modifiers() & Qt::AltModifier)
         {
 #ifdef __APPLE__
-            MaximizeButton->setStyleSheet(getStyleSheetString(":/images/icon_window_macOS_maximize.png", "grey"));
+            MaximizeButton->setStyleSheet(getStyleSheetString(":/images/icon_window_macOS_maximize.png", "grey", "lightgrey"));
 #endif
         }
         break;
@@ -107,7 +107,7 @@ bool WindowButtons::eventFilter(QObject* obj, QEvent* event)
         if(!(keyEvent->modifiers() & Qt::AltModifier))
         {
 #ifdef __APPLE__
-            MaximizeButton->setStyleSheet(getStyleSheetString(":/images/icon_window_macOS_fullscreen.png", "grey"));
+            MaximizeButton->setStyleSheet(getStyleSheetString(":/images/icon_window_macOS_fullscreen.png", "grey", "lightgrey"));
 #endif
         }
         break;

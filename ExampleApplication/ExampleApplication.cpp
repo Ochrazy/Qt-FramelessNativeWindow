@@ -91,6 +91,8 @@ void ExampleApplication::setupFramelessWindow(bool hasWindowDropShadow)
     windowTitle->setContentsMargins(0,10,10,0);
     windowButtons->hide();
     rightTitleBarSpacer->changeSize(0, titleBarHeight);
+    framelessWindowConverter.setUpperLeftXPositionOfTrafficLightsOnMacOS(xUpperLeftOfTrafficLights);
+    framelessWindowConverter.setUpperLeftYPositionOfTrafficLightsOnMacOS(yUpperLeftOfTrafficLights);
 #else
     macOSWidget->setEnabled(false);
 #endif
@@ -677,7 +679,7 @@ QWidget* ExampleApplication::createMacOSWidget()
     QSpinBox* xSpinBox = new QSpinBox;
     xSpinBox->setMinimum(0);
     xSpinBox->setMaximum(10000);
-    xSpinBox->setValue(framelessWindowConverter.getUpperLeftXPositionOfTrafficLightsOnMacOS());
+    xSpinBox->setValue(xUpperLeftOfTrafficLights);
     xSpinBox->setMinimumSize(35, 25);
     connect(xSpinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, [this](int value) {
         framelessWindowConverter.setUpperLeftXPositionOfTrafficLightsOnMacOS(value);
@@ -689,7 +691,7 @@ QWidget* ExampleApplication::createMacOSWidget()
     QSpinBox* ySpinBox = new QSpinBox;
     ySpinBox->setMinimum(0);
     ySpinBox->setMaximum(10000);
-    ySpinBox->setValue(framelessWindowConverter.getUpperLeftYPositionOfTrafficLightsOnMacOS());
+    ySpinBox->setValue(yUpperLeftOfTrafficLights);
     ySpinBox->setMinimumSize(35, 25);
     connect(ySpinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, [this](int value) {
         framelessWindowConverter.setUpperLeftYPositionOfTrafficLightsOnMacOS(value);
@@ -717,10 +719,10 @@ void ExampleApplication::createRightSideWidgets()
     windowButtons = new WindowButtons(titleBarHeight);
 
     settingsButton = new QPushButton;
-    settingsButton->setFixedSize(static_cast<int>(titleBarHeight / 1.0f), titleBarHeight);
+    settingsButton->setFixedSize(titleBarHeight, titleBarHeight);
     settingsButton->setCheckable(true);
     settingsButton->setStyleSheet(WindowButtons::getStyleSheetString(":/images/icon_settings_light.png", "grey", "#0078d7") +
-                                  "QPushButton { padding: 2px; }"
+                                  "QPushButton { padding: 3px; }"
                                   "QPushButton:checked{"
                                   "image:url(:/images/icon_settings_enabled_light.png);"
                                   "}");
@@ -752,6 +754,7 @@ void ExampleApplication::createRightSideWidgets()
     QHBoxLayout* titleBarLayout = new QHBoxLayout;
     titleBarLayout->addSpacing(5);
     titleBarLayout->addWidget(settingsButton);
+    titleBarLayout->addSpacing(2);
     titleBarLayout->addWidget(settingsEnabledCheck);
     titleBarLayout->addStretch(1);
     titleBarLayout->addWidget(windowButtons);
