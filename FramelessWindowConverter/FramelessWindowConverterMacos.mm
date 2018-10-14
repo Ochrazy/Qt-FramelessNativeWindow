@@ -388,6 +388,7 @@ void FramelessWindowConverterMacos::convertToWindowWithFrame()
     window.styleMask |= NSWindowStyleMaskClosable;
     window.styleMask |= NSWindowStyleMaskMiniaturizable;
     window.styleMask |= NSWindowStyleMaskResizable;
+    window.styleMask &= ~NSWindowStyleMaskFullSizeContentView;
 
     [window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
     // Enable Layer backing

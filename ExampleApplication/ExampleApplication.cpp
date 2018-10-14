@@ -79,18 +79,13 @@ void ExampleApplication::setupFramelessWindow(bool hasWindowDropShadow)
     // Set some settings
     adjustSize(); // apply layout size (constraints) to window
     rightStackedLayout->currentWidget()->adjustSize();
-    framelessWindowConverter.setMinMaxWindowSizes(rightStackedLayout->currentWidget()->size().width() + 16,
-                                                  rightStackedLayout->currentWidget()->size().height() + titleBarHeight + 6,
-                                                  maximumSize().width(), maximumSize().height());
-    rightBackgroundWidget->setMinimumWidth(rightStackedLayout->currentWidget()->size().width() + 16);
-    rightBackgroundWidget->setMinimumHeight(rightStackedLayout->currentWidget()->size().height() + titleBarHeight + 6);
+    setMinMaxWindowSizesAndResizeIfNeeded();
 
 #ifdef __APPLE__
     framelessWindowConverter.useTrafficLightsOnMacOS(true);
     windowTitle->setAlignment(Qt::AlignRight | Qt::AlignTop);
     windowTitle->setContentsMargins(0,10,10,0);
     windowButtons->hide();
-    rightTitleBarSpacer->changeSize(0, titleBarHeight);
     framelessWindowConverter.setUpperLeftXPositionOfTrafficLightsOnMacOS(xUpperLeftOfTrafficLights);
     framelessWindowConverter.setUpperLeftYPositionOfTrafficLightsOnMacOS(yUpperLeftOfTrafficLights);
 #else
@@ -410,7 +405,6 @@ QWidget* ExampleApplication::createFramelessWidget()
 
             // No need for custom window buttons and title
             windowButtons->hide();
-            rightTitleBarSpacer->changeSize(0, titleBarHeight);
             windowTitle->hide();
 
             // This would just maximize the window -> disable it
@@ -439,7 +433,6 @@ QWidget* ExampleApplication::createFramelessWidget()
             // Show custom window buttons and title
             if(!framelessWindowConverter.isUsingTrafficLightsOnMacOS())
             {
-                rightTitleBarSpacer->changeSize(0, 0);
                 windowButtons->show();
             }
             windowTitle->show();
@@ -579,7 +572,6 @@ QWidget* ExampleApplication::createMacOSWidget()
             windowTitle->setAlignment(Qt::AlignLeft | Qt::AlignTop);
             windowTitle->setContentsMargins(5,10,0,0);
             framelessWindowConverter.hideForTranslucency();
-            rightTitleBarSpacer->changeSize(0, 0);
             windowButtons->show();
         }
         else
@@ -588,7 +580,6 @@ QWidget* ExampleApplication::createMacOSWidget()
             windowTitle->setAlignment(Qt::AlignRight | Qt::AlignTop);
             windowTitle->setContentsMargins(0,10,10,0);
             framelessWindowConverter.showForTranslucency();
-            rightTitleBarSpacer->changeSize(0, titleBarHeight);
             windowButtons->hide();
         }
     });
@@ -758,6 +749,7 @@ void ExampleApplication::createRightSideWidgets()
     titleBarLayout->addWidget(settingsEnabledCheck);
     titleBarLayout->addStretch(1);
     titleBarLayout->addWidget(windowButtons);
+    titleBarLayout->setContentsMargins(1,1,1,1);
 
     // Right Background Widget
     rightBackgroundWidget = new QWidget;
