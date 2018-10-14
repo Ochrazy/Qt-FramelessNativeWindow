@@ -155,7 +155,7 @@ bool ExampleApplication::event(QEvent* event)
     {
         // When user drags title bar check fullscreen switch
         QWindowStateChangeEvent* stateEvent = static_cast<QWindowStateChangeEvent*>(event);
-        if (!(windowState() & Qt::WindowMaximized) && (stateEvent->oldState() & Qt::WindowMaximized))
+        if (!(windowState() & Qt::WindowFullScreen) && (stateEvent->oldState() & Qt::WindowFullScreen))
             fullscreenSwitch->setChecked(true);
         break;
     }
