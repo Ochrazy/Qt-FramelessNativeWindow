@@ -23,6 +23,7 @@ ExampleApplication::ExampleApplication(QWidget *parent) : QWidget(parent),
     qApp->installEventFilter(this);
 
     setStyleSheet("QSpinBox { background: black; color: white; font-size: 16px; }"
+                  "QSpinBox:disabled { background: grey; }"
                   "QLineEdit { background: black; color: white; }");
 
     // First create widgets on the right side

@@ -276,7 +276,6 @@ bool FramelessWindowConverterWindows::filterNativeEvent(void *message, long *res
     case WM_LBUTTONDOWN:
     {
         FWCPoint mousePos(getCurrentMousePos(msg->lParam));
-
         switch (doBorderHitTest(getCurrentClientRect(), mousePos, q_ptr->getBorderWidth()))
         {
         case FWCBorderHitTestResult::LEFT:

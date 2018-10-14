@@ -25,9 +25,8 @@ FWCBorderHitTestResult FramelessWindowConverterPrivate::doBorderHitTest(FWCRect 
 {
     FWCBorderHitTestResult bhtResult = FWCBorderHitTestResult::NONE; // outside window
 
-    // Client (inside window)
-    if(inMousePosition.x >= inWindowRect.left() + borderWidth && inMousePosition.x <= inWindowRect.right() - borderWidth &&
-            inMousePosition.y <= inWindowRect.bottom() - borderWidth && inMousePosition.y >= inWindowRect.top() + borderWidth)
+    if(inMousePosition.x > inWindowRect.left() + borderWidth && inMousePosition.x < inWindowRect.right() - borderWidth &&
+            inMousePosition.y < inWindowRect.bottom() - borderWidth && inMousePosition.y > inWindowRect.top() + borderWidth)
     {
         return FWCBorderHitTestResult::CLIENT;
     }
