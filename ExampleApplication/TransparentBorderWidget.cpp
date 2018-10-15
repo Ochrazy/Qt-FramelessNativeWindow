@@ -70,7 +70,7 @@ bool TransparentBorderWidget::event(QEvent* event)
         else if(!(windowState() & Qt::WindowFullScreen) && (stateEvent->oldState() & Qt::WindowFullScreen))
         {
             TopLevelLayout->setContentsMargins(borderWidth, borderWidth, borderWidth, borderWidth);
-             framelessWindowConverter.setEnableResizing(true);
+            framelessWindowConverter.setEnableResizing(true);
         }
 
         if((windowState() & Qt::WindowMaximized) && !(stateEvent->oldState() & Qt::WindowMaximized))
@@ -87,25 +87,28 @@ bool TransparentBorderWidget::event(QEvent* event)
     }
     case QEvent::Resize:
     {
-        // Adjust transparent border when doing window snapping
-        QResizeEvent* resizeEvent = static_cast<QResizeEvent*>(event);
-        QRect screenRect = qApp->screenAt(QCursor::pos())->geometry();
-        QSize screenSize = qApp->screenAt(QCursor::pos())->availableSize();
+        if(!(windowState() & Qt::WindowMaximized))
+        {
+            // Adjust transparent border when doing window snapping
+            QResizeEvent* resizeEvent = static_cast<QResizeEvent*>(event);
+            QRect screenRect = qApp->screenAt(QCursor::pos())->geometry();
+            QSize screenSize = qApp->screenAt(QCursor::pos())->availableSize();
 
-        if((resizeEvent->size().width() == screenRect.width()/2 && resizeEvent->size().height() == screenSize.height()) ||
-                (windowSnapped && resizeEvent->size().height() == screenSize.height()))
-        {
-            windowSnapped = true;
-            TopLevelLayout->setContentsMargins(0, 0, 0, 0);
-        }
-        else  if(resizeEvent->size().height() == screenSize.height() && resizeEvent->size().width() < screenRect.width())
-        {
-            TopLevelLayout->setContentsMargins(borderWidth, 0, borderWidth, 0);
-        }
-        else
-        {
-            windowSnapped = false;
-            TopLevelLayout->setContentsMargins(borderWidth, borderWidth, borderWidth, borderWidth);
+            if((resizeEvent->size().width() == screenRect.width()/2 && resizeEvent->size().height() == screenSize.height()) ||
+                    (windowSnapped && resizeEvent->size().height() == screenSize.height()))
+            {
+                windowSnapped = true;
+                TopLevelLayout->setContentsMargins(0, 0, 0, 0);
+            }
+            else  if(resizeEvent->size().height() == screenSize.height() && resizeEvent->size().width() < screenRect.width())
+            {
+                TopLevelLayout->setContentsMargins(borderWidth, 0, borderWidth, 0);
+            }
+            else
+            {
+                windowSnapped = false;
+                TopLevelLayout->setContentsMargins(borderWidth, borderWidth, borderWidth, borderWidth);
+            }
         }
         break;
     }
