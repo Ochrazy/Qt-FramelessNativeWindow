@@ -21,7 +21,8 @@ SOURCES += main.cpp \
     ToggleButton.cpp \
     WindowButtons.cpp \
     ControlHLabel.cpp \
-    LabelVControl.cpp
+    LabelVControl.cpp \
+    TransparentBorderWidget.cpp
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -34,6 +35,7 @@ HEADERS += \
     ToggleButton.h \
     WindowButtons.h \
     ControlHLabel.h \
-    LabelVControl.h
+    LabelVControl.h \
+    TransparentBorderWidget.h
 
 RESOURCES += $$PWD/../FramelessWindowImages.qrc

@@ -11,20 +11,20 @@ class ExampleApplication : public QWidget
 {
     Q_OBJECT
 public:
-    explicit ExampleApplication(QWidget *parent = nullptr);
+    explicit ExampleApplication(FWC::FramelessWindowConverter* framelessWindowConverter, QWidget *parent = nullptr);
 
-    bool nativeEvent(const QByteArray& eventType, void* message, long* result) override;
     bool event(QEvent* event) override;
     void resizeEvent(QResizeEvent* ev) override;
     void paintEvent(QPaintEvent* ev) override;
 
-private:
-    FWC::FWCPARAMS fwcParams;
-    FWC::FramelessWindowConverter framelessWindowConverter;
+    void setVisibleTitleBarHeight(int inVisibleTitleBarHeight);
+
+public:
     TranslucentBlurEffect translucencyBlurEffect;
 
     // Frameless Window
-    void setupFramelessWindow(bool hasWindowDropShadow = false);
+    FWC::FramelessWindowConverter* framelessWindowConverter;
+    void setupFramelessWindow();
     int titleBarHeight = 25;
 
     // Main Widgets

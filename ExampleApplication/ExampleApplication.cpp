@@ -16,11 +16,16 @@
 #include "QPropertyAnimation"
 #include "ControlHLabel.h"
 #include "LabelVControl.h"
+#include "TransparentBorderWidget.h"
 
-ExampleApplication::ExampleApplication(QWidget *parent) : QWidget(parent),
-    framelessWindowConverter(), translucencyBlurEffect(this, this)
+ExampleApplication::ExampleApplication(FWC::FramelessWindowConverter* inFramelessWindowConverter, QWidget *parent) : QWidget(parent),
+    translucencyBlurEffect(this, this), framelessWindowConverter(inFramelessWindowConverter)
 {
     qApp->installEventFilter(this);
+
+    // Set total title bar height
+    setVisibleTitleBarHeight(titleBarHeight);
+    framelessWindowConverter->setBorderWidth(static_cast<TransparentBorderWidget*>(parentWidget())->getBorderWidth() + 8);
 
     setStyleSheet("QSpinBox { background: black; color: white; font-size: 16px; }"
                   "QSpinBox:disabled { background: grey; }"
@@ -41,62 +46,21 @@ ExampleApplication::ExampleApplication(QWidget *parent) : QWidget(parent),
     // Enable/Disable window drop shadow (enabling it disables all transparency effects)
     bool hasWindowDropShadow = false;
 
-    // Setup frameless window
-    setupFramelessWindow(hasWindowDropShadow);
+    // setWindowFlags(Qt::Widget | Qt::WindowSystemMenuHint | Qt::WindowTitleHint | Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint);
+    setAttribute(Qt::WA_TranslucentBackground, true);
+    setAttribute(Qt::WA_NoSystemBackground, true);
 
-    // Convert window
-    framelessWindowConverter.convertWindowToFrameless(fwcParams);
+    setupFramelessWindow();
 }
 
-void ExampleApplication::setupFramelessWindow(bool hasWindowDropShadow)
+void ExampleApplication::setVisibleTitleBarHeight(int inVisibleTitleBarHeight)
 {
-    setWindowFlags(Qt::Widget | Qt::WindowSystemMenuHint | Qt::WindowTitleHint | Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint);
-    if(!hasWindowDropShadow)
-    {
-        setAttribute(Qt::WA_TranslucentBackground, true);
-        setAttribute(Qt::WA_NoSystemBackground, true);
-        framelessWindowConverter.setEnableShadow(false);
-    }
-    else
-    {
-        setAttribute(Qt::WA_TranslucentBackground, false);
-        setAttribute(Qt::WA_NoSystemBackground, false);
-        framelessWindowConverter.setEnableShadow(true);
-        // Disable all transparency effects
-        translucencyBlurEffect.deactivateEffect();
-        translucentBlurSwitch->setChecked(true);
-        transparencySwitch->setChecked(true);
-        transparencyWidget->setEnabled(false);
-        update();
-    }
+    titleBarHeight = inVisibleTitleBarHeight + static_cast<TransparentBorderWidget*>(parentWidget())->getBorderWidth();
+}
 
-    setWindowTitle("Example Application");
-
-    // Only necessary on macOS to hide Traffic Lights when they are used
-    // Otherwise empty methods are called and hopefully optimized away
-    connect(&translucencyBlurEffect, &TranslucentBlurEffect::hideNonQtWidgets, [this]() { framelessWindowConverter.hideForTranslucency(); });
-    connect(&translucencyBlurEffect, &TranslucentBlurEffect::showNonQtWidgets, [this]() { framelessWindowConverter.showForTranslucency(); });
-
-    // Set some settings
-    adjustSize(); // apply layout size (constraints) to window
-    rightStackedLayout->currentWidget()->adjustSize();
-    setMinMaxWindowSizesAndResizeIfNeeded();
-
-#ifdef __APPLE__
-    framelessWindowConverter.useTrafficLightsOnMacOS(true);
-    windowTitle->setAlignment(Qt::AlignRight | Qt::AlignTop);
-    windowTitle->setContentsMargins(0,10,10,0);
-    windowButtons->hide();
-    framelessWindowConverter.setUpperLeftXPositionOfTrafficLightsOnMacOS(xUpperLeftOfTrafficLights);
-    framelessWindowConverter.setUpperLeftYPositionOfTrafficLightsOnMacOS(yUpperLeftOfTrafficLights);
-#else
-    macOSWidget->setEnabled(false);
-#endif
-
-    // Set the parameters
-    fwcParams.windowHandle = winId();
-    fwcParams.releaseMouseGrab = [this]() { windowHandle()->setMouseGrabEnabled(false); };
-    fwcParams.shouldPerformWindowDrag =  [this](int mousePosXInWindow, int mousePosYInWindow)
+void ExampleApplication::setupFramelessWindow()
+{
+    framelessWindowConverter->setShouldPerformWindowDrag([this](int mousePosXInWindow, int mousePosYInWindow)
     {
         QWidget* widgetUnderCursor = childAt(mousePosXInWindow, mousePosYInWindow);
         // Set all background widgets draggable
@@ -105,23 +69,44 @@ void ExampleApplication::setupFramelessWindow(bool hasWindowDropShadow)
                 (mousePosYInWindow < titleBarHeight))
             return true;
         else return false;
-    };
+    });
+
+    // Only necessary on macOS to hide Traffic Lights when they are used
+    // Otherwise empty methods are called and hopefully optimized away
+    connect(&translucencyBlurEffect, &TranslucentBlurEffect::hideNonQtWidgets, [this]() { framelessWindowConverter->hideForTranslucency(); });
+    connect(&translucencyBlurEffect, &TranslucentBlurEffect::showNonQtWidgets, [this]() { framelessWindowConverter->showForTranslucency(); });
+
+    // Set some settings
+    adjustSize(); // apply layout size (constraints) to window
+    rightStackedLayout->currentWidget()->adjustSize();
+    setMinMaxWindowSizesAndResizeIfNeeded();
+
+#ifdef __APPLE__
+    framelessWindowConverter->useTrafficLightsOnMacOS(true);
+    windowTitle->setAlignment(Qt::AlignRight | Qt::AlignTop);
+    windowTitle->setContentsMargins(0,10,10,0);
+    windowButtons->hide();
+    framelessWindowConverter->setUpperLeftXPositionOfTrafficLightsOnMacOS(xUpperLeftOfTrafficLights);
+    framelessWindowConverter->setUpperLeftYPositionOfTrafficLightsOnMacOS(yUpperLeftOfTrafficLights);
+#else
+    //macOSWidget->setEnabled(false);
+#endif
 
     // Connect custom System Buttons
     connect(windowButtons->getCloseButton(), &QAbstractButton::clicked, this, [this]()
     {
-        framelessWindowConverter.closeWindow();
+        framelessWindowConverter->closeWindow();
     });
     connect(windowButtons->getMinimizeButton(), &QAbstractButton::clicked, this, [this]()
     {
-        framelessWindowConverter.minimizeWindow();
+        framelessWindowConverter->minimizeWindow();
     });
     connect(windowButtons->getMaximizeButton(), &QAbstractButton::clicked, this, [this]()
     {
 #ifdef __APPLE__
         if(!(qApp->keyboardModifiers() & Qt::AltModifier) || window()->isFullScreen())
         {
-            framelessWindowConverter.toggleFullscreen();
+            framelessWindowConverter->toggleFullscreen();
         }
         else
 #endif
@@ -129,18 +114,11 @@ void ExampleApplication::setupFramelessWindow(bool hasWindowDropShadow)
             if(window()->isMaximized())
             {
                 fullscreenSwitch->setChecked(true);
-                framelessWindowConverter.restoreWindow();
+                framelessWindowConverter->restoreWindow();
             }
-            else
-                framelessWindowConverter.maximizeWindow();
+            else framelessWindowConverter->maximizeWindow();
         }
     });
-}
-
-bool ExampleApplication::nativeEvent(const QByteArray& eventType, void* message, long* result)
-{
-    Q_UNUSED(eventType)
-    return framelessWindowConverter.filterNativeEvents(message, result);
 }
 
 bool ExampleApplication::event(QEvent* event)
@@ -167,13 +145,14 @@ void ExampleApplication::dynamicallyShowHidetLeftWidgetBasedOnSize(int windowWid
     // Show/Hide left background widget if the window size is too small
     if(!bAlwaysShowSettings && !bNeverShowSettings)
     {
+        int transparentWindowBorderWidth = static_cast<TransparentBorderWidget*>(parentWidget())->getBorderWidth() * 2;
         // Hide left widget if current window width is at most one pixel bigger than the minimum window width
-        if(!leftBackgroundWidget->isHidden() && windowWidth+1 <= (framelessWindowConverter.getMinimumWindowWidth() + widthOfLeftBackgroundWidget))
+        if(!leftBackgroundWidget->isHidden() && windowWidth+1 <= (framelessWindowConverter->getMinimumWindowWidth() + widthOfLeftBackgroundWidget - transparentWindowBorderWidth))
         {
             leftBackgroundWidget->hide();
         }
         // Show left widget if current window width is at least one pixel bigger than the minimum window width
-        else if(leftBackgroundWidget->isHidden() && windowWidth+1 > (framelessWindowConverter.getMinimumWindowWidth() + widthOfLeftBackgroundWidget))
+        else if(leftBackgroundWidget->isHidden() && windowWidth+1 > (framelessWindowConverter->getMinimumWindowWidth() + widthOfLeftBackgroundWidget - transparentWindowBorderWidth))
         {
             leftBackgroundWidget->show();
         }
@@ -203,6 +182,7 @@ void ExampleApplication::setMinMaxWindowSizesAndResizeIfNeeded()
     // Set new window size limits
     // +16 and +6 for contents margins
     int minimumWidth = 0, minimumHeight = 0;
+    int differenceParentThisWidth = static_cast<TransparentBorderWidget*>(parentWidget())->getBorderWidth() * 2;
     QWidget* currentRightWidget = rightStackedLayout->currentWidget();
     if(currentRightWidget->layout())
     {
@@ -219,7 +199,7 @@ void ExampleApplication::setMinMaxWindowSizesAndResizeIfNeeded()
     if(bAlwaysShowSettings && !bNeverShowSettings)
         minimumWindowWidth += widthOfLeftBackgroundWidget;
 
-    framelessWindowConverter.setMinMaxWindowSizes(minimumWindowWidth, minimumHeight, maximumSize().width(), maximumSize().height());
+    framelessWindowConverter->setMinMaxWindowSizes(minimumWindowWidth + differenceParentThisWidth, minimumHeight + differenceParentThisWidth, maximumSize().width(), maximumSize().height());
     rightBackgroundWidget->setMinimumWidth(minimumWidth);
     rightBackgroundWidget->setMinimumHeight(minimumHeight);
     update();
@@ -389,7 +369,7 @@ QWidget* ExampleApplication::createFramelessWidget()
     connect(framelessSwitch, &QAbstractButton::toggled, this, [this](bool checked) {
         if(checked)
         {
-            framelessWindowConverter.convertToWindowWithFrame();
+            framelessWindowConverter->toggleWindowFrameAfterConversion();
             // Override window flags (do not set FramelessWindowHint)
             setWindowFlags(Qt::Widget | Qt::WindowSystemMenuHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowMinMaxButtonsHint
                            | Qt::WindowFullscreenButtonHint);
@@ -429,10 +409,10 @@ QWidget* ExampleApplication::createFramelessWidget()
             show();
 
             // Convert window
-            framelessWindowConverter.convertWindowToFrameless(fwcParams);
+            framelessWindowConverter->toggleWindowFrameAfterConversion();
             show();
             // Show custom window buttons and title
-            if(!framelessWindowConverter.isUsingTrafficLightsOnMacOS())
+            if(!framelessWindowConverter->isUsingTrafficLightsOnMacOS())
             {
                 windowButtons->show();
             }
@@ -446,11 +426,11 @@ QWidget* ExampleApplication::createFramelessWidget()
     QSpinBox* borderWidthSpinBox = new QSpinBox;
     borderWidthSpinBox->setMinimum(0);
     borderWidthSpinBox->setMaximum(100);
-    borderWidthSpinBox->setValue(framelessWindowConverter.getBorderWidth());
+    borderWidthSpinBox->setValue(framelessWindowConverter->getBorderWidth());
     borderWidthSpinBox->setMinimumSize(35, 25);
     borderWidthSpinBox->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     connect(borderWidthSpinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, [this](int value) {
-        framelessWindowConverter.setBorderWidth(value);
+        framelessWindowConverter->setBorderWidth(value);
     });
     QWidget* borderWidthWidget = new QWidget;
     borderWidthWidget->setStyleSheet("QLabel { margin-top: 1px; background-color : none; color : white; font-size: 15px; }");
@@ -469,7 +449,7 @@ QWidget* ExampleApplication::createFramelessWidget()
     connect(titleBarHeightSpinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, [this, titleBarHeightSpinBox](int value) {
         if(titleBarHeightSpinBox->isEnabled())
         {
-            fwcParams.shouldPerformWindowDrag = [this, value](int mousePosXInWindow, int mousePosYInWindow)
+            framelessWindowConverter->setShouldPerformWindowDrag([this, value](int mousePosXInWindow, int mousePosYInWindow)
             {
                 QWidget* widgetUnderCursor = childAt(mousePosXInWindow, mousePosYInWindow);
                 // Set all background widgets draggable
@@ -478,12 +458,11 @@ QWidget* ExampleApplication::createFramelessWidget()
                         (mousePosYInWindow < value))
                     return true;
                 else return false;
-            };
-            framelessWindowConverter.setShouldPerformWindowDrag(fwcParams.shouldPerformWindowDrag);
+            });
 
             rightTitleBarSpacer->changeSize(0, value - windowButtons->getCloseButton()->minimumHeight());
             rightStackedLayout->update();
-            titleBarHeight = value;
+            setVisibleTitleBarHeight(value);
             setMinMaxWindowSizesAndResizeIfNeeded();
         }
     });
@@ -509,7 +488,7 @@ QWidget* ExampleApplication::createFramelessWidget()
     connect(backgroundMoveSwitch, &QCheckBox::toggled, this, [this, titleBarHeightSpinBox](bool inChecked) {
         if(!inChecked)
         {
-            fwcParams.shouldPerformWindowDrag =  [this](int mousePosXInWindow, int mousePosYInWindow)
+            framelessWindowConverter->setShouldPerformWindowDrag([this](int mousePosXInWindow, int mousePosYInWindow)
             {
                 QWidget* widgetUnderCursor = childAt(mousePosXInWindow, mousePosYInWindow);
                 // Set all background widgets draggable
@@ -521,13 +500,13 @@ QWidget* ExampleApplication::createFramelessWidget()
                     return false;
                 }
                 else return true;
-            };
-            framelessWindowConverter.setShouldPerformWindowDrag(fwcParams.shouldPerformWindowDrag);
+            });
+
             titleBarHeightSpinBox->setEnabled(false);
         }
         else
         {
-            fwcParams.shouldPerformWindowDrag =  [this](int mousePosXInWindow, int mousePosYInWindow)
+            framelessWindowConverter->setShouldPerformWindowDrag([this](int mousePosXInWindow, int mousePosYInWindow)
             {
                 QWidget* widgetUnderCursor = childAt(mousePosXInWindow, mousePosYInWindow);
                 // Set all background widgets draggable
@@ -536,7 +515,7 @@ QWidget* ExampleApplication::createFramelessWidget()
                         (mousePosYInWindow < titleBarHeight))
                     return true;
                 else return false;
-            };
+            });
             titleBarHeightSpinBox->setEnabled(true);
         }
     });
@@ -569,18 +548,18 @@ QWidget* ExampleApplication::createMacOSWidget()
     connect(trafficLightSwitch, &QAbstractButton::toggled, this, [this, trafficLightSwitch]() {
         if(trafficLightSwitch->isChecked())
         {
-            framelessWindowConverter.useTrafficLightsOnMacOS(false);
+            framelessWindowConverter->useTrafficLightsOnMacOS(false);
             windowTitle->setAlignment(Qt::AlignLeft | Qt::AlignTop);
             windowTitle->setContentsMargins(5,10,0,0);
-            framelessWindowConverter.hideForTranslucency();
+            framelessWindowConverter->hideForTranslucency();
             windowButtons->show();
         }
         else
         {
-            framelessWindowConverter.useTrafficLightsOnMacOS(true);
+            framelessWindowConverter->useTrafficLightsOnMacOS(true);
             windowTitle->setAlignment(Qt::AlignRight | Qt::AlignTop);
             windowTitle->setContentsMargins(0,10,10,0);
-            framelessWindowConverter.showForTranslucency();
+            framelessWindowConverter->showForTranslucency();
             windowButtons->hide();
         }
     });
@@ -589,19 +568,19 @@ QWidget* ExampleApplication::createMacOSWidget()
     ToggleButton* greenHiddenSwitch = new ToggleButton;
     ControlHLabel* greenHiddenControl = new ControlHLabel(greenHiddenSwitch, false, "Green");
     connect(greenHiddenSwitch, &QAbstractButton::toggled, this, [this](bool inChecked) {
-        framelessWindowConverter.setHiddenGreenTrafficLightOnMacOS(inChecked);
+        framelessWindowConverter->setHiddenGreenTrafficLightOnMacOS(inChecked);
     });
 
     ToggleButton* redHiddenSwitch = new ToggleButton;
     ControlHLabel* redHiddenControl = new ControlHLabel(redHiddenSwitch, false, "Red");
     connect(redHiddenSwitch, &QAbstractButton::toggled, this, [this](bool inChecked) {
-        framelessWindowConverter.setHiddenRedTrafficLightOnMacOS(inChecked);
+        framelessWindowConverter->setHiddenRedTrafficLightOnMacOS(inChecked);
     });
 
     ToggleButton* yellowHiddenSwitch = new ToggleButton;
     ControlHLabel* yellowHiddenControl = new ControlHLabel(yellowHiddenSwitch, false, "Yellow");
     connect(yellowHiddenSwitch, &QAbstractButton::toggled, this, [this](bool inChecked) {
-        framelessWindowConverter.setHiddenYellowTrafficLightOnMacOS(inChecked);
+        framelessWindowConverter->setHiddenYellowTrafficLightOnMacOS(inChecked);
     });
 
     QHBoxLayout* hiddenControlsLayout = new QHBoxLayout;
@@ -618,19 +597,19 @@ QWidget* ExampleApplication::createMacOSWidget()
     ToggleButton* greenEnabledSwitch = new ToggleButton;
     ControlHLabel* greenEnabledControl = new ControlHLabel(greenEnabledSwitch, false, "Green");
     connect(greenEnabledSwitch, &QAbstractButton::toggled, this, [this](bool inChecked) {
-        framelessWindowConverter.setEnabledGreenTrafficLightOnMacOS(!inChecked);
+        framelessWindowConverter->setEnabledGreenTrafficLightOnMacOS(!inChecked);
     });
 
     ToggleButton* redEnabledSwitch = new ToggleButton;
     ControlHLabel* redEnabledControl = new ControlHLabel(redEnabledSwitch, false, "Red");
     connect(redEnabledSwitch, &QAbstractButton::toggled, this, [this](bool inChecked) {
-        framelessWindowConverter.setEnabledRedTrafficLightOnMacOS(!inChecked);
+        framelessWindowConverter->setEnabledRedTrafficLightOnMacOS(!inChecked);
     });
 
     ToggleButton* yellowEnabledSwitch = new ToggleButton;
     ControlHLabel* yellowEnabledControl = new ControlHLabel(yellowEnabledSwitch, false, "Yellow");
     connect(yellowEnabledSwitch, &QAbstractButton::toggled, this, [this](bool inChecked) {
-        framelessWindowConverter.setEnabledYellowTrafficLightOnMacOS(!inChecked);
+        framelessWindowConverter->setEnabledYellowTrafficLightOnMacOS(!inChecked);
     });
 
     QHBoxLayout* enabledControlsLayout = new QHBoxLayout;
@@ -662,8 +641,8 @@ QWidget* ExampleApplication::createMacOSWidget()
     horizontalAlignmentLayout->setContentsMargins(7, 0, 0, 0);
     connect(horizontalAlignmentCheck, &QCheckBox::stateChanged, this, [this](int state) {
         if(state == Qt::CheckState::Checked)
-            framelessWindowConverter.setHorizontalAlignmentOfTrafficLightsOnMacOS(true);
-        else framelessWindowConverter.setHorizontalAlignmentOfTrafficLightsOnMacOS(false);
+            framelessWindowConverter->setHorizontalAlignmentOfTrafficLightsOnMacOS(true);
+        else framelessWindowConverter->setHorizontalAlignmentOfTrafficLightsOnMacOS(false);
     });
     posAlignmentLayout->addLayout(horizontalAlignmentLayout);
     posAlignmentLayout->addLayout(positionMainLayout);
@@ -674,7 +653,7 @@ QWidget* ExampleApplication::createMacOSWidget()
     xSpinBox->setValue(xUpperLeftOfTrafficLights);
     xSpinBox->setMinimumSize(35, 25);
     connect(xSpinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, [this](int value) {
-        framelessWindowConverter.setUpperLeftXPositionOfTrafficLightsOnMacOS(value);
+        framelessWindowConverter->setUpperLeftXPositionOfTrafficLightsOnMacOS(value);
     });
     QFormLayout* xLayout = new QFormLayout;
     xLayout->addRow("X:", xSpinBox);
@@ -686,7 +665,7 @@ QWidget* ExampleApplication::createMacOSWidget()
     ySpinBox->setValue(yUpperLeftOfTrafficLights);
     ySpinBox->setMinimumSize(35, 25);
     connect(ySpinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, [this](int value) {
-        framelessWindowConverter.setUpperLeftYPositionOfTrafficLightsOnMacOS(value);
+        framelessWindowConverter->setUpperLeftYPositionOfTrafficLightsOnMacOS(value);
     });
     QFormLayout* yLayout = new QFormLayout;
     yLayout->addRow("Y:", ySpinBox);
@@ -779,7 +758,7 @@ void ExampleApplication::createRightSideWidgets()
     fullscreenSwitch->toggle();
     fullscreenWidget = new LabelVControl("Toggle frameless/borderless fullscreen window", new ControlHLabel(fullscreenSwitch));
     connect(fullscreenSwitch, &QAbstractButton::toggled, this, [this]() {
-        framelessWindowConverter.toggleFullscreen();
+        framelessWindowConverter->toggleFullscreen();
     });
 
     rightStackedLayout = new QStackedLayout;

@@ -14,19 +14,19 @@ FramelessWindowConverter::~FramelessWindowConverter()
 
 }
 
-void FramelessWindowConverter::convertWindowToFrameless(unsigned long long inWindowHandle, std::function<void(void)> inReleaseMouseGrab, std::function<bool(int,int)> inShouldPerformWindowDrag)
+void FramelessWindowConverter::convertWindowToFrameless(unsigned long long inWindowHandle, std::function<void(void)> inReleaseMouseGrab)
 {
     bIsFramless = true;
     windowHandle = inWindowHandle;
-    setShouldPerformWindowDrag(inShouldPerformWindowDrag);
     setReleaseMouseGrab(inReleaseMouseGrab);
     d_ptr->convertToFrameless();
 }
 
-void FramelessWindowConverter::convertToWindowWithFrame()
+void FramelessWindowConverter::toggleWindowFrameAfterConversion()
 {
-    bIsFramless = false;
-    d_ptr->convertToWindowWithFrame();
+    bIsFramless = !bIsFramless;
+    if(bIsFramless) d_ptr->convertToWindowWithFrame();
+    else d_ptr->convertToFrameless();
 }
 
 bool FramelessWindowConverter::getIsFrameless()
@@ -34,11 +34,8 @@ bool FramelessWindowConverter::getIsFrameless()
     return bIsFramless;
 }
 
-void FramelessWindowConverter::convertWindowToFrameless(const FWCPARAMS& fwcParams)
-{
-    convertWindowToFrameless(fwcParams.windowHandle, fwcParams.releaseMouseGrab, fwcParams.shouldPerformWindowDrag);
-}
-
+void FramelessWindowConverter::setEnableResizing(bool inEnableResizing) { bEnableResizing = inEnableResizing; }
+bool FramelessWindowConverter::getEnableResizing() { return bEnableResizing; }
 
 bool FramelessWindowConverter::filterNativeEvents(void *message, long *result)
 {

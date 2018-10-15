@@ -6,13 +6,6 @@
 namespace FWC
 {
 
-struct FWCPARAMS
-{
-    unsigned long long windowHandle;
-    std::function<void(void)> releaseMouseGrab;
-    std::function<bool(int,int)> shouldPerformWindowDrag;
-};
-
 class FramelessWindowConverter
 {
 public:
@@ -21,15 +14,12 @@ public:
 
     virtual bool filterNativeEvents(void* message, long *result) final;
 
-    void convertWindowToFrameless(unsigned long long inWindowHandle, std::function<void(void)> releaseMouseGrab = [](){}, std::function<bool(int,int)> inShouldPerformWindowDrag =
-            [](int, int) { return true; } );
+    void convertWindowToFrameless(unsigned long long inWindowHandle, std::function<void(void)> releaseMouseGrab = [](){});
 
-    void convertWindowToFrameless(const FWCPARAMS& fwcParams);
-    void convertToWindowWithFrame();
+    void toggleWindowFrameAfterConversion();
     bool getIsFrameless();
 
     inline unsigned long long getWindowHandle() { return windowHandle; }
-
     inline std::function<bool(int,int)> getShouldPerformWindowDrag() { return shouldPerformWindowDrag; }
 
     // Decide if the window should be dragged when a mouse click was detected at current mouse Position
@@ -43,6 +33,8 @@ public:
     // Border Width for resizing (default is 8 pixels)
     void setBorderWidth(int inBorderWidth);
     int getBorderWidth();
+    void setEnableResizing(bool inEnableResizing);
+    bool getEnableResizing();
 
     // Minimum and maximum window sizes
     int getMinimumWindowWidth();
@@ -100,7 +92,7 @@ public:
 private:
     class FramelessWindowConverterPrivate* d_ptr;
     unsigned long long windowHandle;
-    std::function<bool(int,int)> shouldPerformWindowDrag;
+    std::function<bool(int,int)> shouldPerformWindowDrag = [](int, int) { return true; };
     std::function<void(void)> releaseMouseGrab;
     int borderWidth = 8;
     int minimumWindowWidth;
@@ -110,6 +102,7 @@ private:
     bool bUseTrafficLights = false;
     bool bIsFramless = false;
     bool bHasShadow = false;
+    bool bEnableResizing = true;
 
     // macOS Settings
     bool bHiddenGreen = false;

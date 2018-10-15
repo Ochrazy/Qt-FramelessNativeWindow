@@ -79,8 +79,12 @@ void FramelessWindowConverterWindows::convertToWindowWithFrame()
 
 void FramelessWindowConverterWindows::minimizeWindow()
 {
-    SetWindowLongPtr(handle, GWL_STYLE, GetWindowLongPtrW(handle, GWL_STYLE) | WS_CAPTION);
-    ShowWindow(handle, SW_MINIMIZE);
+    // Disable minimize in fullscreen mode -> can not be restored (no idea why)
+    if(!bFullscreen)
+    {
+        SetWindowLongPtr(handle, GWL_STYLE, GetWindowLongPtrW(handle, GWL_STYLE) | WS_CAPTION);
+        ShowWindow(handle, SW_MINIMIZE);
+    }
 }
 
 void FramelessWindowConverterWindows::maximizeWindow()
@@ -108,7 +112,10 @@ void FramelessWindowConverterWindows::toggleFullscreen()
         ShowWindow(handle, SW_RESTORE);
         ShowWindow(handle, SW_MAXIMIZE);
     }
-    else ShowWindow(handle, SW_RESTORE);
+    else
+    {
+        ShowWindow(handle, SW_RESTORE);
+    }
 }
 
 void FramelessWindowConverterWindows::setEnableShadow()
@@ -170,12 +177,29 @@ bool FramelessWindowConverterWindows::filterNativeEvent(void *message, long *res
     {
         if (msg->wParam == TRUE)
         {
+            // Frameless window -> kill title bar and border
             *result = 0;
             return true;
         }
         break;
     }
-
+    case WM_WINDOWPOSCHANGING:
+        // Give maximized windows special window style to stop Windows 10 from repositioning and resizing the window
+        WINDOWPLACEMENT wpm;
+        GetWindowPlacement(handle, &wpm);
+        if(wpm.showCmd != SW_SHOWMAXIMIZED && !(GetWindowLongPtrW(handle, GWL_STYLE) & WS_SYSMENU))
+        {
+            SetWindowLongPtrW(handle, GWL_STYLE, static_cast<LONG>(Style::aero_borderless));
+            SetWindowPos(handle, nullptr, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE);
+            ShowWindow(handle, SW_SHOW);
+        }
+        else if(wpm.showCmd == SW_SHOWMAXIMIZED && (GetWindowLongPtrW(handle, GWL_STYLE) & WS_SYSMENU))
+        {
+            SetWindowLongPtrW(handle, GWL_STYLE, static_cast<LONG>(Style::maximized_borderless));
+            SetWindowPos(handle, nullptr, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE);
+            ShowWindow(handle, SW_SHOWMAXIMIZED);
+        }
+        break;
     case WM_NCACTIVATE:
     {
         // Prevents window frame reappearing on window activation in "basic" theme,
@@ -276,7 +300,11 @@ bool FramelessWindowConverterWindows::filterNativeEvent(void *message, long *res
     case WM_LBUTTONDOWN:
     {
         FWCPoint mousePos(getCurrentMousePos(msg->lParam));
-        switch (doBorderHitTest(getCurrentClientRect(), mousePos, q_ptr->getBorderWidth()))
+        FWCBorderHitTestResult hitResult;
+        if(q_ptr->getEnableResizing()) hitResult = doBorderHitTest(getCurrentClientRect(), mousePos, q_ptr->getBorderWidth());
+        else hitResult = doBorderHitTest(getCurrentClientRect(), mousePos, 0);
+
+        switch (hitResult)
         {
         case FWCBorderHitTestResult::LEFT:
             ReleaseCapture();
@@ -323,6 +351,8 @@ bool FramelessWindowConverterWindows::filterNativeEvent(void *message, long *res
     }
     case WM_MOUSEMOVE:
     {
+        if(!q_ptr->getEnableResizing()) break; // No Resizing
+
         switch (doBorderHitTest(getCurrentClientRect(), getCurrentMousePos(msg->lParam), q_ptr->getBorderWidth()))
         {
         case FWCBorderHitTestResult::LEFT:

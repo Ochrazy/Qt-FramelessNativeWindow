@@ -172,6 +172,7 @@ bool TranslucentBlurEffect::eventFilter(QObject* object, QEvent* event)
                     noDrawOtherWidgets = false;
                     takingScreen = false;
                     emit showNonQtWidgets();
+                    widgetToAddEffect->window()->update();
                 }
 
                 painter.begin(widgetToAddEffect);
