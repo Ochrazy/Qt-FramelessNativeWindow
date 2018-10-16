@@ -26,7 +26,7 @@ ExampleApplication::ExampleApplication(FWC::FramelessWindowConverter* inFrameles
 
     // Set total title bar height
     setVisibleTitleBarHeight(titleBarHeight);
-    framelessWindowConverter->setBorderWidth(static_cast<TransparentBorderWidget*>(parentWidget())->getBorderWidth() + 8);
+    framelessWindowConverter->setBorderWidth(static_cast<TransparentBorderWidget*>(parentWidget())->getBorderWidth() + 3);
 
     setStyleSheet("QSpinBox { background: black; color: white; font-size: 16px; }"
                   "QSpinBox:disabled { background: grey; }"
@@ -431,7 +431,9 @@ QWidget* ExampleApplication::createFramelessWidget()
     borderWidthSpinBox->setMinimumSize(35, 25);
     borderWidthSpinBox->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     connect(borderWidthSpinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, [this](int value) {
-        framelessWindowConverter->setBorderWidth(value);
+        if(static_cast<TransparentBorderWidget*>(parentWidget())->getBorderWidth() == 0)
+            framelessWindowConverter->setBorderWidth(value - 10);
+        else framelessWindowConverter->setBorderWidth(value);
     });
     QWidget* borderWidthWidget = new QWidget;
     borderWidthWidget->setStyleSheet("QLabel { margin-top: 1px; background-color : none; color : white; font-size: 15px; }");

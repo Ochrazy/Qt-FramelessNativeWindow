@@ -23,9 +23,10 @@ private:
     FWC::FramelessWindowConverter framelessWindowConverter;
     void setupFramelessWindow(bool hasWindowDropShadow = false);
     QVBoxLayout* TopLevelLayout;
-    int borderWidth = 10;
     bool windowSnapped = false;
-    int resizableBorderWidth = 8;
+    int borderWidth = 10;
+    void drawDropShadow();
+    QImage shadowImage = QImage(QSize(width(), height()), QImage::Format_ARGB32_Premultiplied);
 };
 
 #endif // BASEWIDGET_H

@@ -67,27 +67,36 @@ bool TransparentBorderWidget::event(QEvent* event)
         {
             TopLevelLayout->setContentsMargins(0, 0, 0, 0);
             framelessWindowConverter.setEnableResizing(false);
+            borderWidth = 0;
+            framelessWindowConverter.setBorderWidth(borderWidth);
         }
         else if(!(windowState() & Qt::WindowFullScreen) && (stateEvent->oldState() & Qt::WindowFullScreen))
         {
+            borderWidth = 10;
             TopLevelLayout->setContentsMargins(borderWidth, borderWidth, borderWidth, borderWidth);
             framelessWindowConverter.setEnableResizing(true);
+            framelessWindowConverter.setBorderWidth(borderWidth);
         }
 
         if((windowState() & Qt::WindowMaximized) && !(stateEvent->oldState() & Qt::WindowMaximized))
         {
             TopLevelLayout->setContentsMargins(0, 0, 0, 0);
             framelessWindowConverter.setEnableResizing(false);
+            borderWidth = 0;
+            framelessWindowConverter.setBorderWidth(borderWidth);
         }
         else if(!(windowState() & Qt::WindowMaximized) && (stateEvent->oldState() & Qt::WindowMaximized))
         {
+            borderWidth = 10;
             TopLevelLayout->setContentsMargins(borderWidth, borderWidth, borderWidth, borderWidth);
             framelessWindowConverter.setEnableResizing(true);
+            framelessWindowConverter.setBorderWidth(borderWidth);
         }
         break;
     }
     case QEvent::Resize:
     {
+        drawDropShadow();
         if(!(windowState() & Qt::WindowMaximized))
         {
             // Adjust transparent border when doing window snapping
@@ -100,15 +109,22 @@ bool TransparentBorderWidget::event(QEvent* event)
             {
                 windowSnapped = true;
                 TopLevelLayout->setContentsMargins(0, 0, 0, 0);
+                borderWidth = 0;
+                framelessWindowConverter.setBorderWidth(borderWidth);
             }
             else  if(resizeEvent->size().height() == screenSize.height() && resizeEvent->size().width() < screenRect.width())
             {
+                borderWidth = 10;
                 TopLevelLayout->setContentsMargins(borderWidth, 0, borderWidth, 0);
+                borderWidth = 0;
+                framelessWindowConverter.setBorderWidth(borderWidth);
             }
             else
             {
                 windowSnapped = false;
+                borderWidth = 10;
                 TopLevelLayout->setContentsMargins(borderWidth, borderWidth, borderWidth, borderWidth);
+                framelessWindowConverter.setBorderWidth(borderWidth);
             }
         }
         break;
@@ -126,35 +142,43 @@ bool TransparentBorderWidget::nativeEvent(const QByteArray& eventType, void* mes
     return framelessWindowConverter.filterNativeEvents(message, result);
 }
 
-void TransparentBorderWidget::paintEvent(QPaintEvent* ev)
+void TransparentBorderWidget::drawDropShadow()
 {
-    // Draw drop shadow
     QColor color(0,0,0);
+    int windowWidth = width();
+    int windowHeight = height();
 
-    QImage image(QSize(width(), height()), QImage::Format_ARGB32_Premultiplied);
-    QPainter painter(&image);
-    painter.setOpacity(0.804);
+    shadowImage = QImage(QSize(width(), height()), QImage::Format_ARGB32_Premultiplied);
+    QPainter painter(&shadowImage);
+    QRect rect2(0,0, windowWidth, windowHeight);
+
+    painter.setOpacity(0.0);
+    painter.setCompositionMode(QPainter::CompositionMode_Clear);
+    painter.fillRect(rect2, QColor(0,0,0,0));
+
+    painter.setOpacity(1.0);
     painter.setCompositionMode(QPainter::CompositionMode_Source);
-    QRect rect(0,0, width(), height());
+    QRect rect(5,5, windowWidth-10, windowHeight-10);
     painter.fillRect(rect,color);
 
-    for(int i = 0; i < 10; i++)
-    {
-        int iTwice = i * 2;
-        double iTen = (i*i) / 400.0;
-        painter.setOpacity(0.004 + iTen);
-        painter.setCompositionMode(QPainter::CompositionMode_Source);
-        rect = QRect(i,i, width()-iTwice, height()-iTwice);
-        painter.fillRect(rect, color);
-    }
-
-    QImage image2 = TranslucentBlurEffect::blurImage(image, ev->rect(), 4);
-    QPainter thisPainter(this);
-    thisPainter.drawImage(ev->rect(), image2);
+    QImage image2 = TranslucentBlurEffect::blurImage(shadowImage, rect2, 4);
+    painter.drawImage(rect2, image2);
 
     // Only border is drawn -> erase inner color
-    thisPainter.setOpacity(0.0);
-    thisPainter.setCompositionMode(QPainter::CompositionMode_Clear);
-    rect = QRect(10,10, width()-20, height()-20);
-    thisPainter.fillRect(rect,color);
+    painter.setOpacity(0.0);
+    painter.setCompositionMode(QPainter::CompositionMode_Clear);
+    rect = QRect(10,10, windowWidth-20, windowHeight-20);
+    painter.fillRect(rect,color);
+}
+
+void TransparentBorderWidget::paintEvent(QPaintEvent* ev)
+{
+    QPainter painter(this);
+    painter.setOpacity(0.0);
+    painter.setCompositionMode(QPainter::CompositionMode_Clear);
+    painter.fillRect(ev->rect(), QColor(0,0,0,0));
+
+    painter.setCompositionMode(QPainter::CompositionMode_Source);
+    painter.setOpacity(1.0);
+    painter.drawImage(rect(), shadowImage);
 }
