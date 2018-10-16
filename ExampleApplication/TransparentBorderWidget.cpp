@@ -8,6 +8,7 @@
 #include <QPushButton>
 #include <QScreen>
 #include <QApplication>
+#include <QGraphicsBlurEffect>
 #include "ToggleButton.h"
 
 TransparentBorderWidget::TransparentBorderWidget(QWidget *parent) : QWidget(parent), framelessWindowConverter()
@@ -127,12 +128,29 @@ bool TransparentBorderWidget::nativeEvent(const QByteArray& eventType, void* mes
 
 void TransparentBorderWidget::paintEvent(QPaintEvent* ev)
 {
-    // Color the blurred background
-    QPainter painter(this);
-    QColor color(255,255,255);
+    (void)ev;
+    // Draw drop shadow
+    QColor color(0,0,0);
 
-    color.setAlpha(255);
+    QPainter painter(this);
     painter.setOpacity(0.004);
     painter.setCompositionMode(QPainter::CompositionMode_Source);
-    painter.fillRect(ev->rect(),color);
+    QRect rect(0,0, width(), height());
+    painter.fillRect(rect,color);
+
+    for(int i = 1; i < 10; i++)
+    {
+        int iTwice = i * 2;
+        double iTen = (i*i) / 200.0;
+        painter.setOpacity(0.004 + iTen);
+        painter.setCompositionMode(QPainter::CompositionMode_Source);
+        rect = QRect(i,i, width()-iTwice, height()-iTwice);
+        painter.fillRect(rect, color);
+    }
+
+    // Only border is drawn -> erase inner color
+    painter.setOpacity(0.0);
+    painter.setCompositionMode(QPainter::CompositionMode_Clear);
+    rect = QRect(10,10, width()-20, height()-20);
+    painter.fillRect(rect,color);
 }

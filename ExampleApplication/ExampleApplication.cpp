@@ -11,6 +11,7 @@
 #include <QFormLayout>
 #include <QCheckBox>
 #include <QLineEdit>
+#include <QGraphicsDropShadowEffect>
 #include "MinimalScrollBar.h"
 #include "ToggleButton.h"
 #include "QPropertyAnimation"
@@ -86,10 +87,10 @@ void ExampleApplication::setupFramelessWindow()
     windowTitle->setAlignment(Qt::AlignRight | Qt::AlignTop);
     windowTitle->setContentsMargins(0,10,10,0);
     windowButtons->hide();
-    framelessWindowConverter->setUpperLeftXPositionOfTrafficLightsOnMacOS(xUpperLeftOfTrafficLights);
-    framelessWindowConverter->setUpperLeftYPositionOfTrafficLightsOnMacOS(yUpperLeftOfTrafficLights);
+    framelessWindowConverter->setUpperLeftXPositionOfTrafficLightsOnMacOS(xUpperLeftOfTrafficLights + 10);
+    framelessWindowConverter->setUpperLeftYPositionOfTrafficLightsOnMacOS(yUpperLeftOfTrafficLights + 10);
 #else
-    //macOSWidget->setEnabled(false);
+    macOSWidget->setEnabled(false);
 #endif
 
     // Connect custom System Buttons
