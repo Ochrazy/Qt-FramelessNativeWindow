@@ -8,7 +8,7 @@
 #include <QPushButton>
 #include <QScreen>
 #include <QApplication>
-#include <QGraphicsBlurEffect>
+#include "TranslucentBlurEffect/TranslucentBlurEffect.h"
 #include "ToggleButton.h"
 
 TransparentBorderWidget::TransparentBorderWidget(QWidget *parent) : QWidget(parent), framelessWindowConverter()
@@ -128,29 +128,33 @@ bool TransparentBorderWidget::nativeEvent(const QByteArray& eventType, void* mes
 
 void TransparentBorderWidget::paintEvent(QPaintEvent* ev)
 {
-    (void)ev;
     // Draw drop shadow
     QColor color(0,0,0);
 
-    QPainter painter(this);
-    painter.setOpacity(0.004);
+    QImage image(QSize(width(), height()), QImage::Format_ARGB32_Premultiplied);
+    QPainter painter(&image);
+    painter.setOpacity(0.804);
     painter.setCompositionMode(QPainter::CompositionMode_Source);
     QRect rect(0,0, width(), height());
     painter.fillRect(rect,color);
 
-    for(int i = 1; i < 10; i++)
+    for(int i = 0; i < 10; i++)
     {
         int iTwice = i * 2;
-        double iTen = (i*i) / 200.0;
+        double iTen = (i*i) / 400.0;
         painter.setOpacity(0.004 + iTen);
         painter.setCompositionMode(QPainter::CompositionMode_Source);
         rect = QRect(i,i, width()-iTwice, height()-iTwice);
         painter.fillRect(rect, color);
     }
 
+    QImage image2 = TranslucentBlurEffect::blurImage(image, ev->rect(), 4);
+    QPainter thisPainter(this);
+    thisPainter.drawImage(ev->rect(), image2);
+
     // Only border is drawn -> erase inner color
-    painter.setOpacity(0.0);
-    painter.setCompositionMode(QPainter::CompositionMode_Clear);
+    thisPainter.setOpacity(0.0);
+    thisPainter.setCompositionMode(QPainter::CompositionMode_Clear);
     rect = QRect(10,10, width()-20, height()-20);
-    painter.fillRect(rect,color);
+    thisPainter.fillRect(rect,color);
 }

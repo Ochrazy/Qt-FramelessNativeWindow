@@ -20,6 +20,8 @@ public:
 
     bool isActive();
 
+    static QImage blurImage(const QImage& image, const QRect& rect, int radius);
+
 signals:
     void hideNonQtWidgets();
     void showNonQtWidgets();
@@ -34,8 +36,6 @@ private:
     bool bTakeScreenshot = false;
     QImage blurredScreenshot;
     bool bIsActive = true;
-
-    QImage blurImage(const QImage& image, const QRect& rect, int radius);
 };
 
 #endif // TRANSLUCENTBLUREFFECT_H
