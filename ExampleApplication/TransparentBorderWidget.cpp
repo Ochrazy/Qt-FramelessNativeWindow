@@ -174,10 +174,6 @@ void TransparentBorderWidget::drawDropShadow()
 void TransparentBorderWidget::paintEvent(QPaintEvent* ev)
 {
     QPainter painter(this);
-    painter.setOpacity(0.0);
-    painter.setCompositionMode(QPainter::CompositionMode_Clear);
-    painter.fillRect(ev->rect(), QColor(0,0,0,0));
-
     painter.setCompositionMode(QPainter::CompositionMode_Source);
     painter.setOpacity(1.0);
     painter.drawImage(rect(), shadowImage);
