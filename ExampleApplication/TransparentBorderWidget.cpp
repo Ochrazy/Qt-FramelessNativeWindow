@@ -8,6 +8,7 @@
 #include <QPushButton>
 #include <QScreen>
 #include <QApplication>
+#include <QTimer>
 #include "TranslucentBlurEffect/TranslucentBlurEffect.h"
 #include "ToggleButton.h"
 
@@ -96,7 +97,6 @@ bool TransparentBorderWidget::event(QEvent* event)
     }
     case QEvent::Resize:
     {
-        drawDropShadow();
         if(!(windowState() & Qt::WindowMaximized))
         {
             // Adjust transparent border when doing window snapping
@@ -117,7 +117,6 @@ bool TransparentBorderWidget::event(QEvent* event)
                 borderWidth = 10;
                 TopLevelLayout->setContentsMargins(borderWidth, 0, borderWidth, 0);
                 borderWidth = 0;
-                framelessWindowConverter.setBorderWidth(borderWidth);
             }
             else
             {
@@ -127,6 +126,9 @@ bool TransparentBorderWidget::event(QEvent* event)
                 framelessWindowConverter.setBorderWidth(borderWidth);
             }
         }
+
+        updateDropShadow();
+        update();
         break;
     }
     default:
@@ -142,13 +144,13 @@ bool TransparentBorderWidget::nativeEvent(const QByteArray& eventType, void* mes
     return framelessWindowConverter.filterNativeEvents(message, result);
 }
 
-void TransparentBorderWidget::drawDropShadow()
+void TransparentBorderWidget::updateDropShadow()
 {
     QColor color(0,0,0);
     int windowWidth = width();
     int windowHeight = height();
 
-    shadowImage = QImage(QSize(width(), height()), QImage::Format_ARGB32_Premultiplied);
+    shadowImage = QImage(QSize(windowWidth, windowHeight), QImage::Format_ARGB32_Premultiplied);
     QPainter painter(&shadowImage);
     QRect rect2(0,0, windowWidth, windowHeight);
 
@@ -161,7 +163,7 @@ void TransparentBorderWidget::drawDropShadow()
     QRect rect(5,5, windowWidth-10, windowHeight-10);
     painter.fillRect(rect,color);
 
-    QImage image2 = TranslucentBlurEffect::blurImage(shadowImage, rect2, 4);
+    QImage image2 = TranslucentBlurEffect::blurImage(shadowImage, rect2, 5);
     painter.drawImage(rect2, image2);
 
     // Only border is drawn -> erase inner color
@@ -173,8 +175,9 @@ void TransparentBorderWidget::drawDropShadow()
 
 void TransparentBorderWidget::paintEvent(QPaintEvent* ev)
 {
+    (void)ev;
     QPainter painter(this);
     painter.setCompositionMode(QPainter::CompositionMode_Source);
-    painter.setOpacity(1.0);
+    painter.setOpacity(0.15);
     painter.drawImage(rect(), shadowImage);
 }

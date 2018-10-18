@@ -25,7 +25,7 @@ private:
     QVBoxLayout* TopLevelLayout;
     bool windowSnapped = false;
     int borderWidth = 10;
-    void drawDropShadow();
+    void updateDropShadow();
     QImage shadowImage = QImage(QSize(width(), height()), QImage::Format_ARGB32_Premultiplied);
 };
 
