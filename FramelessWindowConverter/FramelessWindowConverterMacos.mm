@@ -263,10 +263,14 @@ void FramelessWindowConverterMacos::convertToFrameless()
     window.titlebarAppearsTransparent = YES;
     window.movable = NO; // Custom Move and Resize
 
+    nativeWidgetView.layer.borderWidth = 0;
+
+    [nativeWidgetView.layer setBorderColor:[NSColor clearColor].CGColor];
+
     // Reset Style Mask
     window.styleMask &= ~NSWindowStyleMaskBorderless;
     window.styleMask |= NSWindowStyleMaskFullSizeContentView;
-    window.styleMask |= NSWindowStyleMaskTitled;
+    //window.styleMask |= NSWindowStyleMaskTitled;
     window.styleMask |= NSWindowStyleMaskClosable;
     window.styleMask |= NSWindowStyleMaskMiniaturizable;
     window.styleMask &= ~NSWindowStyleMaskResizable; // Custom Resize
@@ -284,16 +288,22 @@ void FramelessWindowConverterMacos::convertToFrameless()
         // Traffic lights
         tlHelper = [[TrafficLightsHelper alloc] initWithFWCMAndWindow:this :window];
 
-        fullScreenButton = [window standardWindowButton:NSWindowZoomButton];
-        [fullScreenButton.superview willRemoveSubview:fullScreenButton];
-        [fullScreenButton removeFromSuperview];
-        [fullScreenButton viewWillMoveToSuperview:[window contentView]];
+        //fullScreenButton = [window standardWindowButton:NSWindowZoomButton];
+        fullScreenButton = [NSWindow standardWindowButton:NSWindowZoomButton
+                forStyleMask:NSWindowStyleMaskFullSizeContentView];
+        // [fullScreenButton.superview willRemoveSubview:fullScreenButton];
+        //[fullScreenButton removeFromSuperview];
+        //[fullScreenButton viewWillMoveToSuperview:[window contentView]];
         [window.contentView addSubview:fullScreenButton];
-        [fullScreenButton viewDidMoveToSuperview];
+        //[fullScreenButton viewDidMoveToSuperview];
         [fullScreenButton setTarget:tlHelper];
         [fullScreenButton setAction:@selector(zoomButtonAction:)];
+        [fullScreenButton setEnabled:YES];
+        [fullScreenButton setNeedsDisplay:YES];
 
-        closeButton = [window standardWindowButton:NSWindowCloseButton];
+        //closeButton = [window standardWindowButton:NSWindowCloseButton];
+        closeButton = [NSWindow standardWindowButton:NSWindowCloseButton
+                forStyleMask:NSWindowStyleMaskFullSizeContentView];
         [closeButton.superview willRemoveSubview:closeButton];
         [closeButton removeFromSuperview];
         [closeButton viewWillMoveToSuperview:[window contentView]];
@@ -302,7 +312,9 @@ void FramelessWindowConverterMacos::convertToFrameless()
         [closeButton setTarget:tlHelper];
         [closeButton setAction:@selector(closeButtonAction:)];
 
-        minimizeButton = [window standardWindowButton:NSWindowMiniaturizeButton];
+        //minimizeButton = [window standardWindowButton:NSWindowMiniaturizeButton];
+        minimizeButton = [NSWindow standardWindowButton:NSWindowMiniaturizeButton
+                forStyleMask:NSWindowStyleMaskFullSizeContentView];
         [minimizeButton.superview willRemoveSubview:minimizeButton];
         [minimizeButton removeFromSuperview];
         [minimizeButton viewWillMoveToSuperview:[window contentView]];
@@ -329,6 +341,7 @@ void FramelessWindowConverterMacos::convertToFrameless()
         if(!q_ptr->getEnabledGreenTrafficLightOnMacOS()) [fullScreenButton setEnabled:NO];
         if(!q_ptr->getEnabledRedTrafficLightOnMacOS()) [closeButton setEnabled:NO];
         if(!q_ptr->getEnabledYellowTrafficLightOnMacOS()) [minimizeButton setEnabled:NO];
+        isMouseInGroup = true;
     }
     else
     {
@@ -355,6 +368,21 @@ void FramelessWindowConverterMacos::convertToFrameless()
         if(!isResizing)
             repositionTrafficLights();
     }];
+
+    [[NSNotificationCenter defaultCenter]
+            addObserverForName:NSWindowDidResignKeyNotification object:window queue:nil usingBlock:^(NSNotification *){
+        [fullScreenButton setEnabled:NO];
+        [closeButton setEnabled:NO];
+        [minimizeButton setEnabled:NO];
+    }];
+
+    [[NSNotificationCenter defaultCenter]
+            addObserverForName:NSWindowDidBecomeKeyNotification object:window queue:nil usingBlock:^(NSNotification *){
+        if(q_ptr->getEnabledGreenTrafficLightOnMacOS()) [fullScreenButton setEnabled:YES];
+        if(q_ptr->getEnabledRedTrafficLightOnMacOS()) [closeButton setEnabled:YES];
+        if(q_ptr->getEnabledYellowTrafficLightOnMacOS()) [minimizeButton setEnabled:YES];
+    }];
+
 
     // Control Cursor shape ourselves
     [window disableCursorRects];
