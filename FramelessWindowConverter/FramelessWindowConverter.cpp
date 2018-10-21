@@ -11,7 +11,7 @@ FramelessWindowConverter::FramelessWindowConverter() : d_ptr(FramelessWindowConv
 
 FramelessWindowConverter::~FramelessWindowConverter()
 {
-
+    delete d_ptr;
 }
 
 void FramelessWindowConverter::convertWindowToFrameless(unsigned long long inWindowHandle, std::function<void(void)> inReleaseMouseGrab)

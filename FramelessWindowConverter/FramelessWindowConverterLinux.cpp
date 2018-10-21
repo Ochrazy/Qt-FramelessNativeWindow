@@ -43,7 +43,9 @@ unsigned int FramelessWindowConverterLinux::getAtom(const char* name)
     cookie = xcb_intern_atom(connection, 0, static_cast<uint16_t>(strlen(name)), name);
     if ((reply = xcb_intern_atom_reply(connection, cookie, nullptr)))
     {
-        return reply->atom;
+        unsigned int replyAtom = reply->atom;
+        free(reply);
+        return replyAtom;
     }
     else return 0;
 }
@@ -175,7 +177,9 @@ FWCRect FramelessWindowConverterLinux::getCurrentWindowFrame()
 {
     xcb_get_geometry_cookie_t geom_cookie = xcb_get_geometry (connection, static_cast<xcb_drawable_t>(windowHandle));
     xcb_get_geometry_reply_t* frame_geometry = xcb_get_geometry_reply(connection, geom_cookie, nullptr);
-    return FWCRect(0, 0, frame_geometry->width, frame_geometry->height);
+    FWCRect rect(0, 0, frame_geometry->width, frame_geometry->height);
+    free(frame_geometry);
+    return rect;
 }
 
 bool FramelessWindowConverterLinux::filterNativeEvent(void *message, long*)
@@ -257,6 +261,7 @@ bool FramelessWindowConverterLinux::filterNativeEvent(void *message, long*)
                 xcb_get_property_cookie_t cookie = xcb_get_property(connection, false, windowHandle, getAtom("_NET_WM_STATE"), XCB_ATOM_ATOM, 0, 32);
                 xcb_get_property_reply_t* reply = xcb_get_property_reply(connection, cookie, nullptr);
                 xcb_atom_t* isMaximized = reinterpret_cast<xcb_atom_t*>(xcb_get_property_value(reply));
+                free(reply);
 
                 xcb_client_message_event_t event;
                 event.response_type = XCB_CLIENT_MESSAGE;
