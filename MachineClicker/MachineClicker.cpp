@@ -52,19 +52,20 @@ MachineClicker::MachineClicker(QWidget *parent) : QWidget(parent)
     connect(&startStopHotkey, &SystemWideHotkey::hotkeyPressed, StartStopButton, &QAbstractButton::toggle);
 
     clicker = new Clicker(IntervalSpinBox->value());
-    timerThread = new QThread();
-    clicker->moveToThread(timerThread);
-    connect(timerThread, &QThread::finished, clicker, &QObject::deleteLater);
+    clicker->moveToThread(&timerThread);
+    connect(&timerThread, &QThread::finished, clicker, &QObject::deleteLater);
     connect(this, &MachineClicker::signalStartClicking, clicker, &Clicker::startClicking);
     connect(this, &MachineClicker::signalStopClicking, clicker, &Clicker::stopClicking);
     connect(this, &MachineClicker::signalSetNewClickRate, clicker, &Clicker::setClickRate);
-    timerThread->start();
+    timerThread.start();
 
     qApp->installEventFilter(this);
 }
 
 MachineClicker::~MachineClicker()
 {
+    timerThread.quit();
+    timerThread.wait();
 }
 
 bool MachineClicker::eventFilter(QObject *object, QEvent *event)

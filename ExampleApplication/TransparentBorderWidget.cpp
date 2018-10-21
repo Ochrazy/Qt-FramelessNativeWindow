@@ -24,12 +24,12 @@ TransparentBorderWidget::TransparentBorderWidget(QWidget *parent) : QWidget(pare
 
     TopLevelLayout = new QVBoxLayout(this);
     TopLevelLayout->addWidget(exApp);
-    TopLevelLayout->setContentsMargins(borderWidth, borderWidth, borderWidth, borderWidth);
+    TopLevelLayout->setContentsMargins(resizeOutsideBorderWidth, resizeOutsideBorderWidth, resizeOutsideBorderWidth, resizeOutsideBorderWidth);
     setGeometry(200,200,200,200);
 }
 
-void TransparentBorderWidget::setBorderWidth(int inBorderWidth) { borderWidth = inBorderWidth; TopLevelLayout->setContentsMargins(borderWidth, borderWidth, borderWidth, borderWidth); }
-int TransparentBorderWidget::getBorderWidth() { return borderWidth; }
+void TransparentBorderWidget::setBorderWidth(int inBorderWidth) { resizeOutsideBorderWidth = inBorderWidth; TopLevelLayout->setContentsMargins(resizeOutsideBorderWidth, resizeOutsideBorderWidth, resizeOutsideBorderWidth, resizeOutsideBorderWidth); }
+int TransparentBorderWidget::getBorderWidth() { return resizeOutsideBorderWidth; }
 
 void TransparentBorderWidget::setupFramelessWindow(bool hasWindowDropShadow)
 {
@@ -68,30 +68,30 @@ bool TransparentBorderWidget::event(QEvent* event)
         {
             TopLevelLayout->setContentsMargins(0, 0, 0, 0);
             framelessWindowConverter.setEnableResizing(false);
-            borderWidth = 0;
-            framelessWindowConverter.setBorderWidth(borderWidth);
+            resizeOutsideBorderWidth = 0;
+            framelessWindowConverter.setBorderWidth(resizeOutsideBorderWidth + exApp->getResizeInsideBorderWidth());
         }
         else if(!(windowState() & Qt::WindowFullScreen) && (stateEvent->oldState() & Qt::WindowFullScreen))
         {
-            borderWidth = 10;
-            TopLevelLayout->setContentsMargins(borderWidth, borderWidth, borderWidth, borderWidth);
+            resizeOutsideBorderWidth = 10;
+            TopLevelLayout->setContentsMargins(resizeOutsideBorderWidth, resizeOutsideBorderWidth, resizeOutsideBorderWidth, resizeOutsideBorderWidth);
             framelessWindowConverter.setEnableResizing(true);
-            framelessWindowConverter.setBorderWidth(borderWidth);
+            framelessWindowConverter.setBorderWidth(resizeOutsideBorderWidth + exApp->getResizeInsideBorderWidth());
         }
 
         if((windowState() & Qt::WindowMaximized) && !(stateEvent->oldState() & Qt::WindowMaximized))
         {
             TopLevelLayout->setContentsMargins(0, 0, 0, 0);
             framelessWindowConverter.setEnableResizing(false);
-            borderWidth = 0;
-            framelessWindowConverter.setBorderWidth(borderWidth);
+            resizeOutsideBorderWidth = 0;
+            framelessWindowConverter.setBorderWidth(resizeOutsideBorderWidth + exApp->getResizeInsideBorderWidth());
         }
         else if(!(windowState() & Qt::WindowMaximized) && (stateEvent->oldState() & Qt::WindowMaximized))
         {
-            borderWidth = 10;
-            TopLevelLayout->setContentsMargins(borderWidth, borderWidth, borderWidth, borderWidth);
+            resizeOutsideBorderWidth = 10;
+            TopLevelLayout->setContentsMargins(resizeOutsideBorderWidth, resizeOutsideBorderWidth, resizeOutsideBorderWidth, resizeOutsideBorderWidth);
             framelessWindowConverter.setEnableResizing(true);
-            framelessWindowConverter.setBorderWidth(borderWidth);
+           framelessWindowConverter.setBorderWidth(resizeOutsideBorderWidth + exApp->getResizeInsideBorderWidth());
         }
         break;
     }
@@ -109,21 +109,21 @@ bool TransparentBorderWidget::event(QEvent* event)
             {
                 windowSnapped = true;
                 TopLevelLayout->setContentsMargins(0, 0, 0, 0);
-                borderWidth = 0;
-                framelessWindowConverter.setBorderWidth(borderWidth);
+                resizeOutsideBorderWidth = 0;
+               framelessWindowConverter.setBorderWidth(resizeOutsideBorderWidth + exApp->getResizeInsideBorderWidth());
             }
             else  if(resizeEvent->size().height() == screenSize.height() && resizeEvent->size().width() < screenRect.width())
             {
-                borderWidth = 10;
-                TopLevelLayout->setContentsMargins(borderWidth, 0, borderWidth, 0);
-                borderWidth = 0;
+                resizeOutsideBorderWidth = 10;
+                TopLevelLayout->setContentsMargins(resizeOutsideBorderWidth, 0, resizeOutsideBorderWidth, 0);
+                resizeOutsideBorderWidth = 0;
             }
             else
             {
                 windowSnapped = false;
-                borderWidth = 10;
-                TopLevelLayout->setContentsMargins(borderWidth, borderWidth, borderWidth, borderWidth);
-                framelessWindowConverter.setBorderWidth(borderWidth);
+                resizeOutsideBorderWidth = 10;
+                TopLevelLayout->setContentsMargins(resizeOutsideBorderWidth, resizeOutsideBorderWidth, resizeOutsideBorderWidth, resizeOutsideBorderWidth);
+                framelessWindowConverter.setBorderWidth(resizeOutsideBorderWidth + exApp->getResizeInsideBorderWidth());
             }
         }
 

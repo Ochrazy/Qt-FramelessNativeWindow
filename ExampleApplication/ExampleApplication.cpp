@@ -26,7 +26,7 @@ ExampleApplication::ExampleApplication(FWC::FramelessWindowConverter* inFrameles
 
     // Set total title bar height
     setVisibleTitleBarHeight(titleBarHeight);
-    framelessWindowConverter->setBorderWidth(static_cast<TransparentBorderWidget*>(parentWidget())->getBorderWidth() + 3);
+    framelessWindowConverter->setBorderWidth(static_cast<TransparentBorderWidget*>(parentWidget())->getBorderWidth() + resizeInsideBorderWidth);
 
     setStyleSheet("QSpinBox { background: black; color: white; font-size: 16px; }"
                   "QSpinBox:disabled { background: grey; }"
@@ -59,11 +59,21 @@ void ExampleApplication::setVisibleTitleBarHeight(int inVisibleTitleBarHeight)
     titleBarHeight = inVisibleTitleBarHeight + static_cast<TransparentBorderWidget*>(parentWidget())->getBorderWidth();
 }
 
+void ExampleApplication::setResizeInsideBorderWidth(int inBorderWidth)
+{
+    resizeInsideBorderWidth = inBorderWidth;
+}
+
+int ExampleApplication::getResizeInsideBorderWidth()
+{
+    return resizeInsideBorderWidth;
+}
+
 void ExampleApplication::setupFramelessWindow()
 {
     framelessWindowConverter->setShouldPerformWindowDrag([this](int mousePosXInWindow, int mousePosYInWindow)
     {
-        QWidget* widgetUnderCursor = childAt(mousePosXInWindow, mousePosYInWindow);
+        QWidget* widgetUnderCursor = parentWidget()->childAt(mousePosXInWindow, mousePosYInWindow);
         // Set all background widgets draggable
         if((widgetUnderCursor == nullptr ||  widgetUnderCursor == rightBackgroundWidget ||  widgetUnderCursor == leftBackgroundWidget
             || widgetUnderCursor == machineClicker || widgetUnderCursor == windowTitle || widgetUnderCursor == windowButtons) &&
@@ -427,13 +437,12 @@ QWidget* ExampleApplication::createFramelessWidget()
     QSpinBox* borderWidthSpinBox = new QSpinBox;
     borderWidthSpinBox->setMinimum(0);
     borderWidthSpinBox->setMaximum(100);
-    borderWidthSpinBox->setValue(framelessWindowConverter->getBorderWidth());
+    borderWidthSpinBox->setValue(resizeInsideBorderWidth);
     borderWidthSpinBox->setMinimumSize(35, 25);
     borderWidthSpinBox->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     connect(borderWidthSpinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, [this](int value) {
-        if(static_cast<TransparentBorderWidget*>(parentWidget())->getBorderWidth() == 0)
-            framelessWindowConverter->setBorderWidth(value - 10);
-        else framelessWindowConverter->setBorderWidth(value);
+        resizeInsideBorderWidth = value;
+        framelessWindowConverter->setBorderWidth(resizeInsideBorderWidth + static_cast<TransparentBorderWidget*>(parentWidget())->getBorderWidth());
     });
     QWidget* borderWidthWidget = new QWidget;
     borderWidthWidget->setStyleSheet("QLabel { margin-top: 1px; background-color : none; color : white; font-size: 15px; }");

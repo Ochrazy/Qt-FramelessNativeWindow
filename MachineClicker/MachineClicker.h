@@ -31,7 +31,7 @@ private slots:
     void editFinished();
 
 private:
-    QThread* timerThread;
+    QThread timerThread;
     class Clicker* clicker;
     SystemWideHotkey startStopHotkey;
 

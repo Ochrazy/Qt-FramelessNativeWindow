@@ -11,13 +11,15 @@ class ExampleApplication : public QWidget
 {
     Q_OBJECT
 public:
-    explicit ExampleApplication(FWC::FramelessWindowConverter* framelessWindowConverter, QWidget *parent = nullptr);
+    ExampleApplication(FWC::FramelessWindowConverter* framelessWindowConverter, QWidget *parent = nullptr);
 
     bool event(QEvent* event) override;
     void resizeEvent(QResizeEvent* ev) override;
     void paintEvent(QPaintEvent* ev) override;
 
     void setVisibleTitleBarHeight(int inVisibleTitleBarHeight);
+    void setResizeInsideBorderWidth(int inBorderWidth);
+    int getResizeInsideBorderWidth();
 
 public:
     TranslucentBlurEffect translucencyBlurEffect;
@@ -33,6 +35,7 @@ public:
     int widthOfLeftBackgroundWidget = 400;
     // Based on current shown widgets and title bar height
     void setMinMaxWindowSizesAndResizeIfNeeded();
+    int resizeInsideBorderWidth = 3;
 
     // Left side widgets
     void createLeftSideWidgets();

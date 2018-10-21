@@ -24,7 +24,7 @@ private:
     void setupFramelessWindow(bool hasWindowDropShadow = false);
     QVBoxLayout* TopLevelLayout;
     bool windowSnapped = false;
-    int borderWidth = 10;
+    int resizeOutsideBorderWidth = 10;
     void updateDropShadow();
     QImage shadowImage = QImage(QSize(width(), height()), QImage::Format_ARGB32_Premultiplied);
 };
